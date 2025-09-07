@@ -1,0 +1,15 @@
+# Build outputs
+.next/
+dist/
+build/
+coverage/
+
+# Dependencies
+node_modules/
+
+# Special directories
+.bmad-core/
+
+# Generated files
+*.log
+*.tsbuildinfo

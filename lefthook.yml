@@ -1,0 +1,17 @@
+pre-commit:
+  parallel: true
+  commands:
+    eslint:
+      glob: '*.{ts,tsx,js,jsx}'
+      run: npm run lint
+    prettier:
+      glob: '*.{ts,tsx,js,jsx,json,md,yml,yaml}'
+      run: npm run format:check
+    type-check:
+      run: npm run type-check
+
+pre-push:
+  parallel: true
+  commands:
+    test-e2e:
+      run: npm run test:e2e
