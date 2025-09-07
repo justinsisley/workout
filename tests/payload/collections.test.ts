@@ -4,6 +4,7 @@ import { Sessions } from '../../src/payload/collections/sessions'
 import { Milestones } from '../../src/payload/collections/milestones'
 import { Programs } from '../../src/payload/collections/programs'
 import { ProductUsers } from '../../src/payload/collections/product-users'
+import { ExerciseCompletions } from '../../src/payload/collections/exercise-completions'
 
 describe('PayloadCMS Collections', () => {
   describe('Exercises Collection', () => {
@@ -636,6 +637,155 @@ describe('PayloadCMS Collections', () => {
     it('should have proper admin configuration', () => {
       expect(ProductUsers.admin?.description).toContain('WebAuthN passkeys')
       expect(ProductUsers.admin?.description).toContain('separate from admin users')
+    })
+  })
+
+  describe('ExerciseCompletions Collection', () => {
+    it('should have correct collection configuration', () => {
+      expect(ExerciseCompletions.slug).toBe('exerciseCompletions')
+      expect(ExerciseCompletions.admin?.useAsTitle).toBe('id')
+      expect(ExerciseCompletions.admin?.defaultColumns).toEqual([
+        'productUser',
+        'exercise',
+        'session',
+        'completedAt',
+        'sets',
+        'reps',
+      ])
+    })
+
+    it('should have required relationship fields', () => {
+      const fields = ExerciseCompletions.fields || []
+      const fieldNames = fields.map((field: any) => field.name)
+
+      expect(fieldNames).toContain('productUser')
+      expect(fieldNames).toContain('exercise')
+      expect(fieldNames).toContain('session')
+      expect(fieldNames).toContain('completedAt')
+    })
+
+    it('should have performance tracking fields', () => {
+      const fields = ExerciseCompletions.fields || []
+      const fieldNames = fields.map((field: any) => field.name)
+
+      expect(fieldNames).toContain('sets')
+      expect(fieldNames).toContain('reps')
+      expect(fieldNames).toContain('weight')
+      expect(fieldNames).toContain('time')
+      expect(fieldNames).toContain('notes')
+    })
+
+    it('should have productUser relationship configured correctly', () => {
+      const productUserField = ExerciseCompletions.fields?.find(
+        (field: any) => field.name === 'productUser',
+      )
+
+      expect(productUserField).toBeDefined()
+      expect((productUserField as any)?.type).toBe('relationship')
+      expect((productUserField as any)?.relationTo).toBe('productUsers')
+      expect((productUserField as any)?.required).toBe(true)
+    })
+
+    it('should have exercise relationship configured correctly', () => {
+      const exerciseField = ExerciseCompletions.fields?.find(
+        (field: any) => field.name === 'exercise',
+      )
+
+      expect(exerciseField).toBeDefined()
+      expect((exerciseField as any)?.type).toBe('relationship')
+      expect((exerciseField as any)?.relationTo).toBe('exercises')
+      expect((exerciseField as any)?.required).toBe(true)
+    })
+
+    it('should have session relationship configured correctly', () => {
+      const sessionField = ExerciseCompletions.fields?.find(
+        (field: any) => field.name === 'session',
+      )
+
+      expect(sessionField).toBeDefined()
+      expect((sessionField as any)?.type).toBe('relationship')
+      expect((sessionField as any)?.relationTo).toBe('sessions')
+      expect((sessionField as any)?.required).toBe(true)
+    })
+
+    it('should have sets field with correct validation', () => {
+      const setsField = ExerciseCompletions.fields?.find((field: any) => field.name === 'sets')
+
+      expect(setsField).toBeDefined()
+      expect((setsField as any)?.type).toBe('number')
+      expect((setsField as any)?.required).toBe(true)
+      expect((setsField as any)?.min).toBe(1)
+    })
+
+    it('should have reps field with correct validation', () => {
+      const repsField = ExerciseCompletions.fields?.find((field: any) => field.name === 'reps')
+
+      expect(repsField).toBeDefined()
+      expect((repsField as any)?.type).toBe('number')
+      expect((repsField as any)?.required).toBe(true)
+      expect((repsField as any)?.min).toBe(1)
+    })
+
+    it('should have weight field as optional with correct validation', () => {
+      const weightField = ExerciseCompletions.fields?.find((field: any) => field.name === 'weight')
+
+      expect(weightField).toBeDefined()
+      expect((weightField as any)?.type).toBe('number')
+      expect((weightField as any)?.required).toBeFalsy()
+      expect((weightField as any)?.min).toBe(0)
+    })
+
+    it('should have time field as optional with correct validation', () => {
+      const timeField = ExerciseCompletions.fields?.find((field: any) => field.name === 'time')
+
+      expect(timeField).toBeDefined()
+      expect((timeField as any)?.type).toBe('number')
+      expect((timeField as any)?.required).toBeFalsy()
+      expect((timeField as any)?.min).toBe(0)
+    })
+
+    it('should have completedAt field as required date', () => {
+      const completedAtField = ExerciseCompletions.fields?.find(
+        (field: any) => field.name === 'completedAt',
+      )
+
+      expect(completedAtField).toBeDefined()
+      expect((completedAtField as any)?.type).toBe('date')
+      expect((completedAtField as any)?.required).toBe(true)
+    })
+
+    it('should have notes field as optional textarea', () => {
+      const notesField = ExerciseCompletions.fields?.find((field: any) => field.name === 'notes')
+
+      expect(notesField).toBeDefined()
+      expect((notesField as any)?.type).toBe('textarea')
+      expect((notesField as any)?.required).toBeFalsy()
+    })
+
+    it('should have proper access controls for admin-only management', () => {
+      expect(ExerciseCompletions.access?.read).toBeDefined()
+      expect(ExerciseCompletions.access?.create).toBeDefined()
+      expect(ExerciseCompletions.access?.update).toBeDefined()
+      expect(ExerciseCompletions.access?.delete).toBeDefined()
+    })
+
+    it('should have proper admin descriptions', () => {
+      const productUserField = ExerciseCompletions.fields?.find(
+        (field: any) => field.name === 'productUser',
+      )
+      const exerciseField = ExerciseCompletions.fields?.find(
+        (field: any) => field.name === 'exercise',
+      )
+      const setsField = ExerciseCompletions.fields?.find((field: any) => field.name === 'sets')
+
+      expect((productUserField as any)?.admin?.description).toContain('completed this exercise')
+      expect((exerciseField as any)?.admin?.description).toContain('exercise that was completed')
+      expect((setsField as any)?.admin?.description).toContain('Number of sets completed')
+    })
+
+    it('should have proper admin configuration', () => {
+      expect(ExerciseCompletions.admin?.description).toContain('Exercise completion records')
+      expect(ExerciseCompletions.admin?.description).toContain('performance data')
     })
   })
 })

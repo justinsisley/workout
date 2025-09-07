@@ -74,6 +74,7 @@ export interface Config {
     milestones: Milestone;
     programs: Program;
     productUsers: ProductUser;
+    exerciseCompletions: ExerciseCompletion;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -87,6 +88,7 @@ export interface Config {
     milestones: MilestonesSelect<false> | MilestonesSelect<true>;
     programs: ProgramsSelect<false> | ProgramsSelect<true>;
     productUsers: ProductUsersSelect<false> | ProductUsersSelect<true>;
+    exerciseCompletions: ExerciseCompletionsSelect<false> | ExerciseCompletionsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -398,6 +400,53 @@ export interface ProductUser {
   createdAt: string;
 }
 /**
+ * Exercise completion records track when users complete exercises with their performance data.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "exerciseCompletions".
+ */
+export interface ExerciseCompletion {
+  id: string;
+  /**
+   * The product user who completed this exercise.
+   */
+  productUser: string | ProductUser;
+  /**
+   * The exercise that was completed.
+   */
+  exercise: string | Exercise;
+  /**
+   * The session in which this exercise was completed.
+   */
+  session: string | Session;
+  /**
+   * Number of sets completed for this exercise.
+   */
+  sets: number;
+  /**
+   * Number of repetitions completed per set.
+   */
+  reps: number;
+  /**
+   * Weight used for this exercise (optional, for weighted exercises).
+   */
+  weight?: number | null;
+  /**
+   * Time taken to complete the exercise in seconds (optional, for timed exercises).
+   */
+  time?: number | null;
+  /**
+   * Date and time when the exercise was completed.
+   */
+  completedAt: string;
+  /**
+   * Optional notes about the exercise completion (form, difficulty, etc.).
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
@@ -431,6 +480,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'productUsers';
         value: string | ProductUser;
+      } | null)
+    | ({
+        relationTo: 'exerciseCompletions';
+        value: string | ExerciseCompletion;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -621,6 +674,23 @@ export interface ProductUsersSelect<T extends boolean = true> {
   currentDay?: T;
   lastWorkoutDate?: T;
   totalWorkoutsCompleted?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "exerciseCompletions_select".
+ */
+export interface ExerciseCompletionsSelect<T extends boolean = true> {
+  productUser?: T;
+  exercise?: T;
+  session?: T;
+  sets?: T;
+  reps?: T;
+  weight?: T;
+  time?: T;
+  completedAt?: T;
+  notes?: T;
   updatedAt?: T;
   createdAt?: T;
 }
