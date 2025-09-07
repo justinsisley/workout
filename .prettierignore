@@ -13,3 +13,4 @@ node_modules/
 # Generated files
 *.log
 *.tsbuildinfo
+src/payload/payload-types.ts
