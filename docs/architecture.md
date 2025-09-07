@@ -1373,12 +1373,11 @@ export const useWorkoutStore = create<WorkoutState>((set) => ({
 
 ```
 src/app/
-├── (auth)/                # Authentication route group
+├── (frontend)/            # Product user-facing pages (PayloadCMS convention)
 │   ├── login/             # SMS authentication
 │   │   └── page.tsx
-│   └── verify/            # OTP verification
-│       └── page.tsx
-├── (app)/                 # Product user-facing pages
+│   ├── verify/            # OTP verification
+│   │   └── page.tsx
 │   ├── programs/          # Program selection
 │   │   ├── page.tsx       # Program list
 │   │   └── [id]/          # Program details
@@ -1394,7 +1393,7 @@ src/app/
 │       ├── page.tsx       # Progress overview
 │       └── history/       # Workout history
 │           └── page.tsx
-├── (payload)/             # PayloadCMS route group
+├── (payload)/             # PayloadCMS route group (PayloadCMS convention)
 │   ├── admin/             # PayloadCMS admin interface
 │   │   ├── page.tsx       # Admin UI page
 │   │   └── layout.tsx     # Admin layout
@@ -1783,16 +1782,21 @@ workout-app/
 │   │   ├── program/            # Program management components
 │   │   └── common/             # Shared components
 │   ├── app/                    # Next.js App Router
-│   │   ├── (auth)/             # Authentication route group
+│   │   ├── (frontend)/         # Product user-facing pages (PayloadCMS convention)
 │   │   │   ├── login/          # SMS authentication
-│   │   │   └── verify/         # OTP verification
-│   │   ├── (app)/              # Product user-facing pages
+│   │   │   ├── verify/         # OTP verification
 │   │   │   ├── programs/       # Program selection
 │   │   │   ├── workout/        # Workout execution
+│   │   │   │   ├── dashboard/  # Workout overview
+│   │   │   │   ├── session/    # Current session
+│   │   │   │   └── exercise/   # Exercise detail
 │   │   │   └── progress/       # Progress tracking
-│   │   ├── (payload)/          # PayloadCMS route group
+│   │   │       └── history/    # Workout history
+│   │   ├── (payload)/          # PayloadCMS route group (PayloadCMS convention)
 │   │   │   ├── admin/          # PayloadCMS admin UI
 │   │   │   └── api/            # PayloadCMS API routes
+│   │   ├── api/                # Custom API routes
+│   │   │   └── health/         # Health check endpoint
 │   │   ├── globals.css         # Global styles
 │   │   └── layout.tsx          # Root layout
 │   ├── payload/                # PayloadCMS configuration

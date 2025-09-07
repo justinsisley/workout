@@ -26,7 +26,7 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@payload-config": ["./src/payload.config.ts"],
+      "@payload-config": ["./src/payload/payload.config.ts"],
       "@/components/*": ["./src/components/*"],
       "@/actions/*": ["./src/actions/*"],
       "@/hooks/*": ["./src/hooks/*"],

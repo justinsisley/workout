@@ -1,67 +1,247 @@
-# Payload Blank Template
+# Personal Workout App
 
-This template comes configured with the bare minimum to get started on anything you need.
+A mobile-first workout tracking application built with Next.js, PayloadCMS, and MongoDB. Designed for gym use with one-handed operation and seamless video integration.
 
-## Quick start
+## 🚀 Quick Start
 
-This template can be deployed directly from our Cloud hosting and it will setup MongoDB and cloud S3 object storage for media.
+### Prerequisites
 
-## Quick Start - local setup
+- Node.js 18+ and npm
+- Docker and Docker Compose
+- Git
 
-To spin up this template locally, follow these steps:
+### Installation
 
-### Clone
+1. **Clone the repository**
 
-After you click the `Deploy` button above, you'll want to have standalone copy of this repo on your machine. If you've already cloned this repo, skip to [Development](#development).
+   ```bash
+   git clone <repository-url>
+   cd workout-app
+   ```
 
-### Development
+2. **Install dependencies**
 
-1. First [clone the repo](#clone) if you have not done so already
-2. `cd my-project && cp .env.example .env` to copy the example environment variables. You'll need to add the `MONGODB_URI` from your Cloud project to your `.env` if you want to use S3 storage and the MongoDB database that was created for you.
+   ```bash
+   npm install
+   ```
 
-3. `pnpm install && pnpm dev` to install dependencies and start the dev server
-4. open `http://localhost:3000` to open the app in your browser
+3. **Set up environment variables**
 
-That's it! Changes made in `./src` will be reflected in your app. Follow the on-screen instructions to login and create your first admin user. Then check out [Production](#production) once you're ready to build and serve your app, and [Deployment](#deployment) when you're ready to go live.
+   ```bash
+   cp .env.example .env.local
+   # Edit .env.local with your configuration
+   ```
 
-#### Docker (Optional)
+4. **Start MongoDB with Docker**
 
-If you prefer to use Docker for local development instead of a local MongoDB instance, the provided docker-compose.yml file can be used.
+   ```bash
+   docker-compose up -d
+   ```
 
-To do so, follow these steps:
+5. **Start the development server**
 
-- Modify the `MONGODB_URI` in your `.env` file to `mongodb://127.0.0.1/<dbname>`
-- Modify the `docker-compose.yml` file's `MONGODB_URI` to match the above `<dbname>`
-- Run `docker-compose up` to start the database, optionally pass `-d` to run in the background.
+   ```bash
+   npm run dev
+   ```
 
-## How it works
+6. **Access the application**
+   - Frontend: http://localhost:3000
+   - PayloadCMS Admin: http://localhost:3000/admin
 
-The Payload config is tailored specifically to the needs of most websites. It is pre-configured in the following ways:
+## 🛠️ Development
 
-### Collections
+### Available Scripts
 
-See the [Collections](https://payloadcms.com/docs/configuration/collections) docs for details on how to extend this functionality.
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+- `npm run lint:fix` - Run ESLint with auto-fix
+- `npm run format` - Format code with Prettier
+- `npm run format:check` - Check code formatting
+- `npm run type-check` - Run TypeScript type checking
+- `npm test` - Run all tests
+- `npm run test:int` - Run integration tests
+- `npm run test:e2e` - Run E2E tests
+- `npm run test:watch` - Run tests in watch mode
+- `npm run test:coverage` - Run tests with coverage
 
-- #### Users (Authentication)
+### Project Structure
 
-  Users are auth-enabled collections that have access to the admin panel.
+```
+workout-app/
+├── src/
+│   ├── components/          # React components
+│   │   ├── ui/             # ShadCN base components
+│   │   ├── auth/           # Authentication components
+│   │   ├── workout/        # Workout-specific components
+│   │   ├── program/        # Program management components
+│   │   └── common/         # Shared components
+│   ├── app/                # Next.js App Router
+│   │   ├── (frontend)/     # Product user-facing pages (PayloadCMS convention)
+│   │   └── (payload)/      # PayloadCMS route group (PayloadCMS convention)
+│   ├── payload/            # PayloadCMS configuration
+│   │   ├── collections/    # PayloadCMS collection definitions
+│   │   ├── payload.config.ts
+│   │   └── payload-types.ts
+│   ├── actions/            # Server actions
+│   ├── hooks/              # Custom React hooks
+│   ├── stores/             # Zustand state stores
+│   ├── types/              # TypeScript type definitions
+│   └── utils/              # Utility functions
+├── public/                 # Static assets
+├── tests/                  # Test files
+├── docs/                   # Documentation
+└── .env.example            # Environment template
+```
 
-  For additional help, see the official [Auth Example](https://github.com/payloadcms/payload/tree/main/examples/auth) or the [Authentication](https://payloadcms.com/docs/authentication/overview#authentication-overview) docs.
+## 🔧 Configuration
 
-- #### Media
+### Environment Variables
 
-  This is the uploads enabled collection. It features pre-configured sizes, focal point and manual resizing to help you manage your pictures.
+Create a `.env.local` file with the following variables:
 
-### Docker
+```bash
+# Frontend
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 
-Alternatively, you can use [Docker](https://www.docker.com) to spin up this template locally. To do so, follow these steps:
+# Backend
+DATABASE_URI=mongodb://localhost:27017/workout-app
+JWT_SECRET=your-super-secret-jwt-key
+PAYLOAD_SECRET=your-payload-secret-key
 
-1. Follow [steps 1 and 2 from above](#development), the docker-compose file will automatically use the `.env` file in your project root
-1. Next run `docker-compose up`
-1. Follow [steps 4 and 5 from above](#development) to login and create your first admin user
+# SMS Service (for future stories)
+TWILIO_ACCOUNT_SID=your-twilio-account-sid
+TWILIO_AUTH_TOKEN=your-twilio-auth-token
+TWILIO_PHONE_NUMBER=your-twilio-phone-number
 
-That's it! The Docker instance will help you get up and running quickly while also standardizing the development environment across your teams.
+# Shared
+NODE_ENV=development
+```
 
-## Questions
+### Database Setup
 
-If you have any issues or questions, reach out to us on [Discord](https://discord.com/invite/payload) or start a [GitHub discussion](https://github.com/payloadcms/payload/discussions).
+The application uses MongoDB with Docker Compose for local development:
+
+```bash
+# Start MongoDB
+docker-compose up -d
+
+# Stop MongoDB
+docker-compose down
+```
+
+## 🧪 Testing
+
+### Running Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run integration tests only
+npm run test:int
+
+# Run E2E tests only
+npm run test:e2e
+
+# Run tests with coverage
+npm run test:coverage
+```
+
+### Test Structure
+
+- **Unit Tests**: `tests/components/` - Component testing
+- **Integration Tests**: `tests/int/` - API and business logic testing
+- **E2E Tests**: `tests/e2e/` - End-to-end user flow testing
+
+## 🚀 Deployment
+
+### Railway Deployment
+
+The application is configured for deployment on Railway:
+
+1. Connect your GitHub repository to Railway
+2. Set environment variables in Railway dashboard
+3. Deploy automatically on push to main branch
+
+### Environment-Specific Configuration
+
+- **Development**: Local MongoDB, development environment variables
+- **Staging**: Railway MongoDB, staging environment variables
+- **Production**: Railway MongoDB, production environment variables
+
+## 📱 Mobile-First Design
+
+The application is optimized for mobile gym use:
+
+- **One-handed operation** during workouts
+- **Large touch targets** for easy interaction
+- **Offline capability** for gym environments
+- **Video integration** with YouTube for exercise demonstrations
+- **Real-time progress tracking** with immediate feedback
+
+## 🔐 Authentication
+
+- **Admin Users**: Email/password authentication via PayloadCMS
+- **Product Users**: SMS OTP authentication via Twilio
+- **JWT Tokens**: Secure session management
+- **Rate Limiting**: Protection against abuse
+
+## 📊 Features
+
+### Admin Interface (PayloadCMS)
+
+- Program creation and management
+- Exercise library management
+- User progress monitoring
+- Content publishing controls
+
+### Product User Interface
+
+- SMS-based authentication
+- Program selection and assignment
+- Workout session execution
+- Progress tracking and history
+- Video-guided exercises
+
+## 🛡️ Code Quality
+
+### Pre-commit Hooks (Lefthook)
+
+- ESLint code linting
+- Prettier code formatting
+- TypeScript type checking
+- Integration test validation
+
+### Code Standards
+
+- **File Naming**: kebab-case (non-negotiable)
+- **TypeScript**: Strict type checking enabled
+- **Error Handling**: Comprehensive error handling with Zod validation
+- **State Management**: Zustand for global state
+- **Testing**: Comprehensive test coverage with Vitest and Playwright
+
+## 📚 Documentation
+
+- [Architecture Document](docs/architecture.md) - Complete system architecture
+- [Product Requirements](docs/prd.md) - Product requirements and specifications
+- [Frontend Specification](docs/front-end-spec.md) - Frontend implementation details
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests and ensure they pass
+5. Commit your changes
+6. Push to your fork
+7. Create a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## 🆘 Support
+
+For support and questions, please refer to the documentation or create an issue in the repository.
