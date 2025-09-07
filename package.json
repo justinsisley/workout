@@ -27,7 +27,12 @@
     "test:int": "cross-env NODE_OPTIONS=--no-deprecation vitest run --config ./vitest.config.mts",
     "test:watch": "cross-env NODE_OPTIONS=--no-deprecation vitest --config ./vitest.config.mts",
     "test:coverage": "cross-env NODE_OPTIONS=--no-deprecation vitest run --coverage --config ./vitest.config.mts",
-    "commitlint": "commitlint --edit"
+    "commitlint": "commitlint --edit",
+    "update-deps": "ncu --interactive",
+    "update-deps:check": "ncu",
+    "update-deps:patch": "ncu --target patch --interactive",
+    "update-deps:minor": "ncu --target minor --interactive",
+    "update-deps:major": "ncu --target major --interactive"
   },
   "dependencies": {
     "@payloadcms/db-mongodb": "3.54.0",
@@ -60,6 +65,7 @@
     "eslint-config-next": "15.4.4",
     "jsdom": "26.1.0",
     "lefthook": "^1.12.3",
+    "npm-check-updates": "^18.0.3",
     "playwright": "1.54.1",
     "playwright-core": "1.54.1",
     "prettier": "^3.4.2",

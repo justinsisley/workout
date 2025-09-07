@@ -1,0 +1,7 @@
+{
+  "format": ["group"],
+  "target": "latest",
+  "upgrade": false,
+  "dep": "prod,dev,optional",
+  "loglevel": "info"
+}
