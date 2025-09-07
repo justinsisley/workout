@@ -70,6 +70,7 @@ export interface Config {
     users: User;
     media: Media;
     exercises: Exercise;
+    sessions: Session;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -79,6 +80,7 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     exercises: ExercisesSelect<false> | ExercisesSelect<true>;
+    sessions: SessionsSelect<false> | SessionsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -189,6 +191,55 @@ export interface Exercise {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sessions".
+ */
+export interface Session {
+  id: string;
+  /**
+   * Optional name for admin organization. Not visible to product users.
+   */
+  name?: string | null;
+  /**
+   * Add exercises to this session. Drag and drop to reorder.
+   */
+  exercises?:
+    | {
+        /**
+         * Select the exercise to include in this session.
+         */
+        exercise: string | Exercise;
+        /**
+         * Number of sets to perform for this exercise.
+         */
+        sets: number;
+        /**
+         * Number of repetitions per set.
+         */
+        reps: number;
+        /**
+         * Rest time between sets in seconds. Optional.
+         */
+        restPeriod?: number | null;
+        /**
+         * Weight to use for this exercise. Optional.
+         */
+        weight?: number | null;
+        /**
+         * Additional notes or instructions for this exercise. Optional.
+         */
+        notes?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Check this box to make the session visible to product users. Only published sessions will be visible to product users. Ensure all required fields are filled before publishing.
+   */
+  isPublished?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -205,6 +256,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'exercises';
         value: string | Exercise;
+      } | null)
+    | ({
+        relationTo: 'sessions';
+        value: string | Session;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -297,6 +352,27 @@ export interface ExercisesSelect<T extends boolean = true> {
   description?: T;
   videoUrl?: T;
   alternatives?: T;
+  isPublished?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sessions_select".
+ */
+export interface SessionsSelect<T extends boolean = true> {
+  name?: T;
+  exercises?:
+    | T
+    | {
+        exercise?: T;
+        sets?: T;
+        reps?: T;
+        restPeriod?: T;
+        weight?: T;
+        notes?: T;
+        id?: T;
+      };
   isPublished?: T;
   updatedAt?: T;
   createdAt?: T;
