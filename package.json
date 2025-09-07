@@ -32,7 +32,8 @@
     "update-deps:check": "ncu",
     "update-deps:patch": "ncu --target patch --interactive",
     "update-deps:minor": "ncu --target minor --interactive",
-    "update-deps:major": "ncu --target major --interactive"
+    "update-deps:major": "ncu --target major --interactive",
+    "bootstrap:exercises": "cross-env PAYLOAD_SECRET=your-secret-key-here-change-this-in-production DATABASE_URI=mongodb://localhost:27017/workout-app npx tsx scripts/bootstrap-exercises.ts"
   },
   "dependencies": {
     "@payloadcms/db-mongodb": "3.54.0",
@@ -41,6 +42,7 @@
     "@payloadcms/richtext-lexical": "3.54.0",
     "@payloadcms/ui": "3.54.0",
     "cross-env": "^10.0.0",
+    "csv-parser": "^3.2.0",
     "dotenv": "^17.2.2",
     "graphql": "^16.11.0",
     "next": "^15.5.2",
@@ -69,6 +71,7 @@
     "playwright": "1.55.0",
     "playwright-core": "1.55.0",
     "prettier": "^3.6.2",
+    "tsx": "^4.20.5",
     "typescript": "5.9.2",
     "vite-tsconfig-paths": "5.1.4",
     "vitest": "3.2.4"
