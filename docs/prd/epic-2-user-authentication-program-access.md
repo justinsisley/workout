@@ -8,7 +8,7 @@ As a **product user**,
 I want **to authenticate using a username and passkey**,
 so that **I can securely access the workout app without complex password management**.
 
-### Acceptance Criteria
+### Story 2.1 Acceptance Criteria
 
 1. **Username input screen** accepts valid usernames with proper formatting and validation
 2. **Username availability check** verifies username uniqueness before registration
@@ -29,7 +29,7 @@ As a **system administrator**,
 I want **to manage product users and their passkey authentication data**,
 so that **I can track user accounts and ensure proper access control**.
 
-### Acceptance Criteria
+### Story 2.2 Acceptance Criteria
 
 1. **Product users collection** stores usernames, passkey credentials, authentication status, and user metadata
 2. **User creation** automatically creates product user records upon successful passkey registration
@@ -48,7 +48,7 @@ As a **product user**,
 I want **to view and select from available workout programs**,
 so that **I can choose the program that best fits my fitness goals and current level**.
 
-### Acceptance Criteria
+### Story 2.3 Acceptance Criteria
 
 1. **Program list display** shows all available workout programs with names and descriptions
 2. **Program details view** displays program objectives, culminating events, and estimated duration
@@ -67,7 +67,7 @@ As a **product user**,
 I want **my progress to be properly initialized when I select a program**,
 so that **I can begin my fitness journey from the correct starting point**.
 
-### Acceptance Criteria
+### Story 2.4 Acceptance Criteria
 
 1. **Progress initialization** sets user's current program, milestone, and day to starting values
 2. **Program structure validation** ensures selected program has valid structure before assignment
@@ -75,7 +75,7 @@ so that **I can begin my fitness journey from the correct starting point**.
 4. **Progress persistence** saves user progress data to database for future sessions
 5. **Program completion tracking** enables tracking of overall program progress
 6. **Milestone progression** allows users to advance through program milestones
-7. **Day progression** enables users to move through program days and sessions
+7. **Day progression** enables users to move through program days and exercises
 8. **Progress validation** ensures user progress data is consistent with program structure
 9. **Error handling** gracefully handles program structure issues and progress conflicts
 10. **Data integrity** maintains consistent user progress data across all operations

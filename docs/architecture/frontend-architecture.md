@@ -10,7 +10,7 @@ src/
 │   ├── ui/                 # ShadCN base components
 │   ├── auth/              # Authentication components
 │   ├── workout/           # Workout-specific components
-│   ├── program/           # Program management components
+│   ├── program/           # Program management components (embedded schema)
 │   └── common/            # Shared components
 ├── app/                   # Next.js App Router
 │   ├── (auth)/            # Authentication route group
@@ -25,14 +25,12 @@ src/
 │   ├── globals.css        # Global styles
 │   └── layout.tsx         # Root layout
 ├── payload/               # PayloadCMS configuration
-│   ├── collections/       # PayloadCMS collection definitions
+│   ├── collections/       # PayloadCMS collection definitions (embedded schema)
 │   │   ├── users.ts       # PayloadCMS admin users
 │   │   ├── product-users.ts # Product users (app users)
-│   │   ├── programs.ts
-│   │   ├── milestones.ts
-│   │   ├── sessions.ts
-│   │   ├── exercises.ts
-│   │   └── exercise-completions.ts
+│   │   ├── programs.ts    # Programs with embedded milestones/sessions
+│   │   ├── exercises.ts   # Exercise definitions
+│   │   └── exercise-completions.ts # Workout completion tracking
 │   ├── payload.config.ts  # PayloadCMS configuration
 │   └── payload-client.ts  # PayloadCMS client setup
 ├── hooks/                 # Custom React hooks
@@ -94,34 +92,81 @@ export const useAuthStore = create<AuthState>((set) => ({
 
 // stores/workout-store.ts
 import { create } from 'zustand'
-import { Session, Exercise } from '@/types'
+import { Program, EmbeddedDay, Exercise } from '@/types'
 
 interface WorkoutState {
-  currentSession: Session | null
-  currentExercise: Exercise | null
-  completedExercises: string[]
+  currentProgram: Program | null
+  currentMilestoneIndex: number
+  currentDayIndex: number
   currentExerciseIndex: number
+  completedExercises: string[]
   sessionStartTime: Date | null
-  setCurrentSession: (session: Session | null) => void
-  setCurrentExercise: (exercise: Exercise | null) => void
+  setCurrentProgram: (program: Program | null) => void
+  setCurrentMilestone: (milestoneIndex: number) => void
+  setCurrentDay: (dayIndex: number) => void
+  setCurrentExercise: (exerciseIndex: number) => void
   completeExercise: (exerciseId: string) => void
   startSession: () => void
+  getCurrentDay: () => EmbeddedDay | null
+  getCurrentExercise: () => Exercise | null
 }
 
-export const useWorkoutStore = create<WorkoutState>((set) => ({
-  currentSession: null,
-  currentExercise: null,
-  completedExercises: [],
+export const useWorkoutStore = create<WorkoutState>((set, get) => ({
+  currentProgram: null,
+  currentMilestoneIndex: 0,
+  currentDayIndex: 0,
   currentExerciseIndex: 0,
+  completedExercises: [],
   sessionStartTime: null,
-  setCurrentSession: (currentSession) => set({ currentSession }),
-  setCurrentExercise: (currentExercise) => set({ currentExercise }),
+  setCurrentProgram: (currentProgram) =>
+    set({
+      currentProgram,
+      currentMilestoneIndex: 0,
+      currentDayIndex: 0,
+      currentExerciseIndex: 0,
+      completedExercises: [],
+    }),
+  setCurrentMilestone: (currentMilestoneIndex) =>
+    set({
+      currentMilestoneIndex,
+      currentDayIndex: 0,
+      currentExerciseIndex: 0,
+      completedExercises: [],
+    }),
+  setCurrentDay: (currentDayIndex) =>
+    set({
+      currentDayIndex,
+      currentExerciseIndex: 0,
+      completedExercises: [],
+    }),
+  setCurrentExercise: (currentExerciseIndex) => set({ currentExerciseIndex }),
   completeExercise: (exerciseId) =>
     set((state) => ({
       completedExercises: [...state.completedExercises, exerciseId],
       currentExerciseIndex: state.currentExerciseIndex + 1,
     })),
   startSession: () => set({ sessionStartTime: new Date() }),
+  getCurrentDay: () => {
+    const state = get()
+    if (
+      !state.currentProgram ||
+      !state.currentProgram.milestones[state.currentMilestoneIndex] ||
+      !state.currentProgram.milestones[state.currentMilestoneIndex].days[state.currentDayIndex]
+    ) {
+      return null
+    }
+    return (
+      state.currentProgram.milestones[state.currentMilestoneIndex].days[state.currentDayIndex] ||
+      null
+    )
+  },
+  getCurrentExercise: () => {
+    const day = get().getCurrentDay()
+    if (!day || !day.exercises || !day.exercises[get().currentExerciseIndex]) {
+      return null
+    }
+    return day.exercises[get().currentExerciseIndex] || null
+  },
 }))
 ```
 
@@ -271,17 +316,50 @@ export default async function WorkoutDashboard() {
   const productUser = await getCurrentProductUser()
   const payload = await getPayload()
 
+  // With embedded schema, we get complete program structure in one query
   const programs = await payload.find({
     collection: 'programs',
     where: {
       isPublished: { equals: true }
-    }
+    },
+    // No need for depth/population - all data is embedded
   })
 
   return (
     <div>
       <h1>Workout Dashboard</h1>
       <ProgramSelector programs={programs.docs} productUserId={productUser.id} />
+    </div>
+  )
+}
+
+// src/app/(app)/workout/day/[id]/page.tsx
+import { getPayload } from 'payload'
+import { getCurrentProductUser } from '@/lib/auth'
+import { WorkoutDay } from '@/components/WorkoutDay'
+
+export default async function WorkoutDayPage({ params }: { params: { id: string } }) {
+  const productUser = await getCurrentProductUser()
+  const payload = await getPayload()
+
+  // Get complete program with embedded structure
+  const program = await payload.findByID({
+    collection: 'programs',
+    id: productUser.currentProgram,
+  })
+
+  // Extract current day from embedded structure
+  const currentMilestone = program.milestones[productUser.currentMilestone]
+  const currentDay = currentMilestone.days[productUser.currentDay]
+
+  return (
+    <div>
+      <h1>Workout Day</h1>
+      <WorkoutDay
+        program={program}
+        day={currentDay}
+        productUserId={productUser.id}
+      />
     </div>
   )
 }

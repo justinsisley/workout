@@ -54,14 +54,16 @@ export async function serverActionName(data: ActionData) {
 
 ## Database Architecture
 
-### PayloadCMS Integration
+### PayloadCMS Integration with Embedded Schema
 
-The backend architecture leverages PayloadCMS's collection system for all data management. All collection definitions are provided in the main "PayloadCMS Collections" section above, which includes:
+The backend architecture leverages PayloadCMS's collection system with an **embedded document architecture** for optimal performance and simplified data management. The embedded schema consolidates program structure into single documents, eliminating the need for separate milestone and session collections.
 
-- Complete collection definitions with proper field types
-- Relationship configurations for junction tables
-- Field validation and constraints
-- Automatic admin interface generation
+**Key Benefits:**
+
+- **Single Source of Truth:** All program structure lives within the Programs collection
+- **Atomic Operations:** Update entire program in one operation
+- **Data Locality:** Related data lives together for optimal queries
+- **Simplified Admin UX:** No more bouncing between collections
 
 ### PayloadCMS Local API Data Access
 
@@ -127,45 +129,71 @@ export async function findProgramById(id: string) {
   })
 }
 
-// Program milestone operations with array-based ordering
-export async function addMilestoneToProgram(programId: string, milestoneId: string) {
+// Embedded schema program operations - much simpler than normalized approach
+export async function createProgram(programData: Partial<Program>) {
   const payload = await getPayload()
 
-  // Get current program
-  const program = await payload.findByID({
+  return await payload.create({
     collection: 'programs',
-    id: programId,
-  })
-
-  // Add milestone to the end of the array (array order is preserved by PayloadCMS)
-  const updatedMilestones = [...program.milestones, { milestone: milestoneId }]
-
-  return await payload.update({
-    collection: 'programs',
-    id: programId,
-    data: { milestones: updatedMilestones },
+    data: {
+      name: programData.name,
+      description: programData.description,
+      objective: programData.objective,
+      milestones: programData.milestones || [],
+      isPublished: false,
+    },
   })
 }
 
-export async function reorderProgramMilestones(programId: string, milestoneIds: string[]) {
+export async function updateProgram(programId: string, programData: Partial<Program>) {
   const payload = await getPayload()
 
-  // Get current program
+  return await payload.update({
+    collection: 'programs',
+    id: programId,
+    data: programData,
+  })
+}
+
+export async function publishProgram(programId: string) {
+  const payload = await getPayload()
+
+  // Get current program to validate completeness
   const program = await payload.findByID({
     collection: 'programs',
     id: programId,
   })
 
-  // Reorder milestones based on the provided order (array index = order)
-  const updatedMilestones = milestoneIds.map((milestoneId) => ({
-    milestone: milestoneId,
-  }))
-
+  // Validate program is complete (validation handled by PayloadCMS hooks)
   return await payload.update({
     collection: 'programs',
     id: programId,
-    data: { milestones: updatedMilestones },
+    data: { isPublished: true },
   })
+}
+
+// Exercise completion tracking (unchanged from original)
+export async function createExerciseCompletion(completionData: Partial<ExerciseCompletion>) {
+  const payload = await getPayload()
+
+  return await payload.create({
+    collection: 'exerciseCompletions',
+    data: completionData,
+  })
+}
+
+export async function findExerciseCompletionsByUser(productUserId: string) {
+  const payload = await getPayload()
+
+  const result = await payload.find({
+    collection: 'exerciseCompletions',
+    where: {
+      productUser: { equals: productUserId },
+    },
+    sort: '-completedAt',
+  })
+
+  return result.docs
 }
 ```
 

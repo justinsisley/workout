@@ -18,11 +18,14 @@ The relationship-based ordering system is implemented through PayloadCMS relatio
 
 - `users` - PayloadCMS admin users with email/password authentication
 - `productUsers` - Product users with WebAuthn passkey authentication
-- `programs` - Workout programs with embedded milestone relationships and metadata
-- `milestones` - Program phases with embedded days and sessions
-- `sessions` - Workout sessions with embedded exercises and session-specific data
+- `programs` - Complete workout programs with embedded milestones, days, and sessions
 - `exercises` - Exercise definitions with videos and metadata
 - `exerciseCompletions` - Product user workout completion tracking
+
+**Removed Collections:**
+
+- `milestones` - Now embedded within programs
+- `sessions` - Now embedded within programs
 
 ## PayloadCMS Benefits
 

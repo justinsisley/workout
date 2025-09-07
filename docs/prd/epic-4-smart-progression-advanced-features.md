@@ -8,11 +8,11 @@ As a **product user**,
 I want **the system to detect gaps in my workout schedule**,
 so that **I can understand how time off affects my fitness progress and program position**.
 
-### Acceptance Criteria
+### Story 4.1 Acceptance Criteria
 
-1. **Gap detection algorithm** calculates days since last workout session
-2. **Workout history tracking** maintains complete record of all completed workout sessions
-3. **Gap analysis** identifies patterns in workout consistency and missed sessions
+1. **Gap detection algorithm** calculates days since last workout day
+2. **Workout history tracking** maintains complete record of all completed workout days
+3. **Gap analysis** identifies patterns in workout consistency and missed days
 4. **Gap notifications** informs users about detected gaps and their potential impact
 5. **Gap visualization** displays workout history with clear gap indicators
 6. **Gap impact assessment** calculates how gaps affect current program position
@@ -27,7 +27,7 @@ As a **product user**,
 I want **the system to automatically adjust my program position based on workout gaps**,
 so that **I can maintain safe and effective progression despite inconsistent workout schedules**.
 
-### Acceptance Criteria
+### Story 4.2 Acceptance Criteria
 
 1. **Regression rule engine** implements the "mirror the gap" logic (5 days off = go back 5 days)
 2. **Automatic position adjustment** updates user's current program position based on detected gaps
@@ -46,11 +46,11 @@ As a **product user**,
 I want **to access alternative exercises when I can't perform the primary exercise**,
 so that **I can maintain my workout routine even when equipment or physical limitations prevent certain exercises**.
 
-### Acceptance Criteria
+### Story 4.3 Acceptance Criteria
 
 1. **Alternative exercise display** shows available alternatives for each exercise
 2. **Alternative selection** allows users to choose from available alternative exercises
-3. **Alternative substitution** replaces primary exercise with selected alternative in current session
+3. **Alternative substitution** replaces primary exercise with selected alternative in current day
 4. **Alternative tracking** records which exercises were substituted and when
 5. **Alternative validation** ensures selected alternatives are appropriate for the exercise
 6. **Alternative preview** shows exercise details for alternatives before selection
@@ -65,7 +65,7 @@ As a **product user**,
 I want **to see detailed progress analytics and insights about my fitness journey**,
 so that **I can understand my progress patterns and make informed decisions about my training**.
 
-### Acceptance Criteria
+### Story 4.4 Acceptance Criteria
 
 1. **Progress visualization** displays workout completion rates and consistency over time
 2. **Performance tracking** shows improvements in sets, reps, and weight over time
@@ -84,7 +84,7 @@ As a **product user**,
 I want **enhanced mobile user experience features**,
 so that **I can have the most efficient and enjoyable workout experience on my mobile device**.
 
-### Acceptance Criteria
+### Story 4.5 Acceptance Criteria
 
 1. **Offline capability** allows basic workout functionality without internet connection
 2. **Data synchronization** automatically syncs workout data when connection is restored
@@ -94,5 +94,5 @@ so that **I can have the most efficient and enjoyable workout experience on my m
 6. **Haptic feedback** provides tactile feedback for exercise completion and navigation
 7. **Dark mode support** provides dark theme for low-light gym environments
 8. **Accessibility enhancements** improves app accessibility for users with disabilities
-9. **Performance optimization** ensures smooth performance during extended workout sessions
+9. **Performance optimization** ensures smooth performance during extended workout days
 10. **User customization** allows users to customize interface elements and preferences

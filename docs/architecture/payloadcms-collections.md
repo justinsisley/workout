@@ -237,70 +237,251 @@ interface PasskeyCredential {
 }
 ```
 
-## Programs Collection
+## Programs Collection (Embedded Architecture)
 
-**Purpose:** Represents complete workout programs with hierarchical structure and metadata.
+**Purpose:** Represents complete workout programs with embedded milestones and days. This collection contains the entire program structure as nested documents, eliminating the need for separate milestone and session collections. Each day directly contains its exercises, simplifying the structure.
+
+**Key Benefits:**
+
+- **Single Source of Truth:** All program structure lives in one document
+- **Simplified Admin UX:** No more bouncing between collections
+- **Atomic Updates:** Entire program can be updated in one operation
+- **Data Locality:** Related data lives together for better performance
+- **Reduced Complexity:** Fewer collections to manage and maintain
 
 **PayloadCMS Collection Definition:**
 
 ```typescript
 export const Programs: CollectionConfig = {
   slug: 'programs',
+  admin: {
+    useAsTitle: 'name',
+    defaultColumns: ['name', 'isPublished', 'createdAt'],
+    group: 'Admin',
+    description:
+      'Complete workout programs with embedded milestones and days. All program structure is contained within this single document.',
+  },
+  access: {
+    create: ({ req: { user } }) => Boolean(user),
+    read: ({ req: { user } }) => Boolean(user),
+    update: ({ req: { user } }) => Boolean(user),
+    delete: ({ req: { user } }) => Boolean(user),
+  },
+  hooks: {
+    beforeValidate: [
+      ({ data, operation }) => {
+        // Progressive validation: only enforce required fields when publishing
+        if (data?.isPublished && operation === 'update') {
+          const errors: string[] = []
+
+          if (!data.name || data.name.trim() === '') {
+            errors.push('Program name is required for publishing')
+          }
+
+          if (!data.description || data.description.trim() === '') {
+            errors.push('Program description is required for publishing')
+          }
+
+          if (!data.objective || data.objective.trim() === '') {
+            errors.push('Program objective is required for publishing')
+          }
+
+          if (!data.milestones || data.milestones.length === 0) {
+            errors.push('At least one milestone is required for publishing')
+          }
+
+          if (errors.length > 0) {
+            throw new Error(`Cannot publish program: ${errors.join(', ')}`)
+          }
+        }
+      },
+    ],
+  },
   fields: [
     {
       name: 'name',
       type: 'text',
-      required: false, // Allow saving without name initially
+      label: 'Program Name',
       admin: {
-        description: 'Program name - required for publishing',
+        description:
+          'The name of the fitness program. Can be saved as draft without this field, but required for publishing.',
+        placeholder: 'e.g., "Beginner Strength Program"',
       },
     },
     {
       name: 'description',
       type: 'textarea',
-      required: false, // Allow saving without description initially
+      label: 'Program Description',
       admin: {
-        description: 'Program description - required for publishing',
+        description:
+          'A detailed description of what this program covers. Can be saved as draft without this field, but required for publishing.',
+        placeholder: 'Describe the program goals, target audience, and what users will achieve...',
       },
     },
     {
       name: 'objective',
       type: 'text',
-      required: false, // Allow saving without objective initially
+      label: 'Program Objective',
       admin: {
-        description: 'Program objective - required for publishing',
-      },
-    },
-    {
-      name: 'culminatingEvent',
-      type: 'relationship',
-      relationTo: 'sessions',
-      required: false, // Allow saving without culminating event initially
-      admin: {
-        description: 'Culminating event session - required for publishing',
+        description:
+          'The main goal or outcome of this program. Can be saved as draft without this field, but required for publishing.',
+        placeholder: 'e.g., "Build foundational strength and muscle mass"',
       },
     },
     {
       name: 'milestones',
       type: 'array',
+      label: 'Program Milestones',
+      admin: {
+        description:
+          'The milestones that make up this program, in order. Drag and drop to reorder milestones in the program sequence. At least one milestone is required for publishing.',
+        initCollapsed: false,
+      },
       fields: [
         {
-          name: 'milestone',
-          type: 'relationship',
-          relationTo: 'milestones',
-          required: true,
+          name: 'name',
+          type: 'text',
+          label: 'Milestone Name',
+          admin: {
+            description:
+              'The name of this milestone. Can be saved as draft without this field, but required for publishing.',
+            placeholder: 'e.g., "Foundation Building"',
+          },
+        },
+        {
+          name: 'theme',
+          type: 'text',
+          label: 'Theme',
+          admin: {
+            description:
+              'The theme or focus of this milestone. Can be saved as draft without this field, but required for publishing.',
+            placeholder: 'e.g., "Strength Building"',
+          },
+        },
+        {
+          name: 'objective',
+          type: 'textarea',
+          label: 'Objective',
+          admin: {
+            description:
+              'The objective or goal of this milestone. Can be saved as draft without this field, but required for publishing.',
+            placeholder: 'Describe what users will achieve in this milestone...',
+          },
+        },
+        {
+          name: 'days',
+          type: 'array',
+          label: 'Days',
+          minRows: 1,
+          admin: {
+            description:
+              'Add days to this milestone. Drag and drop to reorder. Day number is automatically derived from position. At least one day is required for publishing.',
+            initCollapsed: true,
+          },
+          fields: [
+            {
+              name: 'dayType',
+              type: 'select',
+              options: [
+                { label: 'Workout', value: 'workout' },
+                { label: 'Rest', value: 'rest' },
+              ],
+              required: true,
+              defaultValue: 'workout',
+              label: 'Day Type',
+              admin: {
+                description: 'Select whether this is a workout day or rest day.',
+              },
+            },
+            {
+              name: 'exercises',
+              type: 'array',
+              label: 'Exercises',
+              admin: {
+                description: 'Add exercises for this workout day. Only visible for workout days.',
+                condition: (_, siblingData) => siblingData?.dayType === 'workout',
+                initCollapsed: true,
+              },
+              fields: [
+                {
+                  name: 'exercise',
+                  type: 'relationship',
+                  relationTo: 'exercises',
+                  required: true,
+                  label: 'Exercise',
+                  admin: {
+                    description: 'Select the exercise to include in this day.',
+                  },
+                },
+                {
+                  name: 'sets',
+                  type: 'number',
+                  label: 'Sets',
+                  required: true,
+                  min: 1,
+                  admin: {
+                    description: 'Number of sets to perform for this exercise.',
+                  },
+                },
+                {
+                  name: 'reps',
+                  type: 'number',
+                  label: 'Reps',
+                  required: true,
+                  min: 1,
+                  admin: {
+                    description: 'Number of repetitions per set.',
+                  },
+                },
+                {
+                  name: 'restPeriod',
+                  type: 'number',
+                  label: 'Rest Period (seconds)',
+                  admin: {
+                    description: 'Rest time between sets in seconds. Optional.',
+                  },
+                },
+                {
+                  name: 'weight',
+                  type: 'number',
+                  label: 'Weight (lbs)',
+                  min: 0,
+                  admin: {
+                    description: 'Weight to use for this exercise. Optional.',
+                  },
+                },
+                {
+                  name: 'notes',
+                  type: 'textarea',
+                  label: 'Notes',
+                  admin: {
+                    description: 'Additional notes or instructions for this exercise. Optional.',
+                  },
+                },
+              ],
+            },
+            {
+              name: 'restNotes',
+              type: 'textarea',
+              label: 'Rest Day Notes',
+              admin: {
+                description: 'Optional notes for rest days. Only visible for rest days.',
+                condition: (_, siblingData) => siblingData?.dayType === 'rest',
+              },
+            },
+          ],
         },
       ],
-      admin: {
-        description: 'Ordered list of milestones in this program - drag to reorder',
-      },
     },
     {
       name: 'isPublished',
       type: 'checkbox',
+      label: 'Published',
       defaultValue: false,
       admin: {
-        description: 'Only published programs are visible to product users',
+        description:
+          'Check this box to make the program visible to product users. ⚠️ All required fields (name, description, objective, milestones) must be filled before publishing.',
+        position: 'sidebar',
       },
     },
   ],
@@ -315,9 +496,22 @@ interface Program {
   name?: string // Optional - can be saved without name initially
   description?: string // Optional - can be saved without description initially
   objective?: string // Optional - can be saved without objective initially
-  culminatingEvent?: string // Optional - can be saved without culminating event initially
   milestones: {
-    milestone: string // Reference to Milestone ID
+    name?: string
+    theme?: string
+    objective?: string
+    days: {
+      dayType: 'workout' | 'rest'
+      exercises?: {
+        exercise: string // Reference to Exercise ID
+        sets: number
+        reps: number
+        restPeriod?: number
+        weight?: number
+        notes?: string
+      }[]
+      restNotes?: string
+    }[]
   }[]
   isPublished: boolean
   createdAt: Date
@@ -325,194 +519,17 @@ interface Program {
 }
 ```
 
-## Milestones Collection
+## Removed Collections
 
-**Purpose:** Represents major phases within a program with specific themes and objectives.
+**Milestones and Sessions Collections:** These collections have been removed and their functionality is now embedded within the Programs collection. The session concept has been eliminated entirely - exercises are now directly embedded within days, further simplifying the structure. This change eliminates the need to manage separate milestone and session entities, providing a more streamlined admin experience where all program structure is contained within a single document.
 
-**PayloadCMS Collection Definition:**
+**Benefits of Removal:**
 
-```typescript
-export const Milestones: CollectionConfig = {
-  slug: 'milestones',
-  fields: [
-    {
-      name: 'name',
-      type: 'text',
-      required: false, // Allow saving without name initially
-      admin: {
-        description: 'Milestone name - required for publishing',
-      },
-    },
-    {
-      name: 'theme',
-      type: 'text',
-      required: false, // Allow saving without theme initially
-      admin: {
-        description: 'Milestone theme - required for publishing',
-      },
-    },
-    {
-      name: 'objective',
-      type: 'text',
-      required: false, // Allow saving without objective initially
-      admin: {
-        description: 'Milestone objective - required for publishing',
-      },
-    },
-    {
-      name: 'culminatingEvent',
-      type: 'relationship',
-      relationTo: 'sessions',
-      required: false, // Allow saving without culminating event initially
-      admin: {
-        description: 'Culminating event session - required for publishing',
-      },
-    },
-    {
-      name: 'days',
-      type: 'array',
-      fields: [
-        {
-          name: 'dayType',
-          type: 'select',
-          options: [
-            { label: 'Workout Day', value: 'workout' },
-            { label: 'Rest Day', value: 'rest' },
-          ],
-          required: true,
-          defaultValue: 'workout',
-        },
-        {
-          name: 'sessions',
-          type: 'array',
-          admin: {
-            condition: (data) => data.dayType === 'workout',
-            description: 'Add workout sessions for this day',
-          },
-          fields: [
-            {
-              name: 'session',
-              type: 'relationship',
-              relationTo: 'sessions',
-              required: true,
-            },
-          ],
-        },
-      ],
-    },
-  ],
-}
-```
-
-**TypeScript Interface:**
-
-```typescript
-interface Milestone {
-  id: string
-  name?: string // Optional - can be saved without name initially
-  theme?: string // Optional - can be saved without theme initially
-  objective?: string // Optional - can be saved without objective initially
-  culminatingEvent?: string // Optional - can be saved without culminating event initially
-  days: {
-    dayType: 'workout' | 'rest'
-    sessions?: {
-      session: string // Reference to Session ID
-    }[]
-  }[]
-  createdAt: Date
-  updatedAt: Date
-}
-```
-
-## Sessions Collection
-
-**Purpose:** Represents reusable workout sessions with exercises, sets, reps, and rest periods. Sessions are now standalone entities that can be reused across different milestones and days.
-
-**PayloadCMS Collection Definition:**
-
-```typescript
-export const Sessions: CollectionConfig = {
-  slug: 'sessions',
-  fields: [
-    {
-      name: 'name',
-      type: 'text',
-      required: false, // Allow saving without name initially
-      admin: {
-        description: 'Session name for admin organization - not shown to product users',
-      },
-    },
-    {
-      name: 'exercises',
-      type: 'array',
-      fields: [
-        {
-          name: 'exercise',
-          type: 'relationship',
-          relationTo: 'exercises',
-          required: true,
-        },
-        {
-          name: 'sets',
-          type: 'number',
-          required: true,
-        },
-        {
-          name: 'reps',
-          type: 'number',
-          required: true,
-        },
-        {
-          name: 'restPeriod',
-          type: 'number',
-          required: true,
-          admin: {
-            description: 'Rest period in seconds between sets',
-          },
-        },
-        {
-          name: 'weight',
-          type: 'number',
-          required: false,
-          admin: {
-            description: 'Recommended weight in pounds (optional)',
-          },
-        },
-        {
-          name: 'notes',
-          type: 'textarea',
-          required: false,
-          admin: {
-            description: 'Additional notes for this exercise in this session',
-          },
-        },
-      ],
-      admin: {
-        description: 'Ordered list of exercises in this session - drag to reorder',
-      },
-    },
-  ],
-}
-```
-
-**TypeScript Interface:**
-
-```typescript
-interface Session {
-  id: string
-  name?: string // Optional - for admin organization only
-  exercises: {
-    exercise: string // Reference to Exercise ID
-    sets: number
-    reps: number
-    restPeriod: number // in seconds
-    weight?: number // in pounds
-    notes?: string
-  }[]
-  createdAt: Date
-  updatedAt: Date
-}
-```
+- **Simplified Data Model:** Fewer collections to manage and maintain
+- **Better Admin UX:** No more bouncing between collections to edit program structure
+- **Atomic Operations:** Entire program can be updated in one operation
+- **Data Consistency:** No risk of orphaned milestones or sessions
+- **Reduced Complexity:** Fewer relationships and foreign keys to manage
 
 ## Exercises Collection
 
@@ -595,10 +612,29 @@ export const ExerciseCompletions: CollectionConfig = {
       required: true,
     },
     {
-      name: 'session',
+      name: 'program',
       type: 'relationship',
-      relationTo: 'sessions',
+      relationTo: 'programs',
       required: true,
+      admin: {
+        description: 'The program this exercise completion belongs to',
+      },
+    },
+    {
+      name: 'milestoneIndex',
+      type: 'number',
+      required: true,
+      admin: {
+        description: 'The milestone index within the program',
+      },
+    },
+    {
+      name: 'dayIndex',
+      type: 'number',
+      required: true,
+      admin: {
+        description: 'The day index within the milestone',
+      },
     },
     {
       name: 'sets',
@@ -646,8 +682,10 @@ export const ExerciseCompletions: CollectionConfig = {
 interface ExerciseCompletion {
   id: string
   productUser: string // Reference to ProductUser ID
-  exercise: string
-  session: string
+  exercise: string // Reference to Exercise ID
+  program: string // Reference to Program ID
+  milestoneIndex: number // Index of milestone within program
+  dayIndex: number // Index of day within milestone
   sets: number
   reps: number
   weight?: number // Optional for bodyweight exercises
