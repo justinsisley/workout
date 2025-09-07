@@ -4,14 +4,34 @@ export const Sessions: CollectionConfig = {
   slug: 'sessions',
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'exercises'],
+    defaultColumns: ['name', 'exercises', 'isPublished'],
     group: 'Admin',
+    description:
+      'Workout sessions with progressive validation. Save as draft first, then publish when complete.',
   },
   access: {
     read: () => true,
     create: ({ req: { user } }) => Boolean(user),
     update: ({ req: { user } }) => Boolean(user),
     delete: ({ req: { user } }) => Boolean(user),
+  },
+  hooks: {
+    beforeValidate: [
+      ({ data, operation }) => {
+        // Progressive validation: only enforce required fields when publishing
+        if (data?.isPublished && operation === 'update') {
+          const errors: string[] = []
+
+          if (!data.exercises || data.exercises.length === 0) {
+            errors.push('At least one exercise is required for publishing')
+          }
+
+          if (errors.length > 0) {
+            throw new Error(`Cannot publish session: ${errors.join(', ')}`)
+          }
+        }
+      },
+    ],
   },
   fields: [
     {
@@ -28,7 +48,8 @@ export const Sessions: CollectionConfig = {
       label: 'Exercises',
       minRows: 1,
       admin: {
-        description: 'Add exercises to this session. Drag and drop to reorder.',
+        description:
+          'Add exercises to this session. Drag and drop to reorder. At least one exercise is required for publishing.',
       },
       fields: [
         {
@@ -95,7 +116,8 @@ export const Sessions: CollectionConfig = {
       defaultValue: false,
       admin: {
         description:
-          'Check this box to make the session visible to product users. Only published sessions will be visible to product users. Ensure all required fields are filled before publishing.',
+          'Check this box to make the session visible to product users. Only published sessions will be visible to product users. ⚠️ At least one exercise is required for publishing.',
+        position: 'sidebar',
       },
     },
   ],

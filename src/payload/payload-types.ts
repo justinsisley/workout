@@ -169,21 +169,23 @@ export interface Media {
   focalY?: number | null;
 }
 /**
+ * Exercise definitions with progressive validation. Save as draft first, then publish when complete.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "exercises".
  */
 export interface Exercise {
   id: string;
   /**
-   * The name of the exercise. Required for publishing.
+   * The name of the exercise. Can be saved as draft without this field, but required for publishing.
    */
   title?: string | null;
   /**
-   * Detailed description of how to perform the exercise. Required for publishing.
+   * Detailed description of how to perform the exercise. Can be saved as draft without this field, but required for publishing.
    */
   description?: string | null;
   /**
-   * YouTube URL or video ID for exercise demonstration. Required for publishing. Use YouTube URLs or video IDs.
+   * YouTube URL or video ID for exercise demonstration. Can be saved as draft without this field, but required for publishing. Use YouTube URLs or video IDs.
    */
   videoUrl?: string | null;
   /**
@@ -191,13 +193,15 @@ export interface Exercise {
    */
   alternatives?: (string | Exercise)[] | null;
   /**
-   * Check this box to make the exercise visible to product users. Only published exercises will be visible to product users. Ensure all required fields are filled before publishing.
+   * Check this box to make the exercise visible to product users. Only published exercises will be visible to product users. ⚠️ All required fields (title, description, video URL) must be filled before publishing.
    */
   isPublished?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
 /**
+ * Workout sessions with progressive validation. Save as draft first, then publish when complete.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "sessions".
  */
@@ -208,7 +212,7 @@ export interface Session {
    */
   name?: string | null;
   /**
-   * Add exercises to this session. Drag and drop to reorder.
+   * Add exercises to this session. Drag and drop to reorder. At least one exercise is required for publishing.
    */
   exercises?:
     | {
@@ -240,28 +244,30 @@ export interface Session {
       }[]
     | null;
   /**
-   * Check this box to make the session visible to product users. Only published sessions will be visible to product users. Ensure all required fields are filled before publishing.
+   * Check this box to make the session visible to product users. Only published sessions will be visible to product users. ⚠️ At least one exercise is required for publishing.
    */
   isPublished?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
 /**
+ * Program milestones with progressive validation. Save as draft first, then publish when complete.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "milestones".
  */
 export interface Milestone {
   id: string;
   /**
-   * The name of the milestone. Required for publishing.
+   * The name of the milestone. Can be saved as draft without this field, but required for publishing.
    */
   name?: string | null;
   /**
-   * The theme or focus of this milestone. Required for publishing.
+   * The theme or focus of this milestone. Can be saved as draft without this field, but required for publishing.
    */
   theme?: string | null;
   /**
-   * The objective or goal of this milestone. Required for publishing.
+   * The objective or goal of this milestone. Can be saved as draft without this field, but required for publishing.
    */
   objective?: string | null;
   /**
@@ -269,7 +275,7 @@ export interface Milestone {
    */
   culminatingEvent?: (string | null) | Session;
   /**
-   * Add days to this milestone. Drag and drop to reorder. Day number is automatically derived from position.
+   * Add days to this milestone. Drag and drop to reorder. Day number is automatically derived from position. At least one day is required for publishing.
    */
   days?:
     | {
@@ -301,28 +307,30 @@ export interface Milestone {
       }[]
     | null;
   /**
-   * Check this box to make the milestone visible to product users. Only published milestones will be visible to product users. Ensure all required fields are filled before publishing.
+   * Check this box to make the milestone visible to product users. Only published milestones will be visible to product users. ⚠️ All required fields (name, theme, objective, days) must be filled before publishing.
    */
   isPublished?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
 /**
+ * Fitness programs with progressive validation. Save as draft first, then publish when complete.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "programs".
  */
 export interface Program {
   id: string;
   /**
-   * The name of the fitness program (required for publishing)
+   * The name of the fitness program. Can be saved as draft without this field, but required for publishing.
    */
   name?: string | null;
   /**
-   * A detailed description of what this program covers (required for publishing)
+   * A detailed description of what this program covers. Can be saved as draft without this field, but required for publishing.
    */
   description?: string | null;
   /**
-   * The main goal or outcome of this program (required for publishing)
+   * The main goal or outcome of this program. Can be saved as draft without this field, but required for publishing.
    */
   objective?: string | null;
   /**
@@ -330,7 +338,7 @@ export interface Program {
    */
   culminatingEvent?: (string | null) | Session;
   /**
-   * The milestones that make up this program, in order. Drag and drop to reorder milestones in the program sequence
+   * The milestones that make up this program, in order. Drag and drop to reorder milestones in the program sequence. At least one milestone is required for publishing.
    */
   milestones?:
     | {
@@ -339,7 +347,7 @@ export interface Program {
       }[]
     | null;
   /**
-   * Check this box to make the program visible to product users
+   * Check this box to make the program visible to product users. ⚠️ All required fields (name, description, objective, milestones) must be filled before publishing.
    */
   isPublished?: boolean | null;
   updatedAt: string;

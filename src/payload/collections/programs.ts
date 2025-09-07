@@ -6,6 +6,8 @@ export const Programs: CollectionConfig = {
     useAsTitle: 'name',
     defaultColumns: ['name', 'isPublished', 'createdAt'],
     group: 'Admin',
+    description:
+      'Fitness programs with progressive validation. Save as draft first, then publish when complete.',
   },
   access: {
     create: ({ req: { user } }) => Boolean(user),
@@ -13,13 +15,44 @@ export const Programs: CollectionConfig = {
     update: ({ req: { user } }) => Boolean(user),
     delete: ({ req: { user } }) => Boolean(user),
   },
+  hooks: {
+    beforeValidate: [
+      ({ data, operation }) => {
+        // Progressive validation: only enforce required fields when publishing
+        if (data?.isPublished && operation === 'update') {
+          const errors: string[] = []
+
+          if (!data.name || data.name.trim() === '') {
+            errors.push('Program name is required for publishing')
+          }
+
+          if (!data.description || data.description.trim() === '') {
+            errors.push('Program description is required for publishing')
+          }
+
+          if (!data.objective || data.objective.trim() === '') {
+            errors.push('Program objective is required for publishing')
+          }
+
+          if (!data.milestones || data.milestones.length === 0) {
+            errors.push('At least one milestone is required for publishing')
+          }
+
+          if (errors.length > 0) {
+            throw new Error(`Cannot publish program: ${errors.join(', ')}`)
+          }
+        }
+      },
+    ],
+  },
   fields: [
     {
       name: 'name',
       type: 'text',
       label: 'Program Name',
       admin: {
-        description: 'The name of the fitness program (required for publishing)',
+        description:
+          'The name of the fitness program. Can be saved as draft without this field, but required for publishing.',
         placeholder: 'e.g., "Beginner Strength Program"',
       },
     },
@@ -28,7 +61,8 @@ export const Programs: CollectionConfig = {
       type: 'textarea',
       label: 'Program Description',
       admin: {
-        description: 'A detailed description of what this program covers (required for publishing)',
+        description:
+          'A detailed description of what this program covers. Can be saved as draft without this field, but required for publishing.',
         placeholder: 'Describe the program goals, target audience, and what users will achieve...',
       },
     },
@@ -37,7 +71,8 @@ export const Programs: CollectionConfig = {
       type: 'text',
       label: 'Program Objective',
       admin: {
-        description: 'The main goal or outcome of this program (required for publishing)',
+        description:
+          'The main goal or outcome of this program. Can be saved as draft without this field, but required for publishing.',
         placeholder: 'e.g., "Build foundational strength and muscle mass"',
       },
     },
@@ -57,7 +92,7 @@ export const Programs: CollectionConfig = {
       label: 'Program Milestones',
       admin: {
         description:
-          'The milestones that make up this program, in order. Drag and drop to reorder milestones in the program sequence',
+          'The milestones that make up this program, in order. Drag and drop to reorder milestones in the program sequence. At least one milestone is required for publishing.',
         initCollapsed: false,
       },
       fields: [
@@ -79,7 +114,8 @@ export const Programs: CollectionConfig = {
       label: 'Published',
       defaultValue: false,
       admin: {
-        description: 'Check this box to make the program visible to product users',
+        description:
+          'Check this box to make the program visible to product users. ⚠️ All required fields (name, description, objective, milestones) must be filled before publishing.',
         position: 'sidebar',
       },
     },

@@ -4,8 +4,10 @@ export const Milestones: CollectionConfig = {
   slug: 'milestones',
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'theme', 'objective'],
+    defaultColumns: ['name', 'theme', 'objective', 'isPublished'],
     group: 'Admin',
+    description:
+      'Program milestones with progressive validation. Save as draft first, then publish when complete.',
   },
   access: {
     read: () => true,
@@ -13,13 +15,45 @@ export const Milestones: CollectionConfig = {
     update: ({ req: { user } }) => Boolean(user),
     delete: ({ req: { user } }) => Boolean(user),
   },
+  hooks: {
+    beforeValidate: [
+      ({ data, operation }) => {
+        // Progressive validation: only enforce required fields when publishing
+        if (data?.isPublished && operation === 'update') {
+          const errors: string[] = []
+
+          if (!data.name || data.name.trim() === '') {
+            errors.push('Milestone name is required for publishing')
+          }
+
+          if (!data.theme || data.theme.trim() === '') {
+            errors.push('Milestone theme is required for publishing')
+          }
+
+          if (!data.objective || data.objective.trim() === '') {
+            errors.push('Milestone objective is required for publishing')
+          }
+
+          if (!data.days || data.days.length === 0) {
+            errors.push('At least one day is required for publishing')
+          }
+
+          if (errors.length > 0) {
+            throw new Error(`Cannot publish milestone: ${errors.join(', ')}`)
+          }
+        }
+      },
+    ],
+  },
   fields: [
     {
       name: 'name',
       type: 'text',
       label: 'Milestone Name',
       admin: {
-        description: 'The name of the milestone. Required for publishing.',
+        description:
+          'The name of the milestone. Can be saved as draft without this field, but required for publishing.',
+        placeholder: 'e.g., "Foundation Building"',
       },
     },
     {
@@ -27,7 +61,9 @@ export const Milestones: CollectionConfig = {
       type: 'text',
       label: 'Theme',
       admin: {
-        description: 'The theme or focus of this milestone. Required for publishing.',
+        description:
+          'The theme or focus of this milestone. Can be saved as draft without this field, but required for publishing.',
+        placeholder: 'e.g., "Strength Building"',
       },
     },
     {
@@ -35,7 +71,9 @@ export const Milestones: CollectionConfig = {
       type: 'textarea',
       label: 'Objective',
       admin: {
-        description: 'The objective or goal of this milestone. Required for publishing.',
+        description:
+          'The objective or goal of this milestone. Can be saved as draft without this field, but required for publishing.',
+        placeholder: 'Describe what users will achieve in this milestone...',
       },
     },
     {
@@ -55,7 +93,7 @@ export const Milestones: CollectionConfig = {
       minRows: 1,
       admin: {
         description:
-          'Add days to this milestone. Drag and drop to reorder. Day number is automatically derived from position.',
+          'Add days to this milestone. Drag and drop to reorder. Day number is automatically derived from position. At least one day is required for publishing.',
       },
       fields: [
         {
@@ -127,7 +165,8 @@ export const Milestones: CollectionConfig = {
       defaultValue: false,
       admin: {
         description:
-          'Check this box to make the milestone visible to product users. Only published milestones will be visible to product users. Ensure all required fields are filled before publishing.',
+          'Check this box to make the milestone visible to product users. Only published milestones will be visible to product users. ⚠️ All required fields (name, theme, objective, days) must be filled before publishing.',
+        position: 'sidebar',
       },
     },
   ],

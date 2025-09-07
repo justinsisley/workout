@@ -11,7 +11,12 @@ describe('PayloadCMS Collections', () => {
     it('should have correct collection configuration', () => {
       expect(Exercises.slug).toBe('exercises')
       expect(Exercises.admin?.useAsTitle).toBe('title')
-      expect(Exercises.admin?.defaultColumns).toEqual(['title', 'description', 'videoUrl'])
+      expect(Exercises.admin?.defaultColumns).toEqual([
+        'title',
+        'description',
+        'videoUrl',
+        'isPublished',
+      ])
     })
 
     it('should have required fields', () => {
@@ -98,7 +103,7 @@ describe('PayloadCMS Collections', () => {
     it('should have correct collection configuration', () => {
       expect(Sessions.slug).toBe('sessions')
       expect(Sessions.admin?.useAsTitle).toBe('name')
-      expect(Sessions.admin?.defaultColumns).toEqual(['name', 'exercises'])
+      expect(Sessions.admin?.defaultColumns).toEqual(['name', 'exercises', 'isPublished'])
     })
 
     it('should have required fields', () => {
@@ -209,7 +214,12 @@ describe('PayloadCMS Collections', () => {
     it('should have correct collection configuration', () => {
       expect(Milestones.slug).toBe('milestones')
       expect(Milestones.admin?.useAsTitle).toBe('name')
-      expect(Milestones.admin?.defaultColumns).toEqual(['name', 'theme', 'objective'])
+      expect(Milestones.admin?.defaultColumns).toEqual([
+        'name',
+        'theme',
+        'objective',
+        'isPublished',
+      ])
     })
 
     it('should have required fields', () => {
