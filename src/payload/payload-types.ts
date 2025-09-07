@@ -71,6 +71,7 @@ export interface Config {
     media: Media;
     exercises: Exercise;
     sessions: Session;
+    milestones: Milestone;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -81,6 +82,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     exercises: ExercisesSelect<false> | ExercisesSelect<true>;
     sessions: SessionsSelect<false> | SessionsSelect<true>;
+    milestones: MilestonesSelect<false> | MilestonesSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -240,6 +242,67 @@ export interface Session {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "milestones".
+ */
+export interface Milestone {
+  id: string;
+  /**
+   * The name of the milestone. Required for publishing.
+   */
+  name?: string | null;
+  /**
+   * The theme or focus of this milestone. Required for publishing.
+   */
+  theme?: string | null;
+  /**
+   * The objective or goal of this milestone. Required for publishing.
+   */
+  objective?: string | null;
+  /**
+   * The final session or event that concludes this milestone. Optional for drafts.
+   */
+  culminatingEvent?: (string | null) | Session;
+  /**
+   * Add days to this milestone. Drag and drop to reorder. Day number is automatically derived from position.
+   */
+  days?:
+    | {
+        /**
+         * Select whether this is a workout day or rest day.
+         */
+        dayType: 'workout' | 'rest';
+        /**
+         * Add workout sessions for this day. Only visible for workout days.
+         */
+        sessions?:
+          | {
+              /**
+               * Select the session to include in this day.
+               */
+              session: string | Session;
+              /**
+               * The order in which this session should be performed (1, 2, 3, etc.).
+               */
+              order: number;
+              id?: string | null;
+            }[]
+          | null;
+        /**
+         * Optional notes for rest days. Only visible for rest days.
+         */
+        restNotes?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Check this box to make the milestone visible to product users. Only published milestones will be visible to product users. Ensure all required fields are filled before publishing.
+   */
+  isPublished?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -260,6 +323,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'sessions';
         value: string | Session;
+      } | null)
+    | ({
+        relationTo: 'milestones';
+        value: string | Milestone;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -371,6 +438,33 @@ export interface SessionsSelect<T extends boolean = true> {
         restPeriod?: T;
         weight?: T;
         notes?: T;
+        id?: T;
+      };
+  isPublished?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "milestones_select".
+ */
+export interface MilestonesSelect<T extends boolean = true> {
+  name?: T;
+  theme?: T;
+  objective?: T;
+  culminatingEvent?: T;
+  days?:
+    | T
+    | {
+        dayType?: T;
+        sessions?:
+          | T
+          | {
+              session?: T;
+              order?: T;
+              id?: T;
+            };
+        restNotes?: T;
         id?: T;
       };
   isPublished?: T;

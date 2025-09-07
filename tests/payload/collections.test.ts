@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { Exercises } from '../../src/payload/collections/exercises'
 import { Sessions } from '../../src/payload/collections/sessions'
+import { Milestones } from '../../src/payload/collections/milestones'
 
 describe('PayloadCMS Collections', () => {
   describe('Exercises Collection', () => {
@@ -198,6 +199,188 @@ describe('PayloadCMS Collections', () => {
       // Array fields support drag-and-drop by default in PayloadCMS
       expect((exercisesField as any)?.type).toBe('array')
       expect((exercisesField as any)?.admin?.description).toContain('Drag and drop to reorder')
+    })
+  })
+
+  describe('Milestones Collection', () => {
+    it('should have correct collection configuration', () => {
+      expect(Milestones.slug).toBe('milestones')
+      expect(Milestones.admin?.useAsTitle).toBe('name')
+      expect(Milestones.admin?.defaultColumns).toEqual(['name', 'theme', 'objective'])
+    })
+
+    it('should have required fields', () => {
+      const fields = Milestones.fields || []
+      const fieldNames = fields.map((field: any) => field.name)
+
+      expect(fieldNames).toContain('name')
+      expect(fieldNames).toContain('theme')
+      expect(fieldNames).toContain('objective')
+      expect(fieldNames).toContain('culminatingEvent')
+      expect(fieldNames).toContain('days')
+      expect(fieldNames).toContain('isPublished')
+    })
+
+    it('should have culminating event relationship configured correctly', () => {
+      const culminatingEventField = Milestones.fields?.find(
+        (field: any) => field.name === 'culminatingEvent',
+      )
+
+      expect(culminatingEventField).toBeDefined()
+      expect((culminatingEventField as any)?.type).toBe('relationship')
+      expect((culminatingEventField as any)?.relationTo).toBe('sessions')
+    })
+
+    it('should have days array field configured correctly', () => {
+      const daysField = Milestones.fields?.find((field: any) => field.name === 'days')
+
+      expect(daysField).toBeDefined()
+      expect((daysField as any)?.type).toBe('array')
+      expect((daysField as any)?.minRows).toBe(1)
+    })
+
+    it('should have day fields in days array', () => {
+      const daysField = Milestones.fields?.find((field: any) => field.name === 'days')
+      const dayFields = (daysField as any)?.fields || []
+      const fieldNames = dayFields.map((field: any) => field.name)
+
+      expect(fieldNames).toContain('dayType')
+      expect(fieldNames).toContain('sessions')
+      expect(fieldNames).toContain('restNotes')
+    })
+
+    it('should have dayType select field with correct options', () => {
+      const daysField = Milestones.fields?.find((field: any) => field.name === 'days')
+      const dayTypeField = (daysField as any)?.fields?.find(
+        (field: any) => field.name === 'dayType',
+      )
+
+      expect(dayTypeField).toBeDefined()
+      expect((dayTypeField as any)?.type).toBe('select')
+      expect((dayTypeField as any)?.required).toBe(true)
+      expect((dayTypeField as any)?.defaultValue).toBe('workout')
+
+      const options = (dayTypeField as any)?.options || []
+      expect(options).toHaveLength(2)
+      expect(options[0]).toEqual({ label: 'Workout', value: 'workout' })
+      expect(options[1]).toEqual({ label: 'Rest', value: 'rest' })
+    })
+
+    it('should have sessions array with conditional display', () => {
+      const daysField = Milestones.fields?.find((field: any) => field.name === 'days')
+      const sessionsField = (daysField as any)?.fields?.find(
+        (field: any) => field.name === 'sessions',
+      )
+
+      expect(sessionsField).toBeDefined()
+      expect((sessionsField as any)?.type).toBe('array')
+      expect((sessionsField as any)?.admin?.condition).toBeDefined()
+    })
+
+    it('should have session relationship fields in sessions array', () => {
+      const daysField = Milestones.fields?.find((field: any) => field.name === 'days')
+      const sessionsField = (daysField as any)?.fields?.find(
+        (field: any) => field.name === 'sessions',
+      )
+      const sessionFields = (sessionsField as any)?.fields || []
+      const fieldNames = sessionFields.map((field: any) => field.name)
+
+      expect(fieldNames).toContain('session')
+      expect(fieldNames).toContain('order')
+    })
+
+    it('should have session relationship configured correctly', () => {
+      const daysField = Milestones.fields?.find((field: any) => field.name === 'days')
+      const sessionsField = (daysField as any)?.fields?.find(
+        (field: any) => field.name === 'sessions',
+      )
+      const sessionField = (sessionsField as any)?.fields?.find(
+        (field: any) => field.name === 'session',
+      )
+
+      expect(sessionField).toBeDefined()
+      expect((sessionField as any)?.type).toBe('relationship')
+      expect((sessionField as any)?.relationTo).toBe('sessions')
+      expect((sessionField as any)?.required).toBe(true)
+    })
+
+    it('should have order field with proper validation', () => {
+      const daysField = Milestones.fields?.find((field: any) => field.name === 'days')
+      const sessionsField = (daysField as any)?.fields?.find(
+        (field: any) => field.name === 'sessions',
+      )
+      const orderField = (sessionsField as any)?.fields?.find(
+        (field: any) => field.name === 'order',
+      )
+
+      expect(orderField).toBeDefined()
+      expect((orderField as any)?.type).toBe('number')
+      expect((orderField as any)?.required).toBe(true)
+      expect((orderField as any)?.min).toBe(1)
+    })
+
+    it('should have restNotes field with conditional display', () => {
+      const daysField = Milestones.fields?.find((field: any) => field.name === 'days')
+      const restNotesField = (daysField as any)?.fields?.find(
+        (field: any) => field.name === 'restNotes',
+      )
+
+      expect(restNotesField).toBeDefined()
+      expect((restNotesField as any)?.type).toBe('textarea')
+      expect((restNotesField as any)?.admin?.condition).toBeDefined()
+    })
+
+    it('should have proper access controls', () => {
+      expect(Milestones.access?.read).toBeDefined()
+      expect(Milestones.access?.create).toBeDefined()
+      expect(Milestones.access?.update).toBeDefined()
+      expect(Milestones.access?.delete).toBeDefined()
+    })
+
+    it('should have progressive validation configured', () => {
+      const nameField = Milestones.fields?.find((field: any) => field.name === 'name')
+      const themeField = Milestones.fields?.find((field: any) => field.name === 'theme')
+      const objectiveField = Milestones.fields?.find((field: any) => field.name === 'objective')
+      const culminatingEventField = Milestones.fields?.find(
+        (field: any) => field.name === 'culminatingEvent',
+      )
+
+      // All fields should be optional (no required: true) for progressive validation
+      expect((nameField as any)?.required).toBeUndefined()
+      expect((themeField as any)?.required).toBeUndefined()
+      expect((objectiveField as any)?.required).toBeUndefined()
+      expect((culminatingEventField as any)?.required).toBeUndefined()
+    })
+
+    it('should have isPublished field with correct default', () => {
+      const isPublishedField = Milestones.fields?.find((field: any) => field.name === 'isPublished')
+
+      expect(isPublishedField).toBeDefined()
+      expect((isPublishedField as any)?.type).toBe('checkbox')
+      expect((isPublishedField as any)?.defaultValue).toBe(false)
+    })
+
+    it('should have drag-and-drop ordering configured for days', () => {
+      const daysField = Milestones.fields?.find((field: any) => field.name === 'days')
+
+      expect((daysField as any)?.type).toBe('array')
+      expect((daysField as any)?.admin?.description).toContain('Drag and drop to reorder')
+    })
+
+    it('should have conditional field logic for workout vs rest days', () => {
+      const daysField = Milestones.fields?.find((field: any) => field.name === 'days')
+      const sessionsField = (daysField as any)?.fields?.find(
+        (field: any) => field.name === 'sessions',
+      )
+      const restNotesField = (daysField as any)?.fields?.find(
+        (field: any) => field.name === 'restNotes',
+      )
+
+      // Sessions field should only show for workout days
+      expect((sessionsField as any)?.admin?.condition).toBeDefined()
+
+      // Rest notes field should only show for rest days
+      expect((restNotesField as any)?.admin?.condition).toBeDefined()
     })
   })
 })
