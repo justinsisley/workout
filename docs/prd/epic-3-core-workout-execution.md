@@ -17,7 +17,7 @@ so that **I can understand what exercises I need to complete and track my progre
 5. **Time estimates** display estimated total session duration and time remaining
 6. **Mobile optimization** provides touch-friendly interface optimized for gym use
 7. **Session status tracking** maintains current position within the workout session
-8. **Exercise preview** shows exercise names, muscle groups, and basic information
+8. **Exercise preview** shows exercise names and basic information
 9. **Session completion tracking** enables tracking of overall session progress
 10. **Error handling** gracefully handles session data issues and provides user feedback
 
@@ -29,7 +29,7 @@ so that **I can perform exercises correctly with proper form and technique**.
 
 ### Acceptance Criteria
 
-1. **Exercise detail screen** displays exercise name, description, muscle groups, and instructions
+1. **Exercise detail screen** displays exercise name, description, and instructions
 2. **Video integration** shows exercise demonstration videos with inline playback
 3. **Fullscreen video toggle** allows users to view videos in fullscreen mode
 4. **Video controls** provide play, pause, and seek functionality for exercise videos

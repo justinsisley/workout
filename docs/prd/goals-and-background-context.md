@@ -10,7 +10,7 @@ Based on your project brief and brainstorming session, here are the key desired 
 - **Support shared household access** allowing both Justin and his wife to use the same programs simultaneously
 - **Deliver mobile-first gym experience** with optimized UI for phone use during workout sessions
 - **Establish unified PayloadCMS ecosystem** for consistent data management and future extensibility
-- **Create structured fitness progression** with clear program hierarchy (Programs → Milestones → Weeks → Days → Sessions)
+- **Create structured fitness progression** with clear program hierarchy (Programs → Milestones → Days → Sessions)
 - **Enable real data foundation** from day one without mock data requirements
 
 ## Background Context

@@ -33,16 +33,15 @@ so that **the data structure supports the complete program hierarchy and user ma
 
 ### Acceptance Criteria
 
-1. **Exercises collection** includes title, description, muscle groups, video URL, and alternatives
+1. **Exercises collection** includes title, description, video URL, and alternatives
 2. **Programs collection** includes name, description, objective, culminating event, and milestone relationships
-3. **Milestones collection** includes name, theme, objective, culminating event, and program relationship
-4. **Weeks collection** includes milestone relationship and week number
-5. **Days collection** includes week relationship, day number, is_rest_day flag, and session relationship
-6. **Sessions collection** includes exercises with sets, reps, and rest periods
-7. **Product users collection** includes phone number, current program, milestone, and day tracking
-8. **Exercise completions collection** includes user, exercise, reps, sets, weight, time, and date
-9. **All relationships are properly configured** between collections
-10. **Collection validation rules** ensure data integrity and required fields
+3. **Milestones collection** includes name, theme, objective, culminating event, and days array with relationship-based ordering
+4. **Days are embedded in milestones** with dayType ('workout'|'rest'), sessions array, and relationship-based ordering (day number derived from array position)
+5. **Sessions collection** includes exercises with sets, reps, and rest periods
+6. **Product users collection** includes phone number, current program, milestone, and day tracking
+7. **Exercise completions collection** includes user, exercise, reps, sets, weight, time, and date
+8. **All relationships are properly configured** between collections
+9. **Collection validation rules** ensure data integrity and required fields
 
 ## Story 1.3: Admin Interface and Program Creation
 
@@ -56,7 +55,7 @@ so that **I can create and manage workout programs, exercises, and program struc
 2. **Program creation interface** allows creating new programs with all required fields
 3. **Exercise library management** enables adding, editing, and organizing exercises
 4. **Milestone creation** allows defining themes, objectives, and culminating events
-5. **Week and day management** enables creating the complete program structure
+5. **Day management** enables creating the complete program structure with embedded days in milestones
 6. **Session creation** allows adding exercises with sets, reps, and rest periods
 7. **Rest day management** provides simple checkbox for marking days as rest days
 8. **Data validation** prevents invalid program structures and missing required fields
@@ -71,8 +70,8 @@ so that **I have realistic data for testing and development of user-facing featu
 
 ### Acceptance Criteria
 
-1. **Exercise library is populated** with at least 20 diverse exercises covering major muscle groups
-2. **Complete program structure** is created with realistic milestones, weeks, and days
+1. **Exercise library is populated** with at least 20 diverse exercises covering various movement patterns
+2. **Complete program structure** is created with realistic milestones and days
 3. **All sessions include exercises** with appropriate sets, reps, and rest periods
 4. **Program hierarchy is validated** - all relationships work correctly from program to individual exercises
 5. **Realistic program content** reflects actual workout programming principles

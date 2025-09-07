@@ -69,7 +69,7 @@ Program (overall objective + culminating event)
 
 ### PayloadCMS Collections
 
-- `exercises` (title, description, muscle groups, video URL, alternatives)
+- `exercises` (title, description, video URL, alternatives)
 - `programs` (name, description, objective, culminating event, milestone order)
 - `milestones` (name, theme, objective, culminating event, program relationship)
 - `weeks` (milestone relationship, week number)
@@ -84,7 +84,7 @@ Program (overall objective + culminating event)
 
 - **Program Creation:** Name, description, objective, culminating event
 - **Milestone Management:** Theme, objective, culminating event, ordering
-- **Exercise Library:** Title, description, muscle groups, video URLs
+- **Exercise Library:** Title, description, video URLs
 - **Alternative Exercises:** One-to-many relationships for exercise substitutions
 - **Auto-derived Data:** Duration estimates
 - **Manual Milestone Ordering:** Intentional milestone sequence management

@@ -22,7 +22,7 @@ This architecture is designed around **PayloadCMS's collection and field abstrac
 
 ## Progressive Validation Strategy
 
-**Problem:** Traditional required field validation blocks iterative content creation workflows where admins need to bounce between programs, milestones, weeks, days, and sessions.
+**Problem:** Traditional required field validation blocks iterative content creation workflows where admins need to bounce between programs, milestones, days, and sessions.
 
 **Solution:** Implement a progressive validation system that allows saving incomplete content while providing clear visibility into completion status.
 
@@ -38,7 +38,7 @@ This architecture is designed around **PayloadCMS's collection and field abstrac
 **1. No Required Fields at Save Time:**
 
 - All content can be saved in draft state without any required fields
-- Admin users can bounce between programs, milestones, weeks, days, and sessions freely
+- Admin users can bounce between programs, milestones, days, and sessions freely
 - Progress is never lost due to validation constraints
 
 **2. Publishing Controls:**

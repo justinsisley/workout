@@ -47,7 +47,7 @@ Testing will prioritize critical business logic (progression algorithms) and dat
 - **Video Hosting:** External video hosting service for exercise demonstrations (YouTube, Vimeo, or dedicated hosting)
 - **Deployment:** Local development first, with future cloud deployment on Vercel, Netlify, or similar
 - **Development Environment:** Docker Compose for MongoDB, local PayloadCMS development
-- **Data Structure:** Flexible document structure supporting Programs → Milestones → Weeks → Days → Sessions hierarchy
+- **Data Structure:** Flexible document structure supporting Programs → Milestones → Days → Sessions hierarchy
 - **Mobile Optimization:** Progressive Web App (PWA) capabilities for mobile gym use
 - **Cost Constraints:** Aim to stay within free/low-cost service limits for SMS, hosting, and video services
 - **Single Developer:** Architecture must be maintainable by one person with existing technical skills

@@ -95,14 +95,14 @@ graph TD
 
 **Breadcrumb Strategy:**
 
-- **Current Position Indicator:** Always show current program → milestone → week → day
+- **Current Position Indicator:** Always show current program → milestone → day
 - **Session Progress:** Show current exercise number within session (e.g., "Exercise 3 of 8")
 - **Quick Navigation:** Allow jumping back to workout dashboard from any exercise screen
 
 **Admin Navigation (Desktop):**
 
 - **PayloadCMS Standard:** Use built-in PayloadCMS navigation for program creation and management
-- **Collection Access:** Direct access to exercises, programs, milestones, weeks, days, and sessions
+- **Collection Access:** Direct access to exercises, programs, milestones, days, and sessions
 - **User Management:** Access to product users and their progress data
 
 ## User Flows
@@ -300,7 +300,7 @@ graph TD
 - Today's exercise list with completion status
 - Estimated session duration
 - Quick start button
-- Progress indicators (current day, week, milestone)
+- Progress indicators (current day, milestone)
 - Rest day indicator when applicable
 
 **Interaction Notes:** Thumb-friendly layout, quick access to start workout, clear progress visualization
@@ -534,7 +534,7 @@ graph TD
 - **Status:** Exercise completion status (Complete, Skipped, Pending)
 - **Progress:** Program milestone indicators
 - **Notification:** System messages and alerts
-- **Category:** Exercise muscle group labels
+- **Category:** Exercise category labels
 
 **States:**
 

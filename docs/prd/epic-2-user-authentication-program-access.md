@@ -55,7 +55,7 @@ so that **I can choose the program that best fits my fitness goals and current l
 5. **Program status tracking** maintains user's current program selection and progress
 6. **Mobile optimization** provides touch-friendly interface optimized for phone use
 7. **Program filtering** allows users to filter programs by difficulty, duration, or focus area
-8. **Program preview** shows program structure (milestones, weeks, estimated duration)
+8. **Program preview** shows program structure (milestones, estimated duration)
 9. **Selection confirmation** requires user confirmation before program assignment
 10. **Error handling** gracefully handles program selection failures and provides user feedback
 

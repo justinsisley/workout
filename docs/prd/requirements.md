@@ -6,9 +6,9 @@
 
 **FR2:** The system shall support two distinct user types: Admin users (PayloadCMS built-in) and Product users (custom collection with SMS authentication).
 
-**FR3:** The system shall provide a PayloadCMS admin interface for creating and managing workout programs with the hierarchy: Programs → Milestones → Weeks → Days → Sessions.
+**FR3:** The system shall provide a PayloadCMS admin interface for creating and managing workout programs with the hierarchy: Programs → Milestones (with embedded days) → Sessions.
 
-**FR4:** The system shall maintain an exercise library with title, description, muscle groups, video URL, and alternative exercises.
+**FR4:** The system shall maintain an exercise library with title, description, video URL, and alternative exercises.
 
 **FR5:** The system shall track user progress through programs including current program, milestone, and day position.
 
