@@ -69,6 +69,7 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    exercises: Exercise;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -77,6 +78,7 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    exercises: ExercisesSelect<false> | ExercisesSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -158,6 +160,35 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "exercises".
+ */
+export interface Exercise {
+  id: string;
+  /**
+   * The name of the exercise. Required for publishing.
+   */
+  title?: string | null;
+  /**
+   * Detailed description of how to perform the exercise. Required for publishing.
+   */
+  description?: string | null;
+  /**
+   * YouTube URL or video ID for exercise demonstration. Required for publishing. Use YouTube URLs or video IDs.
+   */
+  videoUrl?: string | null;
+  /**
+   * Select exercises that can be used as alternatives to this exercise.
+   */
+  alternatives?: (string | Exercise)[] | null;
+  /**
+   * Check this box to make the exercise visible to product users. Only published exercises will be visible to product users. Ensure all required fields are filled before publishing.
+   */
+  isPublished?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -170,6 +201,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: string | Media;
+      } | null)
+    | ({
+        relationTo: 'exercises';
+        value: string | Exercise;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -252,6 +287,19 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "exercises_select".
+ */
+export interface ExercisesSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  videoUrl?: T;
+  alternatives?: T;
+  isPublished?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
