@@ -5,6 +5,7 @@ export const Programs: CollectionConfig = {
   admin: {
     useAsTitle: 'name',
     defaultColumns: ['name', 'isPublished', 'createdAt'],
+    group: 'Admin',
   },
   access: {
     create: ({ req: { user } }) => Boolean(user),

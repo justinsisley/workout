@@ -5,6 +5,7 @@ export const Milestones: CollectionConfig = {
   admin: {
     useAsTitle: 'name',
     defaultColumns: ['name', 'theme', 'objective'],
+    group: 'Admin',
   },
   access: {
     read: () => true,

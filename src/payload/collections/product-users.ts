@@ -7,6 +7,7 @@ export const ProductUsers: CollectionConfig = {
     defaultColumns: ['username', 'currentProgram', 'currentMilestone', 'currentDay'],
     description:
       'Product users are app users who authenticate via WebAuthN passkeys. They are completely separate from admin users.',
+    group: 'Application Data',
   },
   access: {
     // Only authenticated admin users can manage product users

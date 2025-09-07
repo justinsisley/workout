@@ -5,6 +5,7 @@ export const Sessions: CollectionConfig = {
   admin: {
     useAsTitle: 'name',
     defaultColumns: ['name', 'exercises'],
+    group: 'Admin',
   },
   access: {
     read: () => true,

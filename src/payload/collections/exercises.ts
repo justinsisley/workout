@@ -5,6 +5,7 @@ export const Exercises: CollectionConfig = {
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'description', 'videoUrl'],
+    group: 'Admin',
   },
   access: {
     read: () => true,
