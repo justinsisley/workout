@@ -40,6 +40,7 @@ export default {
         'dev', // Development workflow
         'cleanup', // Cleanup and maintenance
         'chore', // General maintenance
+        'setup', // Development setup
       ],
     ],
     // Require description
