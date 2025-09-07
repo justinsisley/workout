@@ -19,10 +19,10 @@ This approach provides maximum flexibility and simplicity for a single-developer
 
 ### Change Log
 
-| Date | Version | Description | Author |
-|------|---------|-------------|---------|
-| 2025-09-06 | 1.0 | Initial fullstack architecture creation | Winston (Architect) |
-| 2025-09-06 | 1.1 | Added Railway configuration as code documentation | Winston (Architect) |
+| Date       | Version | Description                                       | Author              |
+| ---------- | ------- | ------------------------------------------------- | ------------------- |
+| 2025-09-06 | 1.0     | Initial fullstack architecture creation           | Winston (Architect) |
+| 2025-09-06 | 1.1     | Added Railway configuration as code documentation | Winston (Architect) |
 
 ## High Level Architecture
 
@@ -41,17 +41,20 @@ The Personal Workout App implements a **unified Next.js application with integra
 ### Railway Platform Benefits
 
 **Cost Optimization:**
+
 - **83% Cost Reduction:** $5/month vs $29/month (Vercel Pro + MongoDB Atlas)
 - **Unified Billing:** Single platform for application and database
 - **Usage-Based Scaling:** Pay only for resources consumed
 
 **Architectural Advantages:**
+
 - **Co-located Database:** MongoDB runs alongside Next.js app, eliminating network latency
 - **Simplified Deployment:** Single platform reduces operational complexity
 - **Persistent Connections:** Long-running servers support real-time features if needed
 - **No Cold Starts:** Unlike serverless functions, consistent performance
 
 **Development Benefits:**
+
 - **Single Environment:** Development, staging, and production on same platform
 - **Integrated Monitoring:** Unified logging and analytics
 - **Easy Scaling:** Vertical and horizontal scaling without vendor lock-in
@@ -70,19 +73,19 @@ graph TB
     subgraph "Product User Devices"
         A[Mobile Browser<br/>iOS Safari/Chrome]
     end
-    
+
     subgraph "Railway Platform"
         B[Next.js App<br/>Frontend + API Routes]
         C[PayloadCMS<br/>Admin Interface]
         D[MongoDB<br/>Database]
         E[Static Assets<br/>Local CDN]
     end
-    
+
     subgraph "External Services"
         F[Twilio<br/>SMS Service]
         G[YouTube<br/>Video Hosting]
     end
-    
+
     A --> B
     A --> C
     A --> E
@@ -106,29 +109,29 @@ This is the DEFINITIVE technology selection for the entire project. All developm
 
 ### Technology Stack Table
 
-| Category | Technology | Version | Purpose | Rationale |
-|----------|------------|---------|---------|-----------|
-| Frontend Language | TypeScript | 5.3+ | Type-safe development | Ensures code quality and maintainability for single developer |
-| Frontend Framework | Next.js | 15.5+ | Full-stack React framework | Provides SSR, server actions, and optimal mobile performance |
-| UI Component Library | ShadCN/ui | Latest | Consistent UI components | Pre-built, accessible components optimized for mobile |
-| State Management | Zustand | Latest | Lightweight state management | Clean, scalable state management with minimal boilerplate |
-| Backend Language | TypeScript | 5.3+ | Unified language | Same language for frontend and backend reduces complexity |
-| Backend Framework | PayloadCMS | 3.53+ | Headless CMS | Provides admin interface and data management out of the box |
-| Data Access | Server Actions + PayloadCMS SDK | Latest | Direct data operations | Server actions for mutations, SDK for queries |
-| Data Validation | Zod | 4.1+ | Schema validation and type safety | Runtime type validation for API inputs and data integrity |
-| Database | MongoDB | 7.0+ | Document database | Perfect for complex program hierarchies and flexible schemas |
-| Video Integration | YouTube API | Latest | Video hosting and embedding | Free video hosting with excellent mobile optimization and embedding |
-| Authentication | Twilio SMS OTP | Latest | Phone-based auth | Simple, secure authentication without password management |
-| Frontend Testing | Vitest + Testing Library | Latest | Unit and integration tests | Fast, modern testing framework with excellent React support |
-| Backend Testing | Vitest | Latest | Server action testing | Direct testing of server actions and business logic |
-| E2E Testing | Playwright | Latest | End-to-end testing | Reliable cross-browser testing for mobile scenarios |
-| Build Tool | Next.js Built-in | 15.5+ | Bundling and optimization | Integrated build system with excellent mobile optimization |
-| Bundler | Turbopack | Latest | Fast bundling | Next.js default for rapid development |
-| IaC Tool | Railway.toml | Latest | Configuration as code | Deployment configuration managed in repository |
-| CI/CD | GitHub Actions | Latest | Automated testing and deployment | Free CI/CD with excellent Railway integration |
-| Monitoring | Railway Analytics | Built-in | Performance monitoring | Built-in analytics for mobile performance tracking |
-| Logging | Railway Application Logs | Built-in | Application logging | Integrated logging with Railway platform |
-| CSS Framework | Tailwind CSS | 4.1+ | Utility-first styling | High-performance engine with modern CSS features and mobile-first design |
+| Category             | Technology                      | Version  | Purpose                           | Rationale                                                                |
+| -------------------- | ------------------------------- | -------- | --------------------------------- | ------------------------------------------------------------------------ |
+| Frontend Language    | TypeScript                      | 5.3+     | Type-safe development             | Ensures code quality and maintainability for single developer            |
+| Frontend Framework   | Next.js                         | 15.5+    | Full-stack React framework        | Provides SSR, server actions, and optimal mobile performance             |
+| UI Component Library | ShadCN/ui                       | Latest   | Consistent UI components          | Pre-built, accessible components optimized for mobile                    |
+| State Management     | Zustand                         | Latest   | Lightweight state management      | Clean, scalable state management with minimal boilerplate                |
+| Backend Language     | TypeScript                      | 5.3+     | Unified language                  | Same language for frontend and backend reduces complexity                |
+| Backend Framework    | PayloadCMS                      | 3.53+    | Headless CMS                      | Provides admin interface and data management out of the box              |
+| Data Access          | Server Actions + PayloadCMS SDK | Latest   | Direct data operations            | Server actions for mutations, SDK for queries                            |
+| Data Validation      | Zod                             | 4.1+     | Schema validation and type safety | Runtime type validation for API inputs and data integrity                |
+| Database             | MongoDB                         | 7.0+     | Document database                 | Perfect for complex program hierarchies and flexible schemas             |
+| Video Integration    | YouTube API                     | Latest   | Video hosting and embedding       | Free video hosting with excellent mobile optimization and embedding      |
+| Authentication       | Twilio SMS OTP                  | Latest   | Phone-based auth                  | Simple, secure authentication without password management                |
+| Frontend Testing     | Vitest + Testing Library        | Latest   | Unit and integration tests        | Fast, modern testing framework with excellent React support              |
+| Backend Testing      | Vitest                          | Latest   | Server action testing             | Direct testing of server actions and business logic                      |
+| E2E Testing          | Playwright                      | Latest   | End-to-end testing                | Reliable cross-browser testing for mobile scenarios                      |
+| Build Tool           | Next.js Built-in                | 15.5+    | Bundling and optimization         | Integrated build system with excellent mobile optimization               |
+| Bundler              | Turbopack                       | Latest   | Fast bundling                     | Next.js default for rapid development                                    |
+| IaC Tool             | Railway.toml                    | Latest   | Configuration as code             | Deployment configuration managed in repository                           |
+| CI/CD                | GitHub Actions                  | Latest   | Automated testing and deployment  | Free CI/CD with excellent Railway integration                            |
+| Monitoring           | Railway Analytics               | Built-in | Performance monitoring            | Built-in analytics for mobile performance tracking                       |
+| Logging              | Railway Application Logs        | Built-in | Application logging               | Integrated logging with Railway platform                                 |
+| CSS Framework        | Tailwind CSS                    | 4.1+     | Utility-first styling             | High-performance engine with modern CSS features and mobile-first design |
 
 ## PayloadCMS Collections
 
@@ -137,6 +140,7 @@ This is the DEFINITIVE technology selection for the entire project. All developm
 This architecture is designed around **PayloadCMS's collection and field abstractions** rather than raw MongoDB concepts. This approach provides several key advantages:
 
 **Abstraction Benefits:**
+
 - **No Raw MongoDB:** We don't directly interact with MongoDB collections or schemas
 - **Field-Based Definition:** All data structures are defined using PayloadCMS field types
 - **Automatic Generation:** Database schema and admin interfaces are automatically generated
@@ -145,6 +149,7 @@ This architecture is designed around **PayloadCMS's collection and field abstrac
 - **Server-Side Operations:** All data operations use PayloadCMS Local API in server actions
 
 **Admin Interface Benefits:**
+
 - **Automatic UI:** Complete admin interface is generated from collection definitions
 - **Drag-and-Drop Ordering:** Junction collections provide intuitive reordering interfaces
 - **Progressive Validation:** Flexible validation that supports iterative content creation
@@ -157,6 +162,7 @@ This architecture is designed around **PayloadCMS's collection and field abstrac
 **Solution:** Implement a progressive validation system that allows saving incomplete content while providing clear visibility into completion status.
 
 **Key Principles:**
+
 - **Save Early, Save Often:** Allow saving content at any stage of completion
 - **Visual Completion Indicators:** Clear UI indicators showing what's missing
 - **Contextual Warnings:** Show warnings when content won't be visible to product users
@@ -165,21 +171,25 @@ This architecture is designed around **PayloadCMS's collection and field abstrac
 **Implementation Details:**
 
 **1. No Required Fields at Save Time:**
+
 - All content can be saved in draft state without any required fields
 - Admin users can bounce between programs, milestones, weeks, days, and sessions freely
 - Progress is never lost due to validation constraints
 
 **2. Publishing Controls:**
+
 - `isPublished` checkbox controls product user visibility
 - Only published content appears in product user-facing interfaces
 - Draft and in-progress content remains hidden from product users
 
 **3. Admin Interface Enhancements:**
+
 - Field descriptions indicate publishing requirements
 - Warning messages when trying to publish incomplete content
 - Bulk actions for publishing multiple items
 
 **4. Admin User Experience Benefits:**
+
 - No more "cannot save" errors blocking workflow
 - Clear visibility into what needs completion
 - Ability to work on multiple items simultaneously
@@ -192,6 +202,7 @@ This architecture is designed around **PayloadCMS's collection and field abstrac
 **Solution:** Implement strict separation between PayloadCMS admin users and product users with distinct collections, authentication systems, and access controls.
 
 **Key Principles:**
+
 - **Clear Separation:** PayloadCMS admin users vs. product users are completely separate entities
 - **Security Isolation:** Admin user access and product user access use different authentication systems
 - **Data Integrity:** Product user data is isolated from admin user system data
@@ -200,6 +211,7 @@ This architecture is designed around **PayloadCMS's collection and field abstrac
 **Implementation Details:**
 
 **1. PayloadCMS Admin Users (`users` collection):**
+
 - Standard PayloadCMS authentication (email/password)
 - Default PayloadCMS user setup (no custom roles)
 - Access to PayloadCMS admin interface only
@@ -207,6 +219,7 @@ This architecture is designed around **PayloadCMS's collection and field abstrac
 - No access to product user workout data
 
 **2. Product Users (`productUsers` collection):**
+
 - Custom SMS OTP authentication only
 - No access to PayloadCMS admin interface
 - Access to workout app features only
@@ -214,12 +227,14 @@ This architecture is designed around **PayloadCMS's collection and field abstrac
 - Isolated workout progress and completion data
 
 **3. Security Benefits:**
+
 - Admin user credentials never exposed to product users
 - Product user data never accessible through admin interface
 - Clear audit trail for admin user vs. product user actions
 - Simplified admin user system reduces complexity and potential vulnerabilities
 
 **4. Data Management Benefits:**
+
 - Clean separation of concerns between admin users and product users
 - Easier backup and recovery strategies
 - Clear data ownership and responsibility
@@ -230,22 +245,24 @@ This architecture is designed around **PayloadCMS's collection and field abstrac
 **Purpose:** Standard PayloadCMS admin users for CMS access and management. This collection uses PayloadCMS's default user setup with no custom modifications.
 
 **PayloadCMS Collection Definition:**
+
 ```typescript
 export const Users: CollectionConfig = {
   slug: 'users',
   auth: true, // Standard PayloadCMS authentication
   // No custom fields - use PayloadCMS defaults
-};
+}
 ```
 
 **TypeScript Interface:**
+
 ```typescript
 interface AdminUser {
-  id: string;
-  email: string;
-  password: string; // Hashed by PayloadCMS
-  createdAt: Date;
-  updatedAt: Date;
+  id: string
+  email: string
+  password: string // Hashed by PayloadCMS
+  createdAt: Date
+  updatedAt: Date
 }
 ```
 
@@ -254,6 +271,7 @@ interface AdminUser {
 **Purpose:** Represents product users (Justin and wife) with phone-based authentication and program progress tracking. This is completely separate from PayloadCMS admin users.
 
 **PayloadCMS Collection Definition:**
+
 ```typescript
 export const ProductUsers: CollectionConfig = {
   slug: 'productUsers',
@@ -266,55 +284,55 @@ export const ProductUsers: CollectionConfig = {
       unique: true,
       index: true,
       admin: {
-        description: 'Phone number for SMS authentication'
-      }
+        description: 'Phone number for SMS authentication',
+      },
     },
     {
       name: 'displayName',
       type: 'text',
       required: false,
       admin: {
-        description: 'Optional display name for the product user'
-      }
+        description: 'Optional display name for the product user',
+      },
     },
     {
       name: 'currentProgram',
       type: 'relationship',
       relationTo: 'programs',
       admin: {
-        description: 'Currently assigned workout program'
-      }
+        description: 'Currently assigned workout program',
+      },
     },
     {
       name: 'currentMilestone',
       type: 'relationship',
       relationTo: 'milestones',
       admin: {
-        description: 'Current milestone within the program'
-      }
+        description: 'Current milestone within the program',
+      },
     },
     {
       name: 'currentDay',
       type: 'number',
       defaultValue: 1,
       admin: {
-        description: 'Current day within the program'
-      }
+        description: 'Current day within the program',
+      },
     },
     {
       name: 'lastWorkoutDate',
       type: 'date',
       admin: {
-        description: 'Date of last completed workout'
-      }
+        description: 'Date of last completed workout',
+      },
     },
     {
       name: 'totalWorkoutsCompleted',
       type: 'number',
       defaultValue: 0,
       admin: {
-        description: 'Total number of workouts completed'
-      }
+        description: 'Total number of workouts completed',
+      },
     },
   ],
   access: {
@@ -324,22 +342,23 @@ export const ProductUsers: CollectionConfig = {
     update: ({ req: { user } }) => !!user,
     delete: ({ req: { user } }) => !!user,
   },
-};
+}
 ```
 
 **TypeScript Interface:**
+
 ```typescript
 interface ProductUser {
-  id: string;
-  phoneNumber: string;
-  displayName?: string;
-  currentProgram?: string;
-  currentMilestone?: string;
-  currentDay: number;
-  lastWorkoutDate?: Date;
-  totalWorkoutsCompleted: number;
-  createdAt: Date;
-  updatedAt: Date;
+  id: string
+  phoneNumber: string
+  displayName?: string
+  currentProgram?: string
+  currentMilestone?: string
+  currentDay: number
+  lastWorkoutDate?: Date
+  totalWorkoutsCompleted: number
+  createdAt: Date
+  updatedAt: Date
 }
 ```
 
@@ -348,6 +367,7 @@ interface ProductUser {
 **Purpose:** Represents complete workout programs with hierarchical structure and metadata.
 
 **PayloadCMS Collection Definition:**
+
 ```typescript
 export const Programs: CollectionConfig = {
   slug: 'programs',
@@ -357,24 +377,24 @@ export const Programs: CollectionConfig = {
       type: 'text',
       required: false, // Allow saving without name initially
       admin: {
-        description: 'Program name - required for publishing'
-      }
+        description: 'Program name - required for publishing',
+      },
     },
     {
       name: 'description',
       type: 'textarea',
       required: false, // Allow saving without description initially
       admin: {
-        description: 'Program description - required for publishing'
-      }
+        description: 'Program description - required for publishing',
+      },
     },
     {
       name: 'objective',
       type: 'text',
       required: false, // Allow saving without objective initially
       admin: {
-        description: 'Program objective - required for publishing'
-      }
+        description: 'Program objective - required for publishing',
+      },
     },
     {
       name: 'culminatingEvent',
@@ -382,8 +402,8 @@ export const Programs: CollectionConfig = {
       relationTo: 'sessions',
       required: false, // Allow saving without culminating event initially
       admin: {
-        description: 'Culminating event session - required for publishing'
-      }
+        description: 'Culminating event session - required for publishing',
+      },
     },
     {
       name: 'milestones',
@@ -397,35 +417,36 @@ export const Programs: CollectionConfig = {
         },
       ],
       admin: {
-        description: 'Ordered list of milestones in this program - drag to reorder'
-      }
+        description: 'Ordered list of milestones in this program - drag to reorder',
+      },
     },
     {
       name: 'isPublished',
       type: 'checkbox',
       defaultValue: false,
       admin: {
-        description: 'Only published programs are visible to product users'
-      }
+        description: 'Only published programs are visible to product users',
+      },
     },
-  ]
-};
+  ],
+}
 ```
 
 **TypeScript Interface:**
+
 ```typescript
 interface Program {
-  id: string;
-  name?: string; // Optional - can be saved without name initially
-  description?: string; // Optional - can be saved without description initially
-  objective?: string; // Optional - can be saved without objective initially
-  culminatingEvent?: string; // Optional - can be saved without culminating event initially
+  id: string
+  name?: string // Optional - can be saved without name initially
+  description?: string // Optional - can be saved without description initially
+  objective?: string // Optional - can be saved without objective initially
+  culminatingEvent?: string // Optional - can be saved without culminating event initially
   milestones: {
-    milestone: string; // Reference to Milestone ID
-  }[];
-  isPublished: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+    milestone: string // Reference to Milestone ID
+  }[]
+  isPublished: boolean
+  createdAt: Date
+  updatedAt: Date
 }
 ```
 
@@ -434,6 +455,7 @@ interface Program {
 **Purpose:** Represents major phases within a program with specific themes and objectives.
 
 **PayloadCMS Collection Definition:**
+
 ```typescript
 export const Milestones: CollectionConfig = {
   slug: 'milestones',
@@ -443,24 +465,24 @@ export const Milestones: CollectionConfig = {
       type: 'text',
       required: false, // Allow saving without name initially
       admin: {
-        description: 'Milestone name - required for publishing'
-      }
+        description: 'Milestone name - required for publishing',
+      },
     },
     {
       name: 'theme',
       type: 'text',
       required: false, // Allow saving without theme initially
       admin: {
-        description: 'Milestone theme - required for publishing'
-      }
+        description: 'Milestone theme - required for publishing',
+      },
     },
     {
       name: 'objective',
       type: 'text',
       required: false, // Allow saving without objective initially
       admin: {
-        description: 'Milestone objective - required for publishing'
-      }
+        description: 'Milestone objective - required for publishing',
+      },
     },
     {
       name: 'culminatingEvent',
@@ -468,8 +490,8 @@ export const Milestones: CollectionConfig = {
       relationTo: 'sessions',
       required: false, // Allow saving without culminating event initially
       admin: {
-        description: 'Culminating event session - required for publishing'
-      }
+        description: 'Culminating event session - required for publishing',
+      },
     },
     {
       name: 'days',
@@ -503,26 +525,27 @@ export const Milestones: CollectionConfig = {
         },
       ],
     },
-  ]
-};
+  ],
+}
 ```
 
 **TypeScript Interface:**
+
 ```typescript
 interface Milestone {
-  id: string;
-  name?: string; // Optional - can be saved without name initially
-  theme?: string; // Optional - can be saved without theme initially
-  objective?: string; // Optional - can be saved without objective initially
-  culminatingEvent?: string; // Optional - can be saved without culminating event initially
+  id: string
+  name?: string // Optional - can be saved without name initially
+  theme?: string // Optional - can be saved without theme initially
+  objective?: string // Optional - can be saved without objective initially
+  culminatingEvent?: string // Optional - can be saved without culminating event initially
   days: {
-    dayType: 'workout' | 'rest';
+    dayType: 'workout' | 'rest'
     sessions?: {
-      session: string; // Reference to Session ID
-    }[];
-  }[];
-  createdAt: Date;
-  updatedAt: Date;
+      session: string // Reference to Session ID
+    }[]
+  }[]
+  createdAt: Date
+  updatedAt: Date
 }
 ```
 
@@ -531,6 +554,7 @@ interface Milestone {
 **Purpose:** Represents reusable workout sessions with exercises, sets, reps, and rest periods. Sessions are now standalone entities that can be reused across different milestones and days.
 
 **PayloadCMS Collection Definition:**
+
 ```typescript
 export const Sessions: CollectionConfig = {
   slug: 'sessions',
@@ -540,8 +564,8 @@ export const Sessions: CollectionConfig = {
       type: 'text',
       required: false, // Allow saving without name initially
       admin: {
-        description: 'Session name for admin organization - not shown to product users'
-      }
+        description: 'Session name for admin organization - not shown to product users',
+      },
     },
     {
       name: 'exercises',
@@ -568,49 +592,50 @@ export const Sessions: CollectionConfig = {
           type: 'number',
           required: true,
           admin: {
-            description: 'Rest period in seconds between sets'
-          }
+            description: 'Rest period in seconds between sets',
+          },
         },
         {
           name: 'weight',
           type: 'number',
           required: false,
           admin: {
-            description: 'Recommended weight in pounds (optional)'
-          }
+            description: 'Recommended weight in pounds (optional)',
+          },
         },
         {
           name: 'notes',
           type: 'textarea',
           required: false,
           admin: {
-            description: 'Additional notes for this exercise in this session'
-          }
+            description: 'Additional notes for this exercise in this session',
+          },
         },
       ],
       admin: {
-        description: 'Ordered list of exercises in this session - drag to reorder'
-      }
+        description: 'Ordered list of exercises in this session - drag to reorder',
+      },
     },
   ],
-};
+}
 ```
 
 **TypeScript Interface:**
+
 ```typescript
 interface Session {
-  id: string;
-  name?: string; // Optional - for admin organization only
+  id: string
+  name?: string // Optional - for admin organization only
   exercises: {
-    exercise: string; // Reference to Exercise ID
-    sets: number;
-    reps: number;
-    restPeriod: number; // in seconds
-    weight?: number; // in pounds
-    notes?: string;
-  }[];
-  createdAt: Date;
-  updatedAt: Date;
+    exercise: string // Reference to Exercise ID
+    sets: number
+    reps: number
+    restPeriod: number // in seconds
+    weight?: number // in pounds
+    notes?: string
+  }[]
+  createdAt: Date
+  updatedAt: Date
 }
 ```
 
@@ -619,6 +644,7 @@ interface Session {
 **Purpose:** Represents individual exercises with metadata, videos, and alternatives.
 
 **PayloadCMS Collection Definition:**
+
 ```typescript
 export const Exercises: CollectionConfig = {
   slug: 'exercises',
@@ -628,24 +654,24 @@ export const Exercises: CollectionConfig = {
       type: 'text',
       required: false, // Allow saving without title initially
       admin: {
-        description: 'Exercise title - required for publishing'
-      }
+        description: 'Exercise title - required for publishing',
+      },
     },
     {
       name: 'description',
       type: 'textarea',
       required: false, // Allow saving without description initially
       admin: {
-        description: 'Exercise description - required for publishing'
-      }
+        description: 'Exercise description - required for publishing',
+      },
     },
     {
       name: 'videoUrl',
       type: 'text',
       required: false, // Allow saving without video initially
       admin: {
-        description: 'YouTube video URL - required for publishing'
-      }
+        description: 'YouTube video URL - required for publishing',
+      },
     },
     {
       name: 'alternatives',
@@ -653,20 +679,21 @@ export const Exercises: CollectionConfig = {
       relationTo: 'exercises',
       hasMany: true,
     },
-  ]
-};
+  ],
+}
 ```
 
 **TypeScript Interface:**
+
 ```typescript
 interface Exercise {
-  id: string;
-  title?: string; // Optional - can be saved without title initially
-  description?: string; // Optional - can be saved without description initially
-  videoUrl?: string; // Optional - can be saved without video initially
-  alternatives: string[];
-  createdAt: Date;
-  updatedAt: Date;
+  id: string
+  title?: string // Optional - can be saved without title initially
+  description?: string // Optional - can be saved without description initially
+  videoUrl?: string // Optional - can be saved without video initially
+  alternatives: string[]
+  createdAt: Date
+  updatedAt: Date
 }
 ```
 
@@ -675,6 +702,7 @@ interface Exercise {
 **Purpose:** Tracks individual exercise completions with performance data.
 
 **PayloadCMS Collection Definition:**
+
 ```typescript
 export const ExerciseCompletions: CollectionConfig = {
   slug: 'exerciseCompletions',
@@ -712,16 +740,16 @@ export const ExerciseCompletions: CollectionConfig = {
       type: 'number',
       required: false,
       admin: {
-        description: 'Weight used (optional for bodyweight exercises)'
-      }
+        description: 'Weight used (optional for bodyweight exercises)',
+      },
     },
     {
       name: 'time',
       type: 'number',
       required: false,
       admin: {
-        description: 'Time taken in seconds (optional)'
-      }
+        description: 'Time taken in seconds (optional)',
+      },
     },
     {
       name: 'completedAt',
@@ -734,24 +762,25 @@ export const ExerciseCompletions: CollectionConfig = {
       required: false,
     },
   ],
-};
+}
 ```
 
 **TypeScript Interface:**
+
 ```typescript
 interface ExerciseCompletion {
-  id: string;
-  productUser: string; // Reference to ProductUser ID
-  exercise: string;
-  session: string;
-  sets: number;
-  reps: number;
-  weight?: number; // Optional for bodyweight exercises
-  time?: number; // Optional - not relevant for all exercises
-  completedAt: Date;
-  notes?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  id: string
+  productUser: string // Reference to ProductUser ID
+  exercise: string
+  session: string
+  sets: number
+  reps: number
+  weight?: number // Optional for bodyweight exercises
+  time?: number // Optional - not relevant for all exercises
+  completedAt: Date
+  notes?: string
+  createdAt: Date
+  updatedAt: Date
 }
 ```
 
@@ -769,6 +798,7 @@ The application uses Next.js Server Actions with **PayloadCMS Local API** for al
 - **Future Flexibility:** REST/GraphQL APIs can be enabled later if needed
 
 **Key Benefits:**
+
 - **Performance:** Direct database access without HTTP overhead
 - **Type Safety:** Complete TypeScript support with automatic type generation
 - **Simplicity:** No need to define API endpoints or handle HTTP requests
@@ -795,19 +825,19 @@ export async function sendOTP(phoneNumber: string) {
 export async function verifyOTP(phoneNumber: string, otp: string) {
   // Verify OTP
   const payload = await getPayload()
-  
+
   // Create or update product user using PayloadCMS Local API
   const productUser = await payload.findOrCreate({
     collection: 'productUsers',
     where: { phoneNumber: { equals: phoneNumber } },
-    data: { 
-      phoneNumber
-    }
+    data: {
+      phoneNumber,
+    },
   })
-  
+
   // Generate JWT token
   const token = signJWT({ productUserId: productUser.id })
-  
+
   return { success: true, productUser, token }
 }
 ```
@@ -825,9 +855,9 @@ export async function getPrograms() {
   const payload = await getPayload()
   return await payload.find({
     collection: 'programs',
-    where: { 
-      isPublished: { equals: true }
-    }
+    where: {
+      isPublished: { equals: true },
+    },
   })
 }
 
@@ -841,32 +871,32 @@ export async function getProgramsForAdmin() {
 
 export async function assignProgramToUser(programId: string, productUserId: string) {
   const payload = await getPayload()
-  
+
   // Update product user with new program using PayloadCMS Local API
   await payload.update({
     collection: 'productUsers',
     id: productUserId,
-    data: { 
-      currentProgram: programId, 
-      currentDay: 1 
-    }
+    data: {
+      currentProgram: programId,
+      currentDay: 1,
+    },
   })
-  
+
   revalidatePath('/workout/dashboard')
 }
 
 export async function publishProgram(programId: string) {
   const payload = await getPayload()
-  
+
   // Publish the program
   await payload.update({
     collection: 'programs',
     id: programId,
-    data: { 
-      isPublished: true
-    }
+    data: {
+      isPublished: true,
+    },
   })
-  
+
   revalidatePath('/admin/programs')
   revalidatePath('/workout/dashboard')
 }
@@ -883,14 +913,14 @@ import { revalidatePath } from 'next/cache'
 
 export async function getCurrentSession(productUserId: string) {
   const payload = await getPayload()
-  
+
   // Get product user with current program progress using PayloadCMS Local API
   const productUser = await payload.findByID({
     collection: 'productUsers',
     id: productUserId,
-    depth: 2 // Populate relationships
+    depth: 2, // Populate relationships
   })
-  
+
   // Get current session based on product user progress
   // Return session with exercises populated
 }
@@ -898,20 +928,20 @@ export async function getCurrentSession(productUserId: string) {
 export async function completeExercise(
   exerciseId: string,
   completionData: ExerciseCompletionData,
-  productUserId: string
+  productUserId: string,
 ) {
   const payload = await getPayload()
-  
+
   // Create exercise completion record using PayloadCMS Local API
   await payload.create({
     collection: 'exerciseCompletions',
     data: {
       productUser: productUserId,
       exercise: exerciseId,
-      ...completionData
-    }
+      ...completionData,
+    },
   })
-  
+
   // Update product user progress
   // Move to next exercise or complete session
   revalidatePath('/workout/session')
@@ -921,6 +951,7 @@ export async function completeExercise(
 #### Data Access Patterns
 
 **Server Components for Data Fetching:**
+
 ```typescript
 // app/workout/dashboard/page.tsx
 import { getPayload } from 'payload'
@@ -929,19 +960,20 @@ import { getCurrentProductUser } from '@/lib/auth'
 export default async function WorkoutDashboard() {
   const productUser = await getCurrentProductUser()
   const payload = await getPayload()
-  
+
   // Use PayloadCMS Local API for data fetching with full type safety
   const currentSession = await payload.find({
     collection: 'sessions',
     where: { /* current session logic */ },
     depth: 2 // Populate relationships automatically
   })
-  
+
   return <WorkoutDashboardUI session={currentSession} />
 }
 ```
 
 **Server Actions for Mutations:**
+
 ```typescript
 // src/components/exercise-form.tsx
 import { completeExercise } from '@/actions/workouts'
@@ -949,17 +981,17 @@ import { completeExercise } from '@/actions/workouts'
 export function ExerciseForm({ exerciseId }: { exerciseId: string }) {
   async function handleSubmit(formData: FormData) {
     'use server'
-    
+
     const completionData = {
       sets: Number(formData.get('sets')),
       reps: JSON.parse(formData.get('reps') as string),
       weight: JSON.parse(formData.get('weight') as string),
       time: Number(formData.get('time'))
     }
-    
+
     await completeExercise(exerciseId, completionData, productUserId)
   }
-  
+
   return (
     <form action={handleSubmit}>
       {/* Form fields */}
@@ -975,6 +1007,7 @@ export function ExerciseForm({ exerciseId }: { exerciseId: string }) {
 **Responsibility:** Mobile-optimized product user interface for workout execution and program management.
 
 **Key Interfaces:**
+
 - SMS Authentication flow with OTP verification
 - Program selection and assignment interface
 - Workout dashboard with session overview
@@ -990,6 +1023,7 @@ export function ExerciseForm({ exerciseId }: { exerciseId: string }) {
 **Responsibility:** Data management, authentication, and business logic through PayloadCMS and server actions.
 
 **Key Interfaces:**
+
 - PayloadCMS admin interface for program creation
 - Server actions for data mutations and business logic
 - SMS OTP authentication service integration
@@ -1004,6 +1038,7 @@ export function ExerciseForm({ exerciseId }: { exerciseId: string }) {
 **Responsibility:** Data persistence, relationships, and query optimization.
 
 **Key Interfaces:**
+
 - MongoDB collections for all data models
 - PayloadCMS collection definitions and relationships
 - Data validation and constraint enforcement
@@ -1018,6 +1053,7 @@ export function ExerciseForm({ exerciseId }: { exerciseId: string }) {
 **Responsibility:** Product user authentication and session management.
 
 **Key Interfaces:**
+
 - SMS OTP generation and verification
 - JWT token management
 - Product user session persistence
@@ -1032,6 +1068,7 @@ export function ExerciseForm({ exerciseId }: { exerciseId: string }) {
 **Responsibility:** Exercise video delivery and playback optimization using YouTube.
 
 **Key Interfaces:**
+
 - YouTube video embedding and playback
 - Mobile-optimized video player
 - Video ID extraction from YouTube URLs
@@ -1052,6 +1089,7 @@ export function ExerciseForm({ exerciseId }: { exerciseId: string }) {
 - **Rate Limits:** 1 SMS per phone number per minute, 100 SMS per day per phone number
 
 **Key Endpoints Used:**
+
 - `POST /Messages` - Send SMS OTP to product user's phone number
 
 **Integration Notes:** Implement rate limiting to prevent abuse, handle delivery failures gracefully, and ensure secure storage of authentication credentials.
@@ -1065,6 +1103,7 @@ export function ExerciseForm({ exerciseId }: { exerciseId: string }) {
 - **Rate Limits:** No rate limits for video embedding
 
 **Key Features Used:**
+
 - YouTube iframe embed API for video playback
 - Video ID extraction from YouTube URLs
 - Mobile-optimized video player with responsive design
@@ -1111,7 +1150,7 @@ sequenceDiagram
     D->>A: Session with exercises
     A->>F: Session data
     F->>U: Display first exercise
-    
+
     loop For each exercise
         U->>F: Complete exercise
         F->>Y: Load YouTube video embed
@@ -1167,6 +1206,7 @@ The application uses **PayloadCMS Collections** as the primary data abstraction 
 The relationship-based ordering system is implemented through PayloadCMS relationship fields and junction collections:
 
 **Core Collections:**
+
 - `users` - PayloadCMS admin users with email/password authentication
 - `productUsers` - Product users with SMS OTP authentication
 - `programs` - Workout programs with embedded milestone relationships and metadata
@@ -1178,6 +1218,7 @@ The relationship-based ordering system is implemented through PayloadCMS relatio
 ### PayloadCMS Benefits
 
 **Automatic Features:**
+
 - Database indexes are automatically created based on field configurations
 - Relationship queries are optimized automatically
 - Admin interface provides drag-and-drop reordering for junction collections
@@ -1185,6 +1226,7 @@ The relationship-based ordering system is implemented through PayloadCMS relatio
 - Local API provides direct database access with full type safety
 
 **Developer Experience:**
+
 - No need to manually define MongoDB schemas
 - PayloadCMS Local API provides complete TypeScript type safety
 - Server actions use PayloadCMS Local API for type-safe database operations
@@ -1196,6 +1238,7 @@ The relationship-based ordering system is implemented through PayloadCMS relatio
 ### Component Architecture
 
 #### Component Organization
+
 ```
 src/
 ├── components/
@@ -1235,6 +1278,7 @@ src/
 ```
 
 #### Component Template
+
 ```typescript
 import React from 'react';
 import { cn } from '@/lib/utils';
@@ -1244,9 +1288,9 @@ interface ComponentProps {
   children?: React.ReactNode;
 }
 
-export const Component: React.FC<ComponentProps> = ({ 
-  className, 
-  children 
+export const Component: React.FC<ComponentProps> = ({
+  className,
+  children
 }) => {
   return (
     <div className={cn("base-styles", className)}>
@@ -1259,6 +1303,7 @@ export const Component: React.FC<ComponentProps> = ({
 ### State Management Architecture
 
 #### Zustand Store Structure
+
 ```typescript
 // stores/auth-store.ts
 import { create } from 'zustand'
@@ -1306,15 +1351,17 @@ export const useWorkoutStore = create<WorkoutState>((set) => ({
   sessionStartTime: null,
   setCurrentSession: (currentSession) => set({ currentSession }),
   setCurrentExercise: (currentExercise) => set({ currentExercise }),
-  completeExercise: (exerciseId) => set((state) => ({
-    completedExercises: [...state.completedExercises, exerciseId],
-    currentExerciseIndex: state.currentExerciseIndex + 1,
-  })),
+  completeExercise: (exerciseId) =>
+    set((state) => ({
+      completedExercises: [...state.completedExercises, exerciseId],
+      currentExerciseIndex: state.currentExerciseIndex + 1,
+    })),
   startSession: () => set({ sessionStartTime: new Date() }),
 }))
 ```
 
 #### State Management Patterns
+
 - **Zustand Stores:** For global state management with minimal boilerplate
 - **Local State:** For component-specific state
 - **Server State:** Direct server component data fetching
@@ -1323,6 +1370,7 @@ export const useWorkoutStore = create<WorkoutState>((set) => ({
 ### Routing Architecture
 
 #### Route Organization
+
 ```
 src/app/
 ├── (auth)/                # Authentication route group
@@ -1358,13 +1406,14 @@ src/app/
 ```
 
 #### Protected Route Pattern
+
 ```typescript
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
-export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ 
-  children 
+export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
+  children
 }) => {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
@@ -1390,6 +1439,7 @@ export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
 ### Frontend Data Access Layer
 
 #### Server Actions Integration
+
 ```typescript
 // src/lib/actions.ts - Re-export server actions for client components
 export { sendOTP, verifyOTP } from '@/actions/auth'
@@ -1398,6 +1448,7 @@ export { getCurrentSession, completeExercise } from '@/actions/workouts'
 ```
 
 #### Client Component Data Access
+
 ```typescript
 // src/components/program-selector.tsx
 'use client'
@@ -1445,6 +1496,7 @@ export function ProgramSelector({ programs, productUserId }: ProgramSelectorProp
 ```
 
 #### Server Component Data Fetching
+
 ```typescript
 // src/app/(app)/workout/dashboard/page.tsx
 import { getPayload } from 'payload'
@@ -1454,14 +1506,14 @@ import { ProgramSelector } from '@/components/ProgramSelector'
 export default async function WorkoutDashboard() {
   const productUser = await getCurrentProductUser()
   const payload = await getPayload()
-  
+
   const programs = await payload.find({
     collection: 'programs',
-    where: { 
+    where: {
       isPublished: { equals: true }
     }
   })
-  
+
   return (
     <div>
       <h1>Workout Dashboard</h1>
@@ -1476,6 +1528,7 @@ export default async function WorkoutDashboard() {
 ### Service Architecture
 
 #### Server Actions Organization
+
 ```
 src/
 ├── actions/               # Server actions
@@ -1486,6 +1539,7 @@ src/
 ```
 
 #### Server Action Template
+
 ```typescript
 'use server'
 
@@ -1509,7 +1563,7 @@ export async function serverActionName(data: ActionData) {
     const payload = await getPayload()
     const result = await payload.create({
       collection: 'collectionName',
-      data: validatedData
+      data: validatedData,
     })
 
     // Revalidate relevant paths
@@ -1537,112 +1591,113 @@ The backend architecture leverages PayloadCMS's collection system for all data m
 #### PayloadCMS Local API Data Access
 
 ```typescript
-import { getPayload } from 'payload';
+import { getPayload } from 'payload'
 
 // PayloadCMS Local API provides full type safety automatically
 // No need for custom repository classes - use PayloadCMS methods directly
 
 export async function findUserByPhoneNumber(phoneNumber: string) {
-  const payload = await getPayload();
-  
+  const payload = await getPayload()
+
   const result = await payload.find({
     collection: 'productUsers',
     where: {
-      phoneNumber: { equals: phoneNumber }
+      phoneNumber: { equals: phoneNumber },
     },
-    limit: 1
-  });
+    limit: 1,
+  })
 
-  return result.docs[0] || null;
+  return result.docs[0] || null
 }
 
 export async function createProductUser(productUserData: Partial<ProductUser>) {
-  const payload = await getPayload();
-  
+  const payload = await getPayload()
+
   return await payload.create({
     collection: 'productUsers',
-    data: productUserData
-  });
+    data: productUserData,
+  })
 }
 
-export async function updateProductUserProgress(productUserId: string, progress: Partial<ProductUser>) {
-  const payload = await getPayload();
-  
+export async function updateProductUserProgress(
+  productUserId: string,
+  progress: Partial<ProductUser>,
+) {
+  const payload = await getPayload()
+
   return await payload.update({
     collection: 'productUsers',
     id: productUserId,
-    data: progress
-  });
+    data: progress,
+  })
 }
 
 export async function findPublishedPrograms() {
-  const payload = await getPayload();
-  
+  const payload = await getPayload()
+
   const result = await payload.find({
     collection: 'programs',
-    where: { isPublished: { equals: true } }
-  });
+    where: { isPublished: { equals: true } },
+  })
 
-  return result.docs;
+  return result.docs
 }
 
 export async function findProgramById(id: string) {
-  const payload = await getPayload();
-  
+  const payload = await getPayload()
+
   return await payload.findByID({
     collection: 'programs',
-    id
-  });
+    id,
+  })
 }
 
 // Program milestone operations with array-based ordering
 export async function addMilestoneToProgram(programId: string, milestoneId: string) {
-  const payload = await getPayload();
-  
+  const payload = await getPayload()
+
   // Get current program
   const program = await payload.findByID({
     collection: 'programs',
-    id: programId
-  });
-  
+    id: programId,
+  })
+
   // Add milestone to the end of the array (array order is preserved by PayloadCMS)
-  const updatedMilestones = [
-    ...program.milestones,
-    { milestone: milestoneId }
-  ];
-  
+  const updatedMilestones = [...program.milestones, { milestone: milestoneId }]
+
   return await payload.update({
     collection: 'programs',
     id: programId,
-    data: { milestones: updatedMilestones }
-  });
+    data: { milestones: updatedMilestones },
+  })
 }
 
 export async function reorderProgramMilestones(programId: string, milestoneIds: string[]) {
-  const payload = await getPayload();
-  
+  const payload = await getPayload()
+
   // Get current program
   const program = await payload.findByID({
     collection: 'programs',
-    id: programId
-  });
-  
+    id: programId,
+  })
+
   // Reorder milestones based on the provided order (array index = order)
-  const updatedMilestones = milestoneIds.map(milestoneId => ({
-    milestone: milestoneId
-  }));
-  
+  const updatedMilestones = milestoneIds.map((milestoneId) => ({
+    milestone: milestoneId,
+  }))
+
   return await payload.update({
     collection: 'programs',
     id: programId,
-    data: { milestones: updatedMilestones }
-  });
+    data: { milestones: updatedMilestones },
+  })
 }
 ```
 
 ### Authentication Architecture
 
 #### Auth Flow
+
 ```mermaid
 sequenceDiagram
     participant C as Client
@@ -1664,51 +1719,52 @@ sequenceDiagram
 ```
 
 #### Middleware/Guards
+
 ```typescript
-import jwt from 'jsonwebtoken';
-import { NextApiRequest, NextApiResponse } from 'next';
-import { ProductUser } from '@/types';
+import jwt from 'jsonwebtoken'
+import { NextApiRequest, NextApiResponse } from 'next'
+import { ProductUser } from '@/types'
 
 interface AuthRequest extends NextApiRequest {
-  productUser?: ProductUser;
+  productUser?: ProductUser
 }
 
 export const authMiddleware = async (
   req: AuthRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ): Promise<ProductUser | null> => {
   try {
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    
+    const token = req.headers.authorization?.replace('Bearer ', '')
+
     if (!token) {
-      return null;
+      return null
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
-    const productUser = await productUserRepository.findById(decoded.productUserId);
-    
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any
+    const productUser = await productUserRepository.findById(decoded.productUserId)
+
     if (!productUser) {
-      return null;
+      return null
     }
 
-    req.productUser = productUser;
-    return productUser;
+    req.productUser = productUser
+    return productUser
   } catch (error) {
-    return null;
+    return null
   }
-};
+}
 
 export const requireAuth = (handler: Function) => {
   return async (req: AuthRequest, res: NextApiResponse) => {
-    const productUser = await authMiddleware(req, res);
-    
+    const productUser = await authMiddleware(req, res)
+
     if (!productUser) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: 'Unauthorized' })
     }
 
-    return handler(req, res);
-  };
-};
+    return handler(req, res)
+  }
+}
 ```
 
 ## Unified Project Structure
@@ -1802,6 +1858,7 @@ workout-app/
 ### Local Development Setup
 
 #### Prerequisites
+
 ```bash
 # Node.js 18+ and npm
 node --version
@@ -1816,6 +1873,7 @@ git --version
 ```
 
 #### Initial Setup
+
 ```bash
 # Clone repository
 git clone <repository-url>
@@ -1839,6 +1897,7 @@ npm run dev
 ```
 
 #### Development Commands
+
 ```bash
 # Start development server
 npm run dev
@@ -1853,6 +1912,7 @@ npm run test:watch         # Watch mode for development
 ### Environment Configuration
 
 #### Required Environment Variables
+
 ```bash
 # Frontend (.env.local)
 NEXT_PUBLIC_APP_URL=http://localhost:3000
@@ -1879,6 +1939,7 @@ NODE_ENV=development
 ### Deployment Strategy
 
 **Unified Deployment:**
+
 - **Platform:** Railway
 - **Build Command:** `npm run build`
 - **Output Directory:** `.next`
@@ -1896,6 +1957,7 @@ Railway supports infrastructure as code through configuration files, allowing de
 - **Rollback Capability:** Easy rollback to previous configuration versions
 
 **Configuration File Structure:**
+
 ```toml
 # railway.toml
 [build]
@@ -1916,6 +1978,7 @@ variables = { NODE_ENV = "staging" }
 ```
 
 **Benefits for Personal Workout App:**
+
 - **Simplified Management:** Single file controls all deployment settings
 - **Cost Optimization:** Configuration ensures optimal resource allocation
 - **Reliability:** Consistent deployment configuration reduces deployment failures
@@ -1951,29 +2014,29 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run linting
         run: npm run lint
-      
+
       - name: Run type checking
         run: npm run type-check
-      
+
       - name: Run unit tests
         run: npm run test
-      
+
       - name: Run integration tests
         run: npm run test:integration
         env:
           DATABASE_URI: mongodb://localhost:27017/workout-app-test
           PAYLOAD_SECRET: test-payload-secret
           JWT_SECRET: test-jwt-secret
-      
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
-      
+
       - name: Run E2E tests
         run: npm run test:e2e
         env:
@@ -1984,27 +2047,30 @@ jobs:
 
 ### Environments
 
-| Environment | Application URL | Database | Purpose |
-|-------------|-----------------|----------|---------|
-| Development | http://localhost:3000 | Local MongoDB | Local development |
-| Staging | https://workout-app-staging.up.railway.app | Railway MongoDB | Pre-production testing |
-| Production | https://workout-app-production.up.railway.app | Railway MongoDB | Live environment |
+| Environment | Application URL                               | Database        | Purpose                |
+| ----------- | --------------------------------------------- | --------------- | ---------------------- |
+| Development | http://localhost:3000                         | Local MongoDB   | Local development      |
+| Staging     | https://workout-app-staging.up.railway.app    | Railway MongoDB | Pre-production testing |
+| Production  | https://workout-app-production.up.railway.app | Railway MongoDB | Live environment       |
 
 ## Security and Performance
 
 ### Security Requirements
 
 **Frontend Security:**
+
 - CSP Headers: `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src 'self' https:;`
 - XSS Prevention: React's built-in XSS protection, input sanitization
 - Secure Storage: JWT tokens in httpOnly cookies, sensitive data in secure storage
 
 **Backend Security:**
+
 - Input Validation: Zod schemas for all API inputs, sanitization middleware
 - Rate Limiting: 100 requests per minute per IP, 5 SMS requests per hour per phone number
 - CORS Policy: Restricted to production domains, localhost for development
 
 **Authentication Security:**
+
 - Token Storage: JWT tokens with 24-hour expiration, refresh token rotation
 - Session Management: Secure session handling with automatic logout
 - Password Policy: N/A - SMS OTP authentication only
@@ -2012,11 +2078,13 @@ jobs:
 ### Performance Optimization
 
 **Frontend Performance:**
+
 - Bundle Size Target: <500KB initial bundle, <1MB total
 - Loading Strategy: Code splitting, lazy loading, progressive enhancement
 - Caching Strategy: Service worker for offline capability, aggressive caching of static assets
 
 **Backend Performance:**
+
 - Response Time Target: <200ms for API responses, <3s for page loads
 - Database Optimization: Proper indexing, query optimization, connection pooling
 - Caching Strategy: Redis for session storage, CDN for static assets
@@ -2036,6 +2104,7 @@ Frontend Unit (Vitest + Testing Library)  Backend Unit (Vitest + Server Actions)
 ### Test Organization
 
 #### Frontend Tests
+
 ```
 tests/
 ├── components/
@@ -2055,6 +2124,7 @@ tests/
 ```
 
 #### Backend Tests
+
 ```
 tests/
 ├── actions/
@@ -2069,6 +2139,7 @@ tests/
 ```
 
 #### E2E Tests
+
 ```
 tests/
 ├── e2e/
@@ -2098,21 +2169,22 @@ tests/
 
 **CRITICAL: All file names MUST use kebab-case. This is non-negotiable and will be strictly enforced.**
 
-| Element | Frontend | Backend | Example |
-|---------|----------|---------|---------|
-| **File Names** | **kebab-case** | **kebab-case** | `user-profile.tsx`, `complete-exercise.ts`, `auth-store.ts` |
-| Components | PascalCase | - | `UserProfile` (exported from `user-profile.tsx`) |
-| Hooks | camelCase with 'use' | - | `useAuth` (exported from `use-auth.ts`) |
-| Server Actions | - | camelCase | `completeExercise` (exported from `complete-exercise.ts`) |
-| Database Collections | - | kebab-case | `product-users` (PayloadCMS slug) |
-| Services | camelCase | camelCase | `authService` (exported from `auth-service.ts`) |
-| Types/Interfaces | PascalCase | PascalCase | `UserProfile` (exported from `user-profile.ts`) |
-| Constants | UPPER_SNAKE_CASE | UPPER_SNAKE_CASE | `API_BASE_URL` |
-| Environment Variables | UPPER_SNAKE_CASE | UPPER_SNAKE_CASE | `DATABASE_URI` |
+| Element               | Frontend             | Backend          | Example                                                     |
+| --------------------- | -------------------- | ---------------- | ----------------------------------------------------------- |
+| **File Names**        | **kebab-case**       | **kebab-case**   | `user-profile.tsx`, `complete-exercise.ts`, `auth-store.ts` |
+| Components            | PascalCase           | -                | `UserProfile` (exported from `user-profile.tsx`)            |
+| Hooks                 | camelCase with 'use' | -                | `useAuth` (exported from `use-auth.ts`)                     |
+| Server Actions        | -                    | camelCase        | `completeExercise` (exported from `complete-exercise.ts`)   |
+| Database Collections  | -                    | kebab-case       | `product-users` (PayloadCMS slug)                           |
+| Services              | camelCase            | camelCase        | `authService` (exported from `auth-service.ts`)             |
+| Types/Interfaces      | PascalCase           | PascalCase       | `UserProfile` (exported from `user-profile.ts`)             |
+| Constants             | UPPER_SNAKE_CASE     | UPPER_SNAKE_CASE | `API_BASE_URL`                                              |
+| Environment Variables | UPPER_SNAKE_CASE     | UPPER_SNAKE_CASE | `DATABASE_URI`                                              |
 
 **File Naming Examples:**
+
 - ✅ `user-profile.tsx` (correct)
-- ✅ `exercise-form.tsx` (correct)  
+- ✅ `exercise-form.tsx` (correct)
 - ✅ `auth-store.ts` (correct)
 - ✅ `use-workout.ts` (correct)
 - ❌ `UserProfile.tsx` (incorrect - PascalCase)
@@ -2174,7 +2246,7 @@ import { ServerActionResult } from '@/types/server-actions';
 export const handleServerActionError = (result: ServerActionResult) => {
   if (!result.success) {
     const { code, message, details } = result.error;
-    
+
     switch (code) {
       case 'VALIDATION_ERROR':
         toast.error(`Validation Error: ${message}`);
@@ -2205,19 +2277,19 @@ export const handleServerActionError = (result: ServerActionResult) => {
 export function ExerciseForm({ exerciseId }: { exerciseId: string }) {
   async function handleSubmit(formData: FormData) {
     'use server'
-    
+
     const result = await completeExercise(exerciseId, formData);
-    
+
     if (!result.success) {
       handleServerActionError(result);
       return;
     }
-    
+
     // Handle success
     toast.success('Exercise completed!');
     router.push('/workout/next-exercise');
   }
-  
+
   return (
     <form action={handleSubmit}>
       {/* Form fields */}
@@ -2229,24 +2301,24 @@ export function ExerciseForm({ exerciseId }: { exerciseId: string }) {
 ### Backend Error Handling
 
 ```typescript
-import { ZodError } from 'zod';
-import { ServerActionResult } from '@/types/server-actions';
+import { ZodError } from 'zod'
+import { ServerActionResult } from '@/types/server-actions'
 
 export class AppError extends Error {
   constructor(
     public code: string,
     message: string,
-    public details?: Record<string, any>
+    public details?: Record<string, any>,
   ) {
-    super(message);
-    this.name = 'AppError';
+    super(message)
+    this.name = 'AppError'
   }
 }
 
 export const createServerActionError = (
   code: string,
   message: string,
-  details?: Record<string, any>
+  details?: Record<string, any>,
 ): ServerActionResult => {
   return {
     success: false,
@@ -2256,68 +2328,58 @@ export const createServerActionError = (
       details,
       timestamp: new Date().toISOString(),
     },
-  };
-};
+  }
+}
 
 export const createServerActionSuccess = <T>(data: T): ServerActionResult<T> => {
   return {
     success: true,
     data,
-  };
-};
+  }
+}
 
 export const handleServerActionError = (error: any): ServerActionResult => {
-  console.error('Server Action Error:', error);
+  console.error('Server Action Error:', error)
 
   if (error instanceof AppError) {
-    return createServerActionError(error.code, error.message, error.details);
+    return createServerActionError(error.code, error.message, error.details)
   }
 
   if (error instanceof ZodError) {
-    return createServerActionError(
-      'VALIDATION_ERROR',
-      'Invalid input data',
-      { validationErrors: error.errors }
-    );
+    return createServerActionError('VALIDATION_ERROR', 'Invalid input data', {
+      validationErrors: error.errors,
+    })
   }
 
   // PayloadCMS errors
   if (error.name === 'ValidationError' || error.name === 'CastError') {
-    return createServerActionError(
-      'PAYLOAD_ERROR',
-      'Database validation error',
-      { originalError: error.message }
-    );
+    return createServerActionError('PAYLOAD_ERROR', 'Database validation error', {
+      originalError: error.message,
+    })
   }
 
   // Default error response
-  return createServerActionError(
-    'INTERNAL_SERVER_ERROR',
-    'An unexpected error occurred'
-  );
-};
+  return createServerActionError('INTERNAL_SERVER_ERROR', 'An unexpected error occurred')
+}
 
 // Example server action with error handling
 export async function completeExercise(
   exerciseId: string,
   completionData: unknown,
-  productUserId: string
+  productUserId: string,
 ): Promise<ServerActionResult> {
   try {
     // Validate input with Zod
-    const validatedData = ExerciseCompletionSchema.parse(completionData);
-    
+    const validatedData = ExerciseCompletionSchema.parse(completionData)
+
     // Get current user
-    const productUser = await getCurrentProductUser();
+    const productUser = await getCurrentProductUser()
     if (!productUser) {
-      return createServerActionError(
-        'AUTHENTICATION_FAILED',
-        'User not authenticated'
-      );
+      return createServerActionError('AUTHENTICATION_FAILED', 'User not authenticated')
     }
-    
+
     // Create completion record
-    const payload = await getPayload();
+    const payload = await getPayload()
     const completion = await payload.create({
       collection: 'exerciseCompletions',
       data: {
@@ -2326,11 +2388,11 @@ export async function completeExercise(
         ...validatedData,
         completedAt: new Date(),
       },
-    });
-    
-    return createServerActionSuccess(completion);
+    })
+
+    return createServerActionSuccess(completion)
   } catch (error) {
-    return handleServerActionError(error);
+    return handleServerActionError(error)
   }
 }
 ```
@@ -2347,6 +2409,7 @@ export async function completeExercise(
 ### Key Metrics
 
 **Frontend Metrics:**
+
 - Core Web Vitals (LCP, FID, CLS)
 - JavaScript errors and exceptions
 - API response times and error rates
@@ -2354,6 +2417,7 @@ export async function completeExercise(
 - Mobile performance scores
 
 **Backend Metrics:**
+
 - Request rate and response times
 - Error rate and error types
 - Database query performance
@@ -2374,46 +2438,51 @@ export async function completeExercise(
 
 ### Category Analysis Table
 
-| Category | Status | Critical Issues |
-|----------|--------|----------------|
-| 1. High Level Architecture | PASS | None |
-| 2. Tech Stack | PASS | None |
-| 3. Data Models | PASS | None |
-| 4. API Specification | PASS | None |
-| 5. Components | PASS | None |
-| 6. External APIs | PASS | None |
-| 7. Core Workflows | PASS | None |
-| 8. Database Schema | PASS | None |
-| 9. Frontend Architecture | PASS | None |
-| 10. Backend Architecture | PASS | None |
-| 11. Project Structure | PASS | None |
-| 12. Development Workflow | PASS | None |
-| 13. Deployment Architecture | PASS | None |
-| 14. Security & Performance | PASS | None |
-| 15. Testing Strategy | PASS | None |
-| 16. Coding Standards | PASS | None |
-| 17. Error Handling | PASS | None |
-| 18. Monitoring | PASS | None |
+| Category                    | Status | Critical Issues |
+| --------------------------- | ------ | --------------- |
+| 1. High Level Architecture  | PASS   | None            |
+| 2. Tech Stack               | PASS   | None            |
+| 3. Data Models              | PASS   | None            |
+| 4. API Specification        | PASS   | None            |
+| 5. Components               | PASS   | None            |
+| 6. External APIs            | PASS   | None            |
+| 7. Core Workflows           | PASS   | None            |
+| 8. Database Schema          | PASS   | None            |
+| 9. Frontend Architecture    | PASS   | None            |
+| 10. Backend Architecture    | PASS   | None            |
+| 11. Project Structure       | PASS   | None            |
+| 12. Development Workflow    | PASS   | None            |
+| 13. Deployment Architecture | PASS   | None            |
+| 14. Security & Performance  | PASS   | None            |
+| 15. Testing Strategy        | PASS   | None            |
+| 16. Coding Standards        | PASS   | None            |
+| 17. Error Handling          | PASS   | None            |
+| 18. Monitoring              | PASS   | None            |
 
 ### Top Issues by Priority
 
 **BLOCKERS:**
+
 - None identified - Architecture is development-ready
 
 **HIGH:**
+
 - None identified - All critical areas are well-covered
 
 **MEDIUM:**
+
 - Consider adding more detailed offline synchronization strategy
 - Video performance optimization could be more detailed
 
 **LOW:**
+
 - Additional monitoring metrics could be specified
 - More detailed backup and recovery procedures
 
 ### Technical Architecture Assessment
 
 **Strengths:**
+
 - Unified Next.js + PayloadCMS approach simplifies development
 - Mobile-first architecture with comprehensive performance optimization
 - Clear separation of concerns with well-defined component boundaries
@@ -2421,12 +2490,14 @@ export async function completeExercise(
 - Realistic technology choices for single-developer project
 
 **Areas for Enhancement:**
+
 - More detailed offline data synchronization approach
 - Enhanced video delivery optimization strategies
 
 ### Development Readiness
 
 **Implementation Guidance:**
+
 - Complete project structure with clear file organization
 - Comprehensive API specifications with OpenAPI documentation
 - Detailed component architecture with TypeScript interfaces
@@ -2434,6 +2505,7 @@ export async function completeExercise(
 - Comprehensive testing strategy with examples
 
 **Technical Specifications:**
+
 - All technology versions specified with clear rationale
 - Database schema with proper relationships and indexing
 - Security requirements with implementation details
@@ -2443,18 +2515,21 @@ export async function completeExercise(
 ### Recommendations
 
 **Immediate Actions:**
+
 1. **Begin development setup** with the specified project structure
 2. **Implement core data models** using PayloadCMS collections
 3. **Set up authentication flow** with Twilio SMS integration
 4. **Create basic UI components** using ShadCN and Tailwind CSS
 
 **Quality Improvements:**
+
 1. **Add offline synchronization** strategy for gym use scenarios
 2. **Enhance video optimization** for mobile delivery
 3. **Implement comprehensive monitoring** with custom metrics
 4. **Add backup and recovery** procedures for data protection
 
 **Next Steps:**
+
 1. **Start Epic 1 development** with project setup and data population
 2. **Implement SMS authentication** as the first product user-facing feature
 3. **Create admin interface** for program creation and management
@@ -2473,6 +2548,7 @@ The architecture successfully addresses all requirements from the PRD while main
 This comprehensive architecture document provides everything needed to begin development of your Personal Workout App. The document covers all essential aspects from high-level system design to detailed implementation specifications, with a strong focus on mobile-first development optimized for gym use.
 
 **Key Highlights:**
+
 - ✅ Unified Next.js + PayloadCMS architecture
 - ✅ Mobile-first design with comprehensive performance optimization
 - ✅ Complete API specifications with OpenAPI documentation
