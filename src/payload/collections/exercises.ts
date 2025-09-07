@@ -17,9 +17,14 @@ export const Exercises: CollectionConfig = {
   },
   hooks: {
     beforeValidate: [
-      ({ data, operation }) => {
+      ({ data, operation, originalDoc }) => {
         // Progressive validation: only enforce required fields when publishing
-        if (data?.isPublished && operation === 'update') {
+        // Check if we're trying to publish (either creating with isPublished: true or updating to isPublished: true)
+        const isPublishing =
+          data?.isPublished === true &&
+          (operation === 'create' || (operation === 'update' && originalDoc?.isPublished !== true))
+
+        if (isPublishing) {
           const errors: string[] = []
 
           if (!data.title || data.title.trim() === '') {

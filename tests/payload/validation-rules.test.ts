@@ -105,7 +105,7 @@ describe('Collection Validation Rules', () => {
           data: {
             title: 'Push-ups',
             description: 'A basic bodyweight exercise',
-            videoUrl: 'https://www.youtube.com/watch?v=example',
+            videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
             isPublished: false,
           },
         })
@@ -128,7 +128,7 @@ describe('Collection Validation Rules', () => {
           data: {
             title: '', // Empty title
             description: 'A basic bodyweight exercise',
-            videoUrl: 'https://www.youtube.com/watch?v=example',
+            videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
             isPublished: false,
           },
         })
@@ -356,7 +356,7 @@ describe('Collection Validation Rules', () => {
           data: {
             title: 'Push-ups',
             description: 'A basic bodyweight exercise',
-            videoUrl: 'https://www.youtube.com/watch?v=example',
+            videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
             isPublished: true,
           },
         })
@@ -453,7 +453,7 @@ describe('Collection Validation Rules', () => {
         data: {
           title: 'Push-ups',
           description: 'A basic bodyweight exercise',
-          videoUrl: 'https://www.youtube.com/watch?v=example',
+          videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
           isPublished: false,
         },
       })
@@ -488,7 +488,7 @@ describe('Collection Validation Rules', () => {
         data: {
           title: 'Push-ups',
           description: 'A basic bodyweight exercise',
-          videoUrl: 'https://www.youtube.com/watch?v=example',
+          videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
           isPublished: true,
         },
       })

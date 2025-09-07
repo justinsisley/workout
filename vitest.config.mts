@@ -10,6 +10,11 @@ export default defineConfig({
     include: ['tests/int/**/*.{test,spec}.{ts,tsx}', 'tests/payload/**/*.{test,spec}.{ts,tsx}'],
     hookTimeout: 10000,
     testTimeout: 10000,
+    env: {
+      DATABASE_URI: 'mongodb://localhost:27017/workout-app-test',
+      PAYLOAD_SECRET: 'test-payload-secret-key-for-integration-tests',
+      NODE_ENV: 'test',
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
