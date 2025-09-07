@@ -7,10 +7,89 @@ A mobile-first workout tracking application built with Next.js, PayloadCMS, and 
 ### Prerequisites
 
 - Node.js 18+ and npm
-- Docker and Docker Compose ([Install Docker Desktop](https://www.docker.com/products/docker-desktop/))
+- Docker and Docker Compose
 - Git
 
 > **Note**: Docker is required for local MongoDB development. The `npm run dev` command will automatically start MongoDB using Docker Compose.
+
+### macOS Setup (Recommended)
+
+For the best development experience on macOS, we recommend using Homebrew to manage your development tools:
+
+1. **Install Homebrew** (if not already installed)
+
+   ```bash
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+   ```
+
+2. **Install nvm for Node.js version management**
+
+   ```bash
+   brew install nvm
+   ```
+
+   Then add nvm to your shell profile:
+
+   ```bash
+   echo 'export NVM_DIR="$HOME/.nvm"' >> ~/.zshrc
+   echo '[ -s "/opt/homebrew/share/nvm/nvm.sh" ] && \. "/opt/homebrew/share/nvm/nvm.sh"' >> ~/.zshrc
+   echo '[ -s "/opt/homebrew/share/nvm/bash_completion" ] && \. "/opt/homebrew/share/nvm/bash_completion"' >> ~/.zshrc
+   source ~/.zshrc
+   ```
+
+3. **Install and use Node.js 20**
+
+   ```bash
+   nvm install 20
+   nvm use 20
+   nvm alias default 20
+   ```
+
+4. **Install OrbStack (Docker alternative)**
+
+   ```bash
+   brew install orbstack
+   ```
+
+   OrbStack provides a faster, more efficient Docker experience on macOS compared to Docker Desktop.
+
+5. **Verify your setup**
+   ```bash
+   node --version  # Should show v20.x.x
+   npm --version   # Should show 10.x.x
+   docker --version # Should show Docker version
+   ```
+
+### Alternative Setup
+
+If you prefer Docker Desktop over OrbStack:
+
+- [Install Docker Desktop](https://www.docker.com/products/docker-desktop/)
+
+### Troubleshooting
+
+**Docker not found error:**
+
+```bash
+sh: docker-compose: command not found
+npm run db:up exited with code 127
+```
+
+- Make sure Docker (OrbStack or Docker Desktop) is installed and running
+- For OrbStack: Open the OrbStack app and ensure it's running
+- For Docker Desktop: Start Docker Desktop from Applications
+- Verify Docker is working: `docker --version` and `docker-compose --version`
+
+**Node.js version issues:**
+
+- Use `nvm list` to see installed Node.js versions
+- Use `nvm use 20` to switch to Node.js 20
+- Use `nvm alias default 20` to set Node.js 20 as default
+
+**Permission issues with Homebrew:**
+
+- Run `sudo chown -R $(whoami) /opt/homebrew` if you get permission errors
+- For Intel Macs, use `/usr/local` instead of `/opt/homebrew`
 
 ### Installation
 
