@@ -36,6 +36,7 @@ export default {
         'docs', // Documentation
         'test', // Testing
         'ci', // CI/CD
+        'security', // Security related
         'chore', // General maintenance
       ],
     ],
