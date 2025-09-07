@@ -72,6 +72,7 @@ export interface Config {
     exercises: Exercise;
     sessions: Session;
     milestones: Milestone;
+    programs: Program;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -83,6 +84,7 @@ export interface Config {
     exercises: ExercisesSelect<false> | ExercisesSelect<true>;
     sessions: SessionsSelect<false> | SessionsSelect<true>;
     milestones: MilestonesSelect<false> | MilestonesSelect<true>;
+    programs: ProgramsSelect<false> | ProgramsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -303,6 +305,44 @@ export interface Milestone {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "programs".
+ */
+export interface Program {
+  id: string;
+  /**
+   * The name of the fitness program (required for publishing)
+   */
+  name?: string | null;
+  /**
+   * A detailed description of what this program covers (required for publishing)
+   */
+  description?: string | null;
+  /**
+   * The main goal or outcome of this program (required for publishing)
+   */
+  objective?: string | null;
+  /**
+   * The final session or event that marks program completion (optional)
+   */
+  culminatingEvent?: (string | null) | Session;
+  /**
+   * The milestones that make up this program, in order. Drag and drop to reorder milestones in the program sequence
+   */
+  milestones?:
+    | {
+        milestone: string | Milestone;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Check this box to make the program visible to product users
+   */
+  isPublished?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -327,6 +367,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'milestones';
         value: string | Milestone;
+      } | null)
+    | ({
+        relationTo: 'programs';
+        value: string | Program;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -465,6 +509,25 @@ export interface MilestonesSelect<T extends boolean = true> {
               id?: T;
             };
         restNotes?: T;
+        id?: T;
+      };
+  isPublished?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "programs_select".
+ */
+export interface ProgramsSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  objective?: T;
+  culminatingEvent?: T;
+  milestones?:
+    | T
+    | {
+        milestone?: T;
         id?: T;
       };
   isPublished?: T;

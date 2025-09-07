@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { Exercises } from '../../src/payload/collections/exercises'
 import { Sessions } from '../../src/payload/collections/sessions'
 import { Milestones } from '../../src/payload/collections/milestones'
+import { Programs } from '../../src/payload/collections/programs'
 
 describe('PayloadCMS Collections', () => {
   describe('Exercises Collection', () => {
@@ -381,6 +382,124 @@ describe('PayloadCMS Collections', () => {
 
       // Rest notes field should only show for rest days
       expect((restNotesField as any)?.admin?.condition).toBeDefined()
+    })
+  })
+
+  describe('Programs Collection', () => {
+    it('should have correct collection configuration', () => {
+      expect(Programs.slug).toBe('programs')
+      expect(Programs.admin?.useAsTitle).toBe('name')
+      expect(Programs.admin?.defaultColumns).toEqual(['name', 'isPublished', 'createdAt'])
+    })
+
+    it('should have required fields', () => {
+      const fields = Programs.fields || []
+      const fieldNames = fields.map((field: any) => field.name)
+
+      expect(fieldNames).toContain('name')
+      expect(fieldNames).toContain('description')
+      expect(fieldNames).toContain('objective')
+      expect(fieldNames).toContain('culminatingEvent')
+      expect(fieldNames).toContain('milestones')
+      expect(fieldNames).toContain('isPublished')
+    })
+
+    it('should have culminatingEvent relationship configured correctly', () => {
+      const culminatingEventField = Programs.fields?.find(
+        (field: any) => field.name === 'culminatingEvent',
+      )
+
+      expect(culminatingEventField).toBeDefined()
+      expect((culminatingEventField as any)?.type).toBe('relationship')
+      expect((culminatingEventField as any)?.relationTo).toBe('sessions')
+      expect((culminatingEventField as any)?.admin?.allowCreate).toBe(true)
+    })
+
+    it('should have milestones array with proper configuration', () => {
+      const milestonesField = Programs.fields?.find((field: any) => field.name === 'milestones')
+
+      expect(milestonesField).toBeDefined()
+      expect((milestonesField as any)?.type).toBe('array')
+      expect((milestonesField as any)?.admin?.initCollapsed).toBe(false)
+      expect((milestonesField as any)?.admin?.description).toBeDefined()
+    })
+
+    it('should have milestone relationship within milestones array', () => {
+      const milestonesField = Programs.fields?.find((field: any) => field.name === 'milestones')
+      const milestoneField = (milestonesField as any)?.fields?.find(
+        (field: any) => field.name === 'milestone',
+      )
+
+      expect(milestoneField).toBeDefined()
+      expect((milestoneField as any)?.type).toBe('relationship')
+      expect((milestoneField as any)?.relationTo).toBe('milestones')
+      expect((milestoneField as any)?.required).toBe(true)
+      expect((milestoneField as any)?.admin?.allowCreate).toBe(true)
+    })
+
+    it('should have proper access controls', () => {
+      expect(Programs.access?.read).toBeDefined()
+      expect(Programs.access?.create).toBeDefined()
+      expect(Programs.access?.update).toBeDefined()
+      expect(Programs.access?.delete).toBeDefined()
+    })
+
+    it('should have progressive validation configured', () => {
+      const nameField = Programs.fields?.find((field: any) => field.name === 'name')
+      const descriptionField = Programs.fields?.find((field: any) => field.name === 'description')
+      const objectiveField = Programs.fields?.find((field: any) => field.name === 'objective')
+      const culminatingEventField = Programs.fields?.find(
+        (field: any) => field.name === 'culminatingEvent',
+      )
+
+      // All fields should be optional (no required: true) for progressive validation
+      expect((nameField as any)?.required).toBeUndefined()
+      expect((descriptionField as any)?.required).toBeUndefined()
+      expect((objectiveField as any)?.required).toBeUndefined()
+      expect((culminatingEventField as any)?.required).toBeUndefined()
+    })
+
+    it('should have isPublished field with correct default', () => {
+      const isPublishedField = Programs.fields?.find((field: any) => field.name === 'isPublished')
+
+      expect(isPublishedField).toBeDefined()
+      expect((isPublishedField as any)?.type).toBe('checkbox')
+      expect((isPublishedField as any)?.defaultValue).toBe(false)
+      expect((isPublishedField as any)?.admin?.position).toBe('sidebar')
+    })
+
+    it('should have proper field descriptions for publishing requirements', () => {
+      const nameField = Programs.fields?.find((field: any) => field.name === 'name')
+      const descriptionField = Programs.fields?.find((field: any) => field.name === 'description')
+      const objectiveField = Programs.fields?.find((field: any) => field.name === 'objective')
+
+      expect((nameField as any)?.admin?.description).toContain('required for publishing')
+      expect((descriptionField as any)?.admin?.description).toContain('required for publishing')
+      expect((objectiveField as any)?.admin?.description).toContain('required for publishing')
+    })
+
+    it('should have proper admin placeholders', () => {
+      const nameField = Programs.fields?.find((field: any) => field.name === 'name')
+      const descriptionField = Programs.fields?.find((field: any) => field.name === 'description')
+      const objectiveField = Programs.fields?.find((field: any) => field.name === 'objective')
+
+      expect((nameField as any)?.admin?.placeholder).toBeDefined()
+      expect((descriptionField as any)?.admin?.placeholder).toBeDefined()
+      expect((objectiveField as any)?.admin?.placeholder).toBeDefined()
+    })
+
+    it('should have drag-and-drop ordering configured for milestones', () => {
+      const milestonesField = Programs.fields?.find((field: any) => field.name === 'milestones')
+
+      expect((milestonesField as any)?.type).toBe('array')
+      expect((milestonesField as any)?.admin?.description).toContain('Drag and drop to reorder')
+    })
+
+    it('should have proper admin configuration for milestones array', () => {
+      const milestonesField = Programs.fields?.find((field: any) => field.name === 'milestones')
+
+      expect((milestonesField as any)?.admin?.initCollapsed).toBe(false)
+      expect((milestonesField as any)?.admin?.description).toContain('Drag and drop to reorder')
     })
   })
 })
