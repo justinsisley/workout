@@ -9,6 +9,9 @@ pre-commit:
       run: npm run format:check
     type-check:
       run: npm run type-check
+
+commit-msg:
+  commands:
     commitlint:
       run: npx commitlint --edit $1
 # pre-push:
