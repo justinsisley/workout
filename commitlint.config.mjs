@@ -37,6 +37,7 @@ export default {
         'test', // Testing
         'ci', // CI/CD
         'security', // Security related
+        'cleanup', // Cleanup and maintenance
         'chore', // General maintenance
       ],
     ],

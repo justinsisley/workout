@@ -7,8 +7,10 @@ A mobile-first workout tracking application built with Next.js, PayloadCMS, and 
 ### Prerequisites
 
 - Node.js 18+ and npm
-- Docker and Docker Compose
+- Docker and Docker Compose ([Install Docker Desktop](https://www.docker.com/products/docker-desktop/))
 - Git
+
+> **Note**: Docker is required for local MongoDB development. The `npm run dev` command will automatically start MongoDB using Docker Compose.
 
 ### Installation
 
@@ -32,30 +34,43 @@ A mobile-first workout tracking application built with Next.js, PayloadCMS, and 
    # Edit .env.local with your configuration
    ```
 
-4. **Start MongoDB with Docker**
-
-   ```bash
-   docker-compose up -d
-   ```
-
-5. **Start the development server**
+4. **Start development (MongoDB + Next.js)**
 
    ```bash
    npm run dev
    ```
 
-6. **Access the application**
+   This single command will:
+   - Start MongoDB using Docker Compose
+   - Start the Next.js development server
+   - Handle cleanup when you stop the process (Ctrl+C)
+
+5. **Access the application**
    - Frontend: http://localhost:3000
    - PayloadCMS Admin: http://localhost:3000/admin
 
-## 🛠️ Development
+## 📋 Available Scripts
 
-### Available Scripts
+### Development
 
-- `npm run dev` - Start development server
+- `npm run dev` - Start MongoDB + Next.js development server (recommended)
+- `npm run dev:next` - Start only Next.js development server
+- `npm run devsafe` - Clean build cache and start development
+
+### Database Management
+
+- `npm run db:up` - Start MongoDB with Docker Compose
+- `npm run db:down` - Stop MongoDB
+- `npm run db:clean` - Reset database (removes all data)
+
+### Utilities
+
+- `npm run clean` - Clean build cache and stop database
 - `npm run build` - Build for production
 - `npm run start` - Start production server
-- `npm run lint` - Run ESLint
+
+## 🛠️ Development
+
 - `npm run lint:fix` - Run ESLint with auto-fix
 - `npm run format` - Format code with Prettier
 - `npm run format:check` - Check code formatting
