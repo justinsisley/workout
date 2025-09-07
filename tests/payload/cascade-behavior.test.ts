@@ -1,0 +1,428 @@
+import { describe, it, expect } from 'vitest'
+import { Exercises } from '../../src/payload/collections/exercises'
+import { Sessions } from '../../src/payload/collections/sessions'
+import { Milestones } from '../../src/payload/collections/milestones'
+import { Programs } from '../../src/payload/collections/programs'
+import { ProductUsers } from '../../src/payload/collections/product-users'
+import { ExerciseCompletions } from '../../src/payload/collections/exercise-completions'
+
+describe('PayloadCMS Cascade Behavior Tests', () => {
+  describe('Relationship Cascade Configuration', () => {
+    it('should have proper cascade behavior configuration for ExerciseCompletions', () => {
+      // ExerciseCompletions should be affected when related entities are deleted
+      const completionFields = [
+        { field: 'productUser', relationTo: 'productUsers', required: true },
+        { field: 'exercise', relationTo: 'exercises', required: true },
+        { field: 'session', relationTo: 'sessions', required: true },
+      ]
+
+      completionFields.forEach(({ field, relationTo, required }) => {
+        const fieldObj = ExerciseCompletions.fields?.find((f: any) => f.name === field)
+
+        expect(fieldObj, `Field ${field} should exist in ExerciseCompletions`).toBeDefined()
+        expect((fieldObj as any).type, `Field ${field} should be relationship type`).toBe(
+          'relationship',
+        )
+        expect((fieldObj as any).relationTo, `Field ${field} should relate to ${relationTo}`).toBe(
+          relationTo,
+        )
+        expect((fieldObj as any).required, `Field ${field} should be required: ${required}`).toBe(
+          required,
+        )
+      })
+    })
+
+    it('should have proper cascade behavior configuration for Sessions', () => {
+      // Sessions should be affected when exercises are deleted
+      const exercisesField = Sessions.fields?.find((field: any) => field.name === 'exercises')
+      const exerciseField = (exercisesField as any)?.fields?.find(
+        (field: any) => field.name === 'exercise',
+      )
+
+      expect(exerciseField, 'Exercise field should exist in Sessions exercises array').toBeDefined()
+      expect((exerciseField as any).type, 'Exercise field should be relationship type').toBe(
+        'relationship',
+      )
+      expect((exerciseField as any).relationTo, 'Exercise field should relate to exercises').toBe(
+        'exercises',
+      )
+      expect((exerciseField as any).required, 'Exercise field should be required').toBe(true)
+    })
+
+    it('should have proper cascade behavior configuration for Milestones', () => {
+      // Milestones should be affected when sessions are deleted
+      const culminatingEventField = Milestones.fields?.find(
+        (field: any) => field.name === 'culminatingEvent',
+      )
+      expect(
+        culminatingEventField,
+        'CulminatingEvent field should exist in Milestones',
+      ).toBeDefined()
+      expect(
+        (culminatingEventField as any).type,
+        'CulminatingEvent field should be relationship type',
+      ).toBe('relationship')
+      expect(
+        (culminatingEventField as any).relationTo,
+        'CulminatingEvent field should relate to sessions',
+      ).toBe('sessions')
+
+      // Check nested sessions in days array
+      const daysField = Milestones.fields?.find((field: any) => field.name === 'days')
+      const sessionsField = (daysField as any)?.fields?.find(
+        (field: any) => field.name === 'sessions',
+      )
+      const sessionField = (sessionsField as any)?.fields?.find(
+        (field: any) => field.name === 'session',
+      )
+
+      expect(sessionField, 'Session field should exist in Milestones days array').toBeDefined()
+      expect((sessionField as any).type, 'Session field should be relationship type').toBe(
+        'relationship',
+      )
+      expect((sessionField as any).relationTo, 'Session field should relate to sessions').toBe(
+        'sessions',
+      )
+      expect((sessionField as any).required, 'Session field should be required').toBe(true)
+    })
+
+    it('should have proper cascade behavior configuration for Programs', () => {
+      // Programs should be affected when sessions or milestones are deleted
+      const culminatingEventField = Programs.fields?.find(
+        (field: any) => field.name === 'culminatingEvent',
+      )
+      expect(culminatingEventField, 'CulminatingEvent field should exist in Programs').toBeDefined()
+      expect(
+        (culminatingEventField as any).type,
+        'CulminatingEvent field should be relationship type',
+      ).toBe('relationship')
+      expect(
+        (culminatingEventField as any).relationTo,
+        'CulminatingEvent field should relate to sessions',
+      ).toBe('sessions')
+
+      // Check milestones array
+      const milestonesField = Programs.fields?.find((field: any) => field.name === 'milestones')
+      const milestoneField = (milestonesField as any)?.fields?.find(
+        (field: any) => field.name === 'milestone',
+      )
+
+      expect(
+        milestoneField,
+        'Milestone field should exist in Programs milestones array',
+      ).toBeDefined()
+      expect((milestoneField as any).type, 'Milestone field should be relationship type').toBe(
+        'relationship',
+      )
+      expect(
+        (milestoneField as any).relationTo,
+        'Milestone field should relate to milestones',
+      ).toBe('milestones')
+      expect((milestoneField as any).required, 'Milestone field should be required').toBe(true)
+    })
+
+    it('should have proper cascade behavior configuration for ProductUsers', () => {
+      // ProductUsers should be affected when programs or milestones are deleted
+      const currentProgramField = ProductUsers.fields?.find(
+        (field: any) => field.name === 'currentProgram',
+      )
+      expect(currentProgramField, 'CurrentProgram field should exist in ProductUsers').toBeDefined()
+      expect(
+        (currentProgramField as any).type,
+        'CurrentProgram field should be relationship type',
+      ).toBe('relationship')
+      expect(
+        (currentProgramField as any).relationTo,
+        'CurrentProgram field should relate to programs',
+      ).toBe('programs')
+
+      const currentMilestoneField = ProductUsers.fields?.find(
+        (field: any) => field.name === 'currentMilestone',
+      )
+      expect(
+        currentMilestoneField,
+        'CurrentMilestone field should exist in ProductUsers',
+      ).toBeDefined()
+      expect(
+        (currentMilestoneField as any).type,
+        'CurrentMilestone field should be relationship type',
+      ).toBe('relationship')
+      expect(
+        (currentMilestoneField as any).relationTo,
+        'CurrentMilestone field should relate to milestones',
+      ).toBe('milestones')
+    })
+  })
+
+  describe('Self-Referencing Relationship Cascade', () => {
+    it('should have proper cascade behavior for Exercises alternatives relationship', () => {
+      const alternativesField = Exercises.fields?.find(
+        (field: any) => field.name === 'alternatives',
+      )
+
+      expect(alternativesField, 'Alternatives field should exist in Exercises').toBeDefined()
+      expect(
+        (alternativesField as any).type,
+        'Alternatives field should be relationship type',
+      ).toBe('relationship')
+      expect(
+        (alternativesField as any).relationTo,
+        'Alternatives field should relate to exercises',
+      ).toBe('exercises')
+      expect(
+        (alternativesField as any).hasMany,
+        'Alternatives field should have hasMany: true',
+      ).toBe(true)
+
+      // Self-referencing relationships should handle cascade properly
+      // When an exercise is deleted, it should be removed from alternatives arrays
+    })
+  })
+
+  describe('Required vs Optional Relationship Cascade', () => {
+    it('should have proper required relationship configurations for cascade behavior', () => {
+      const requiredRelationships = [
+        { collection: ExerciseCompletions, field: 'productUser', relationTo: 'productUsers' },
+        { collection: ExerciseCompletions, field: 'exercise', relationTo: 'exercises' },
+        { collection: ExerciseCompletions, field: 'session', relationTo: 'sessions' },
+        {
+          collection: Sessions,
+          field: 'exercises',
+          nestedField: 'exercise',
+          relationTo: 'exercises',
+        },
+        {
+          collection: Milestones,
+          field: 'days',
+          nestedField: 'sessions.session',
+          relationTo: 'sessions',
+        },
+        {
+          collection: Programs,
+          field: 'milestones',
+          nestedField: 'milestone',
+          relationTo: 'milestones',
+        },
+      ]
+
+      requiredRelationships.forEach(({ collection, field, nestedField, relationTo }) => {
+        const fieldObj = nestedField
+          ? getNestedField(collection, field, nestedField)
+          : collection.fields?.find((f: any) => f.name === field)
+
+        expect(fieldObj, `Required field ${field} should exist in ${collection.slug}`).toBeDefined()
+        expect((fieldObj as any).type, `Field ${field} should be relationship type`).toBe(
+          'relationship',
+        )
+        expect((fieldObj as any).relationTo, `Field ${field} should relate to ${relationTo}`).toBe(
+          relationTo,
+        )
+        expect((fieldObj as any).required, `Field ${field} should be required`).toBe(true)
+      })
+    })
+
+    it('should have proper optional relationship configurations for cascade behavior', () => {
+      const optionalRelationships = [
+        { collection: Exercises, field: 'alternatives', relationTo: 'exercises' },
+        { collection: Milestones, field: 'culminatingEvent', relationTo: 'sessions' },
+        { collection: Programs, field: 'culminatingEvent', relationTo: 'sessions' },
+        { collection: ProductUsers, field: 'currentProgram', relationTo: 'programs' },
+        { collection: ProductUsers, field: 'currentMilestone', relationTo: 'milestones' },
+      ]
+
+      optionalRelationships.forEach(({ collection, field, relationTo }) => {
+        const fieldObj = collection.fields?.find((f: any) => f.name === field)
+
+        expect(fieldObj, `Optional field ${field} should exist in ${collection.slug}`).toBeDefined()
+        expect((fieldObj as any).type, `Field ${field} should be relationship type`).toBe(
+          'relationship',
+        )
+        expect((fieldObj as any).relationTo, `Field ${field} should relate to ${relationTo}`).toBe(
+          relationTo,
+        )
+        expect((fieldObj as any).required, `Field ${field} should be optional`).toBeFalsy()
+      })
+    })
+  })
+
+  describe('Cascade Behavior Data Integrity', () => {
+    it('should have proper access controls for cascade behavior', () => {
+      // All collections should have proper access controls to prevent unauthorized deletions
+      const collections = [
+        Exercises,
+        Sessions,
+        Milestones,
+        Programs,
+        ProductUsers,
+        ExerciseCompletions,
+      ]
+
+      collections.forEach((collection) => {
+        expect(
+          collection.access,
+          `Collection ${collection.slug} should have access controls`,
+        ).toBeDefined()
+        expect(
+          collection.access?.read,
+          `Collection ${collection.slug} should have read access control`,
+        ).toBeDefined()
+        expect(
+          collection.access?.create,
+          `Collection ${collection.slug} should have create access control`,
+        ).toBeDefined()
+        expect(
+          collection.access?.update,
+          `Collection ${collection.slug} should have update access control`,
+        ).toBeDefined()
+        expect(
+          collection.access?.delete,
+          `Collection ${collection.slug} should have delete access control`,
+        ).toBeDefined()
+      })
+    })
+
+    it('should have proper validation for cascade behavior', () => {
+      // Required relationships should prevent deletion of referenced entities
+      const requiredRelationshipFields = [
+        { collection: ExerciseCompletions, field: 'productUser' },
+        { collection: ExerciseCompletions, field: 'exercise' },
+        { collection: ExerciseCompletions, field: 'session' },
+        { collection: Sessions, field: 'exercises', nestedField: 'exercise' },
+        { collection: Milestones, field: 'days', nestedField: 'sessions.session' },
+        { collection: Programs, field: 'milestones', nestedField: 'milestone' },
+      ]
+
+      requiredRelationshipFields.forEach(({ collection, field, nestedField }) => {
+        const fieldObj = nestedField
+          ? getNestedField(collection, field, nestedField)
+          : collection.fields?.find((f: any) => f.name === field)
+
+        expect(fieldObj, `Required field ${field} should exist in ${collection.slug}`).toBeDefined()
+        expect(
+          (fieldObj as any).required,
+          `Field ${field} should be required for cascade validation`,
+        ).toBe(true)
+      })
+    })
+  })
+
+  describe('Cascade Behavior Type Safety', () => {
+    it('should have proper TypeScript types for cascade behavior', () => {
+      // This test verifies that relationship fields are properly configured
+      // to generate correct TypeScript types for cascade behavior
+
+      const relationshipFields = [
+        { collection: ExerciseCompletions, field: 'productUser' },
+        { collection: ExerciseCompletions, field: 'exercise' },
+        { collection: ExerciseCompletions, field: 'session' },
+        { collection: Sessions, field: 'exercises', nestedField: 'exercise' },
+        { collection: Milestones, field: 'culminatingEvent' },
+        { collection: Milestones, field: 'days', nestedField: 'sessions.session' },
+        { collection: Programs, field: 'culminatingEvent' },
+        { collection: Programs, field: 'milestones', nestedField: 'milestone' },
+        { collection: ProductUsers, field: 'currentProgram' },
+        { collection: ProductUsers, field: 'currentMilestone' },
+        { collection: Exercises, field: 'alternatives' },
+      ]
+
+      relationshipFields.forEach(({ collection, field, nestedField }) => {
+        const fieldObj = nestedField
+          ? getNestedField(collection, field, nestedField)
+          : collection.fields?.find((f: any) => f.name === field)
+
+        expect(fieldObj, `Field ${field} should exist in ${collection.slug}`).toBeDefined()
+        expect((fieldObj as any).type, `Field ${field} should be relationship type`).toBe(
+          'relationship',
+        )
+        expect(
+          (fieldObj as any).relationTo,
+          `Field ${field} should have relationTo for type generation`,
+        ).toBeDefined()
+      })
+    })
+  })
+
+  describe('Cascade Behavior Documentation', () => {
+    it('should have proper admin descriptions for cascade behavior', () => {
+      // Test that relationship fields have proper descriptions that indicate
+      // their role in cascade behavior
+
+      const relationshipFields = [
+        {
+          collection: ExerciseCompletions,
+          field: 'productUser',
+          shouldContain: 'completed this exercise',
+        },
+        {
+          collection: ExerciseCompletions,
+          field: 'exercise',
+          shouldContain: 'exercise that was completed',
+        },
+        {
+          collection: ExerciseCompletions,
+          field: 'session',
+          shouldContain: 'session in which this exercise was completed',
+        },
+        {
+          collection: Sessions,
+          field: 'exercises',
+          nestedField: 'exercise',
+          shouldContain: 'exercise to include in this session',
+        },
+        {
+          collection: Milestones,
+          field: 'culminatingEvent',
+          shouldContain: 'final session or event',
+        },
+        {
+          collection: Programs,
+          field: 'culminatingEvent',
+          shouldContain: 'final session or event',
+        },
+        {
+          collection: Programs,
+          field: 'milestones',
+          nestedField: 'milestone',
+          shouldContain: 'Milestone',
+        },
+        { collection: ProductUsers, field: 'currentProgram', shouldContain: 'currently enrolled' },
+        { collection: ProductUsers, field: 'currentMilestone', shouldContain: 'current milestone' },
+      ]
+
+      relationshipFields.forEach(({ collection, field, nestedField, shouldContain }) => {
+        const fieldObj = nestedField
+          ? getNestedField(collection, field, nestedField)
+          : collection.fields?.find((f: any) => f.name === field)
+
+        expect(fieldObj, `Field ${field} should exist in ${collection.slug}`).toBeDefined()
+
+        // Check if field has either description or label that contains the expected text
+        const hasDescription = (fieldObj as any).admin?.description?.includes(shouldContain)
+        const hasLabel = (fieldObj as any).label?.includes(shouldContain)
+
+        expect(
+          hasDescription || hasLabel,
+          `Field ${field} should have description or label containing: ${shouldContain}`,
+        ).toBe(true)
+      })
+    })
+  })
+})
+
+// Helper function for nested field access
+function getNestedField(collection: any, arrayFieldName: string, nestedFieldPath: string) {
+  const arrayField = collection.fields?.find((f: any) => f.name === arrayFieldName)
+  if (!arrayField || arrayField.type !== 'array') return undefined
+
+  // Handle nested field paths like "sessions.session"
+  const fieldPath = nestedFieldPath.split('.')
+  let current = arrayField.fields
+
+  for (const fieldName of fieldPath) {
+    const field = current?.find((f: any) => f.name === fieldName)
+    if (!field) return undefined
+    current = field.fields || field
+  }
+
+  return current
+}

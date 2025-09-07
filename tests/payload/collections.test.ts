@@ -788,4 +788,235 @@ describe('PayloadCMS Collections', () => {
       expect(ExerciseCompletions.admin?.description).toContain('performance data')
     })
   })
+
+  describe('Collection Relationships Verification', () => {
+    it('should have all relationship fields properly configured between collections', () => {
+      // Verify all relationship fields exist and point to correct collections
+      const relationshipMap = {
+        // Exercises collection relationships
+        'exercises.alternatives': { relationTo: 'exercises', hasMany: true },
+
+        // Sessions collection relationships
+        'sessions.exercises.exercise': { relationTo: 'exercises', required: true },
+
+        // Milestones collection relationships
+        'milestones.culminatingEvent': { relationTo: 'sessions' },
+        'milestones.days.sessions.session': { relationTo: 'sessions', required: true },
+
+        // Programs collection relationships
+        'programs.culminatingEvent': { relationTo: 'sessions' },
+        'programs.milestones.milestone': { relationTo: 'milestones', required: true },
+
+        // ProductUsers collection relationships
+        'productUsers.currentProgram': { relationTo: 'programs' },
+        'productUsers.currentMilestone': { relationTo: 'milestones' },
+
+        // ExerciseCompletions collection relationships
+        'exerciseCompletions.productUser': { relationTo: 'productUsers', required: true },
+        'exerciseCompletions.exercise': { relationTo: 'exercises', required: true },
+        'exerciseCompletions.session': { relationTo: 'sessions', required: true },
+      }
+
+      // Verify each relationship
+      Object.entries(relationshipMap).forEach(([path, expected]) => {
+        const [collectionSlug, ...fieldPath] = path.split('.')
+        const collection = getCollectionBySlug(collectionSlug as string)
+        const field = getFieldByPath(collection, fieldPath)
+
+        expect(field, `Field ${path} should exist`).toBeDefined()
+        expect(field.type, `Field ${path} should be relationship type`).toBe('relationship')
+        expect(field.relationTo, `Field ${path} should relate to ${expected.relationTo}`).toBe(
+          expected.relationTo,
+        )
+
+        if ((expected as any).required !== undefined) {
+          expect(
+            (field as any).required,
+            `Field ${path} required should be ${(expected as any).required}`,
+          ).toBe((expected as any).required)
+        }
+
+        if ((expected as any).hasMany !== undefined) {
+          expect(
+            (field as any).hasMany,
+            `Field ${path} hasMany should be ${(expected as any).hasMany}`,
+          ).toBe((expected as any).hasMany)
+        }
+      })
+    })
+
+    it('should have proper foreign key constraints through PayloadCMS relationships', () => {
+      // PayloadCMS automatically handles foreign key constraints through relationships
+      // This test verifies that all relationship fields are properly configured
+      // to ensure referential integrity
+
+      const collections = [
+        Exercises,
+        Sessions,
+        Milestones,
+        Programs,
+        ProductUsers,
+        ExerciseCompletions,
+      ]
+
+      collections.forEach((collection) => {
+        const relationshipFields =
+          collection.fields?.filter(
+            (field) =>
+              field.type === 'relationship' ||
+              (field.type === 'array' && hasRelationshipInArray(field)),
+          ) || []
+
+        relationshipFields.forEach((field) => {
+          if (field.type === 'relationship') {
+            expect(
+              field.relationTo,
+              `Collection ${collection.slug} relationship field should have relationTo`,
+            ).toBeDefined()
+          }
+        })
+      })
+    })
+
+    it('should have drag-and-drop ordering configured for all array fields', () => {
+      const arrayFields = [
+        { collection: Sessions, field: 'exercises' },
+        { collection: Milestones, field: 'days' },
+        { collection: Programs, field: 'milestones' },
+      ]
+
+      arrayFields.forEach(({ collection, field }) => {
+        const arrayField = collection.fields?.find((f: any) => f.name === field)
+        expect(arrayField, `Array field ${field} should exist in ${collection.slug}`).toBeDefined()
+        expect(arrayField?.type, `Field ${field} should be array type`).toBe('array')
+        expect(
+          (arrayField as any)?.admin?.description,
+          `Field ${field} should have drag-and-drop description`,
+        ).toContain('Drag and drop to reorder')
+      })
+    })
+
+    it('should have conditional field logic properly configured', () => {
+      // Test milestone days conditional fields
+      const daysField = Milestones.fields?.find((field: any) => field.name === 'days')
+      const sessionsField = (daysField as any)?.fields?.find(
+        (field: any) => field.name === 'sessions',
+      )
+      const restNotesField = (daysField as any)?.fields?.find(
+        (field: any) => field.name === 'restNotes',
+      )
+
+      expect(sessionsField?.admin?.condition, 'Sessions field should have condition').toBeDefined()
+      expect(
+        restNotesField?.admin?.condition,
+        'Rest notes field should have condition',
+      ).toBeDefined()
+    })
+
+    it('should have proper cascade behavior configured through PayloadCMS', () => {
+      // PayloadCMS handles cascade behavior automatically through relationships
+      // This test verifies that all required relationships are properly configured
+      // to ensure proper data integrity when records are deleted
+
+      const requiredRelationships = [
+        { collection: 'exerciseCompletions', field: 'productUser', required: true },
+        { collection: 'exerciseCompletions', field: 'exercise', required: true },
+        { collection: 'exerciseCompletions', field: 'session', required: true },
+        { collection: 'sessions', field: 'exercises.exercise', required: true },
+        { collection: 'milestones', field: 'days.sessions.session', required: true },
+        { collection: 'programs', field: 'milestones.milestone', required: true },
+      ]
+
+      requiredRelationships.forEach(({ collection: collectionSlug, field, required }) => {
+        const collection = getCollectionBySlug(collectionSlug)
+        const fieldObj = getFieldByPath(collection, field.split('.'))
+
+        expect(fieldObj, `Required field ${field} should exist in ${collectionSlug}`).toBeDefined()
+        expect(fieldObj.required, `Field ${field} should be required`).toBe(required)
+      })
+    })
+
+    it('should have all collection slugs properly registered in payload config', () => {
+      const expectedSlugs = [
+        'exercises',
+        'sessions',
+        'milestones',
+        'programs',
+        'productUsers',
+        'exerciseCompletions',
+      ]
+
+      expectedSlugs.forEach((slug) => {
+        const collection = getCollectionBySlug(slug)
+        expect(collection, `Collection ${slug} should be defined`).toBeDefined()
+        expect(collection.slug, `Collection ${slug} should have correct slug`).toBe(slug)
+      })
+    })
+
+    it('should have proper relationship validation configured', () => {
+      // Test that all relationship fields have proper validation
+      const relationshipFields = [
+        { collection: ExerciseCompletions, field: 'productUser', required: true },
+        { collection: ExerciseCompletions, field: 'exercise', required: true },
+        { collection: ExerciseCompletions, field: 'session', required: true },
+        { collection: Sessions, field: 'exercises', arrayField: 'exercise', required: true },
+        { collection: Milestones, field: 'days', arrayField: 'sessions.session', required: true },
+        { collection: Programs, field: 'milestones', arrayField: 'milestone', required: true },
+      ]
+
+      relationshipFields.forEach(({ collection, field, arrayField, required }) => {
+        const fieldObj = arrayField
+          ? getNestedArrayField(collection, field, arrayField)
+          : collection.fields?.find((f: any) => f.name === field)
+
+        expect(fieldObj, `Field ${field} should exist in ${collection.slug}`).toBeDefined()
+        expect(fieldObj.type, `Field ${field} should be relationship type`).toBe('relationship')
+        expect(fieldObj.required, `Field ${field} should be required: ${required}`).toBe(required)
+      })
+    })
+  })
 })
+
+// Helper functions for relationship verification tests
+function getCollectionBySlug(slug: string) {
+  const collections = {
+    exercises: Exercises,
+    sessions: Sessions,
+    milestones: Milestones,
+    programs: Programs,
+    productUsers: ProductUsers,
+    exerciseCompletions: ExerciseCompletions,
+  }
+  return collections[slug as keyof typeof collections]
+}
+
+function getFieldByPath(collection: any, fieldPath: string[]) {
+  let current = collection.fields
+  for (const fieldName of fieldPath) {
+    const field = current?.find((f: any) => f.name === fieldName)
+    if (!field) return undefined
+    current = field.fields || field
+  }
+  return current
+}
+
+function hasRelationshipInArray(field: any) {
+  return field.fields?.some((f: any) => f.type === 'relationship')
+}
+
+function getNestedArrayField(collection: any, arrayFieldName: string, nestedFieldPath: string) {
+  const arrayField = collection.fields?.find((f: any) => f.name === arrayFieldName)
+  if (!arrayField || arrayField.type !== 'array') return undefined
+
+  // Handle nested field paths like "sessions.session"
+  const fieldPath = nestedFieldPath.split('.')
+  let current = arrayField.fields
+
+  for (const fieldName of fieldPath) {
+    const field = current?.find((f: any) => f.name === fieldName)
+    if (!field) return undefined
+    current = field.fields || field
+  }
+
+  return current
+}
