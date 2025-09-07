@@ -71,7 +71,6 @@ export interface Config {
     media: Media;
     exercises: Exercise;
     sessions: Session;
-    milestones: Milestone;
     programs: Program;
     productUsers: ProductUser;
     exerciseCompletions: ExerciseCompletion;
@@ -85,7 +84,6 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     exercises: ExercisesSelect<false> | ExercisesSelect<true>;
     sessions: SessionsSelect<false> | SessionsSelect<true>;
-    milestones: MilestonesSelect<false> | MilestonesSelect<true>;
     programs: ProgramsSelect<false> | ProgramsSelect<true>;
     productUsers: ProductUsersSelect<false> | ProductUsersSelect<true>;
     exerciseCompletions: ExerciseCompletionsSelect<false> | ExerciseCompletionsSelect<true>;
@@ -251,69 +249,6 @@ export interface Session {
   createdAt: string;
 }
 /**
- * Program milestones with progressive validation. Save as draft first, then publish when complete.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "milestones".
- */
-export interface Milestone {
-  id: string;
-  /**
-   * The name of the milestone. Can be saved as draft without this field, but required for publishing.
-   */
-  name?: string | null;
-  /**
-   * The theme or focus of this milestone. Can be saved as draft without this field, but required for publishing.
-   */
-  theme?: string | null;
-  /**
-   * The objective or goal of this milestone. Can be saved as draft without this field, but required for publishing.
-   */
-  objective?: string | null;
-  /**
-   * The final session or event that concludes this milestone. Optional for drafts.
-   */
-  culminatingEvent?: (string | null) | Session;
-  /**
-   * Add days to this milestone. Drag and drop to reorder. Day number is automatically derived from position. At least one day is required for publishing.
-   */
-  days?:
-    | {
-        /**
-         * Select whether this is a workout day or rest day.
-         */
-        dayType: 'workout' | 'rest';
-        /**
-         * Add workout sessions for this day. Only visible for workout days.
-         */
-        sessions?:
-          | {
-              /**
-               * Select the session to include in this day.
-               */
-              session: string | Session;
-              /**
-               * The order in which this session should be performed (1, 2, 3, etc.).
-               */
-              order: number;
-              id?: string | null;
-            }[]
-          | null;
-        /**
-         * Optional notes for rest days. Only visible for rest days.
-         */
-        restNotes?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Check this box to make the milestone visible to product users. Only published milestones will be visible to product users. ⚠️ All required fields (name, theme, objective, days) must be filled before publishing.
-   */
-  isPublished?: boolean | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
  * Fitness programs with progressive validation. Save as draft first, then publish when complete.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -338,16 +273,7 @@ export interface Program {
    */
   culminatingEvent?: (string | null) | Session;
   /**
-   * The milestones that make up this program, in order. Drag and drop to reorder milestones in the program sequence. At least one milestone is required for publishing.
-   */
-  milestones?:
-    | {
-        milestone: string | Milestone;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Check this box to make the program visible to product users. ⚠️ All required fields (name, description, objective, milestones) must be filled before publishing.
+   * Check this box to make the program visible to product users. ⚠️ All required fields (name, description, objective) must be filled before publishing.
    */
   isPublished?: boolean | null;
   updatedAt: string;
@@ -388,10 +314,6 @@ export interface ProductUser {
    * The program the user is currently enrolled in.
    */
   currentProgram?: (string | null) | Program;
-  /**
-   * The current milestone within the program.
-   */
-  currentMilestone?: (string | null) | Milestone;
   /**
    * The current day number within the milestone (1-based).
    */
@@ -476,10 +398,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'sessions';
         value: string | Session;
-      } | null)
-    | ({
-        relationTo: 'milestones';
-        value: string | Milestone;
       } | null)
     | ({
         relationTo: 'programs';
@@ -611,33 +529,6 @@ export interface SessionsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "milestones_select".
- */
-export interface MilestonesSelect<T extends boolean = true> {
-  name?: T;
-  theme?: T;
-  objective?: T;
-  culminatingEvent?: T;
-  days?:
-    | T
-    | {
-        dayType?: T;
-        sessions?:
-          | T
-          | {
-              session?: T;
-              order?: T;
-              id?: T;
-            };
-        restNotes?: T;
-        id?: T;
-      };
-  isPublished?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "programs_select".
  */
 export interface ProgramsSelect<T extends boolean = true> {
@@ -645,12 +536,6 @@ export interface ProgramsSelect<T extends boolean = true> {
   description?: T;
   objective?: T;
   culminatingEvent?: T;
-  milestones?:
-    | T
-    | {
-        milestone?: T;
-        id?: T;
-      };
   isPublished?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -678,7 +563,6 @@ export interface ProductUsersSelect<T extends boolean = true> {
         id?: T;
       };
   currentProgram?: T;
-  currentMilestone?: T;
   currentDay?: T;
   lastWorkoutDate?: T;
   totalWorkoutsCompleted?: T;

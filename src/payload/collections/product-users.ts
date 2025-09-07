@@ -4,7 +4,7 @@ export const ProductUsers: CollectionConfig = {
   slug: 'productUsers',
   admin: {
     useAsTitle: 'username',
-    defaultColumns: ['username', 'currentProgram', 'currentMilestone', 'currentDay'],
+    defaultColumns: ['username', 'currentProgram', 'currentDay'],
     description:
       'Product users are app users who authenticate via WebAuthN passkeys. They are completely separate from admin users.',
     group: 'Application Data',
@@ -95,14 +95,15 @@ export const ProductUsers: CollectionConfig = {
         description: 'The program the user is currently enrolled in.',
       },
     },
-    {
-      name: 'currentMilestone',
-      type: 'relationship',
-      relationTo: 'milestones',
-      admin: {
-        description: 'The current milestone within the program.',
-      },
-    },
+    // TODO: Replace with milestone index in Phase 3
+    // {
+    //   name: 'currentMilestone',
+    //   type: 'relationship',
+    //   relationTo: 'milestones',
+    //   admin: {
+    //     description: 'The current milestone within the program.',
+    //   },
+    // },
     {
       name: 'currentDay',
       type: 'number',

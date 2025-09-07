@@ -34,9 +34,10 @@ export const Programs: CollectionConfig = {
             errors.push('Program objective is required for publishing')
           }
 
-          if (!data.milestones || data.milestones.length === 0) {
-            errors.push('At least one milestone is required for publishing')
-          }
+          // TODO: Update validation for embedded milestones in Phase 2
+          // if (!data.milestones || data.milestones.length === 0) {
+          //   errors.push('At least one milestone is required for publishing')
+          // }
 
           if (errors.length > 0) {
             throw new Error(`Cannot publish program: ${errors.join(', ')}`)
@@ -76,38 +77,40 @@ export const Programs: CollectionConfig = {
         placeholder: 'e.g., "Build foundational strength and muscle mass"',
       },
     },
-    {
-      name: 'culminatingEvent',
-      type: 'relationship',
-      relationTo: 'sessions',
-      label: 'Culminating Event',
-      admin: {
-        description: 'The final session or event that marks program completion (optional)',
-        allowCreate: true,
-      },
-    },
-    {
-      name: 'milestones',
-      type: 'array',
-      label: 'Program Milestones',
-      admin: {
-        description:
-          'The milestones that make up this program, in order. Drag and drop to reorder milestones in the program sequence. At least one milestone is required for publishing.',
-        initCollapsed: false,
-      },
-      fields: [
-        {
-          name: 'milestone',
-          type: 'relationship',
-          relationTo: 'milestones',
-          required: true,
-          label: 'Milestone',
-          admin: {
-            allowCreate: true,
-          },
-        },
-      ],
-    },
+    // TODO: Replace with embedded culminating event in Phase 2
+    // {
+    //   name: 'culminatingEvent',
+    //   type: 'relationship',
+    //   relationTo: 'sessions',
+    //   label: 'Culminating Event',
+    //   admin: {
+    //     description: 'The final session or event that marks program completion (optional)',
+    //     allowCreate: true,
+    //   },
+    // },
+    // TODO: Replace with embedded milestones structure in Phase 2
+    // {
+    //   name: 'milestones',
+    //   type: 'array',
+    //   label: 'Program Milestones',
+    //   admin: {
+    //     description:
+    //       'The milestones that make up this program, in order. Drag and drop to reorder milestones in the program sequence. At least one milestone is required for publishing.',
+    //     initCollapsed: false,
+    //   },
+    //   fields: [
+    //     {
+    //       name: 'milestone',
+    //       type: 'relationship',
+    //       relationTo: 'milestones',
+    //       required: true,
+    //       label: 'Milestone',
+    //       admin: {
+    //         allowCreate: true,
+    //       },
+    //     },
+    //   ],
+    // },
     {
       name: 'isPublished',
       type: 'checkbox',
@@ -115,7 +118,7 @@ export const Programs: CollectionConfig = {
       defaultValue: false,
       admin: {
         description:
-          'Check this box to make the program visible to product users. ⚠️ All required fields (name, description, objective, milestones) must be filled before publishing.',
+          'Check this box to make the program visible to product users. ⚠️ All required fields (name, description, objective) must be filled before publishing.',
         position: 'sidebar',
       },
     },

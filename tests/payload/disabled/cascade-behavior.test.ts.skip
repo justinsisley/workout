@@ -1,12 +1,16 @@
 import { describe, it, expect } from 'vitest'
 import { Exercises } from '../../src/payload/collections/exercises'
 import { Sessions } from '../../src/payload/collections/sessions'
-import { Milestones } from '../../src/payload/collections/milestones'
+// import { Milestones } from '../../src/payload/collections/milestones' // Removed - using embedded schema
 import { Programs } from '../../src/payload/collections/programs'
 import { ProductUsers } from '../../src/payload/collections/product-users'
 import { ExerciseCompletions } from '../../src/payload/collections/exercise-completions'
 
 describe('PayloadCMS Cascade Behavior Tests', () => {
+  // TODO: Rewrite tests for embedded schema in Phase 5
+  it.skip('should skip milestone tests until embedded schema is implemented', () => {
+    expect(true).toBe(true)
+  })
   describe('Relationship Cascade Configuration', () => {
     it('should have proper cascade behavior configuration for ExerciseCompletions', () => {
       // ExerciseCompletions should be affected when related entities are deleted

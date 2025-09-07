@@ -3,8 +3,8 @@
 
 export type {
   Program,
-  Milestone,
-  Session,
+  // Milestone, // Removed - using embedded schema
+  // Session, // Removed - using embedded schema
   Exercise,
   ExerciseCompletion,
   ProductUser,

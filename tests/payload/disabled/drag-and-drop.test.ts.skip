@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { Sessions } from '../../src/payload/collections/sessions'
-import { Milestones } from '../../src/payload/collections/milestones'
+// import { Milestones } from '../../src/payload/collections/milestones' // Removed - using embedded schema
 import { Programs } from '../../src/payload/collections/programs'
 
 describe('PayloadCMS Drag-and-Drop Ordering Tests', () => {

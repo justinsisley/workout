@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { Exercises } from '../../src/payload/collections/exercises'
 import { Sessions } from '../../src/payload/collections/sessions'
-import { Milestones } from '../../src/payload/collections/milestones'
+// import { Milestones } from '../../src/payload/collections/milestones' // Removed - using embedded schema
 import { Programs } from '../../src/payload/collections/programs'
 import { ProductUsers } from '../../src/payload/collections/product-users'
 import { ExerciseCompletions } from '../../src/payload/collections/exercise-completions'
