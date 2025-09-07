@@ -70,7 +70,6 @@ export interface Config {
     users: User;
     media: Media;
     exercises: Exercise;
-    sessions: Session;
     programs: Program;
     productUsers: ProductUser;
     exerciseCompletions: ExerciseCompletion;
@@ -83,7 +82,6 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     exercises: ExercisesSelect<false> | ExercisesSelect<true>;
-    sessions: SessionsSelect<false> | SessionsSelect<true>;
     programs: ProgramsSelect<false> | ProgramsSelect<true>;
     productUsers: ProductUsersSelect<false> | ProductUsersSelect<true>;
     exerciseCompletions: ExerciseCompletionsSelect<false> | ExerciseCompletionsSelect<true>;
@@ -198,58 +196,7 @@ export interface Exercise {
   createdAt: string;
 }
 /**
- * Workout sessions with progressive validation. Save as draft first, then publish when complete.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "sessions".
- */
-export interface Session {
-  id: string;
-  /**
-   * Optional name for admin organization. Not visible to product users.
-   */
-  name?: string | null;
-  /**
-   * Add exercises to this session. Drag and drop to reorder. At least one exercise is required for publishing.
-   */
-  exercises?:
-    | {
-        /**
-         * Select the exercise to include in this session.
-         */
-        exercise: string | Exercise;
-        /**
-         * Number of sets to perform for this exercise.
-         */
-        sets: number;
-        /**
-         * Number of repetitions per set.
-         */
-        reps: number;
-        /**
-         * Rest time between sets in seconds. Optional.
-         */
-        restPeriod?: number | null;
-        /**
-         * Weight to use for this exercise. Optional.
-         */
-        weight?: number | null;
-        /**
-         * Additional notes or instructions for this exercise. Optional.
-         */
-        notes?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Check this box to make the session visible to product users. Only published sessions will be visible to product users. ⚠️ At least one exercise is required for publishing.
-   */
-  isPublished?: boolean | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Fitness programs with progressive validation. Save as draft first, then publish when complete.
+ * Fitness programs with embedded milestones, days, and exercises. Save as draft first, then publish when complete.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "programs".
@@ -269,11 +216,75 @@ export interface Program {
    */
   objective?: string | null;
   /**
-   * The final session or event that marks program completion (optional)
+   * The milestones that make up this program, in order. Drag and drop to reorder milestones in the program sequence. At least one milestone is required for publishing.
    */
-  culminatingEvent?: (string | null) | Session;
+  milestones?:
+    | {
+        /**
+         * The name of this milestone (e.g., "Foundation Phase", "Strength Building")
+         */
+        name?: string | null;
+        /**
+         * The theme or focus of this milestone (e.g., "Strength", "Endurance", "Technique")
+         */
+        theme?: string | null;
+        /**
+         * The specific goal or outcome for this milestone
+         */
+        objective?: string | null;
+        /**
+         * The days that make up this milestone, in order. Drag and drop to reorder days. Mix workout and rest days as needed.
+         */
+        days?:
+          | {
+              /**
+               * Choose whether this is a workout day or rest day
+               */
+              dayType: 'workout' | 'rest';
+              /**
+               * Exercises for this workout day. Only shown for workout days.
+               */
+              exercises?:
+                | {
+                    /**
+                     * Select the exercise to perform
+                     */
+                    exercise: string | Exercise;
+                    /**
+                     * Number of sets to perform
+                     */
+                    sets: number;
+                    /**
+                     * Number of repetitions per set
+                     */
+                    reps: number;
+                    /**
+                     * Rest time between sets in seconds
+                     */
+                    restPeriod?: number | null;
+                    /**
+                     * Weight to use for this exercise (optional)
+                     */
+                    weight?: number | null;
+                    /**
+                     * Additional instructions or notes for this exercise
+                     */
+                    notes?: string | null;
+                    id?: string | null;
+                  }[]
+                | null;
+              /**
+               * Notes or instructions for this rest day. Only shown for rest days.
+               */
+              restNotes?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
   /**
-   * Check this box to make the program visible to product users. ⚠️ All required fields (name, description, objective) must be filled before publishing.
+   * Check this box to make the program visible to product users. ⚠️ All required fields must be filled before publishing.
    */
   isPublished?: boolean | null;
   updatedAt: string;
@@ -346,10 +357,6 @@ export interface ExerciseCompletion {
    */
   exercise: string | Exercise;
   /**
-   * The session in which this exercise was completed.
-   */
-  session: string | Session;
-  /**
    * Number of sets completed for this exercise.
    */
   sets: number;
@@ -394,10 +401,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'exercises';
         value: string | Exercise;
-      } | null)
-    | ({
-        relationTo: 'sessions';
-        value: string | Session;
       } | null)
     | ({
         relationTo: 'programs';
@@ -508,34 +511,38 @@ export interface ExercisesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "sessions_select".
- */
-export interface SessionsSelect<T extends boolean = true> {
-  name?: T;
-  exercises?:
-    | T
-    | {
-        exercise?: T;
-        sets?: T;
-        reps?: T;
-        restPeriod?: T;
-        weight?: T;
-        notes?: T;
-        id?: T;
-      };
-  isPublished?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "programs_select".
  */
 export interface ProgramsSelect<T extends boolean = true> {
   name?: T;
   description?: T;
   objective?: T;
-  culminatingEvent?: T;
+  milestones?:
+    | T
+    | {
+        name?: T;
+        theme?: T;
+        objective?: T;
+        days?:
+          | T
+          | {
+              dayType?: T;
+              exercises?:
+                | T
+                | {
+                    exercise?: T;
+                    sets?: T;
+                    reps?: T;
+                    restPeriod?: T;
+                    weight?: T;
+                    notes?: T;
+                    id?: T;
+                  };
+              restNotes?: T;
+              id?: T;
+            };
+        id?: T;
+      };
   isPublished?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -576,7 +583,6 @@ export interface ProductUsersSelect<T extends boolean = true> {
 export interface ExerciseCompletionsSelect<T extends boolean = true> {
   productUser?: T;
   exercise?: T;
-  session?: T;
   sets?: T;
   reps?: T;
   weight?: T;
