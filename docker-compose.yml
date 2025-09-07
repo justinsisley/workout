@@ -16,11 +16,13 @@ services:
     env_file:
       - .env
 
-  # Ensure your DATABASE_URI uses 'mongo' as the hostname ie. mongodb://mongo/my-db-name
+  # MongoDB 7.0+ for workout-app database
   mongo:
-    image: mongo:latest
+    image: mongo:7.0
     ports:
       - '27017:27017'
+    environment:
+      MONGO_INITDB_DATABASE: workout-app
     command:
       - --storageEngine=wiredTiger
     volumes:
