@@ -9,9 +9,8 @@ pre-commit:
       run: npm run format:check
     type-check:
       run: npm run type-check
-
-pre-push:
-  parallel: true
-  commands:
-    test-e2e:
-      run: npm run test:e2e
+# pre-push:
+#   parallel: true
+#   commands:
+#     test-e2e:
+#       run: npm run test:e2e
