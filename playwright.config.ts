@@ -34,8 +34,16 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev',
-    reuseExistingServer: true,
+    command: process.env.CI ? 'npm run dev:next' : 'npm run dev',
+    reuseExistingServer: !process.env.CI,
     url: 'http://localhost:3000',
+    timeout: 120 * 1000, // 2 minutes timeout for CI
+    env: {
+      DATABASE_URI: process.env.DATABASE_URI || 'mongodb://localhost:27017/workout-app-test',
+      NODE_ENV: process.env.NODE_ENV || 'test',
+      NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+      JWT_SECRET: process.env.JWT_SECRET || 'test-jwt-secret-placeholder',
+      PAYLOAD_SECRET: process.env.PAYLOAD_SECRET || 'test-payload-secret-placeholder',
+    },
   },
 })
