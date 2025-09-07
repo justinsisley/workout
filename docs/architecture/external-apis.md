@@ -1,18 +1,20 @@
 # External APIs
 
-## Twilio SMS API
+## WebAuthN/FIDO2 API
 
-- **Purpose:** Send SMS OTP codes for product user authentication
-- **Documentation:** https://www.twilio.com/docs/sms
-- **Base URL(s):** https://api.twilio.com/2010-04-01/Accounts/{AccountSid}/Messages.json
-- **Authentication:** Basic Auth with Account SID and Auth Token
-- **Rate Limits:** 1 SMS per phone number per minute, 100 SMS per day per phone number
+- **Purpose:** Passkey-based authentication for product users
+- **Documentation:** https://www.w3.org/TR/webauthn-2/
+- **Browser Support:** Modern browsers with WebAuthN support
+- **Authentication:** Public key cryptography with passkeys
+- **Rate Limits:** No external API rate limits (browser-native)
 
-**Key Endpoints Used:**
+**Key Features Used:**
 
-- `POST /Messages` - Send SMS OTP to product user's phone number
+- `navigator.credentials.create()` - Register new passkeys
+- `navigator.credentials.get()` - Authenticate with existing passkeys
+- `@simplewebauthn/server` - Server-side WebAuthN operations
 
-**Integration Notes:** Implement rate limiting to prevent abuse, handle delivery failures gracefully, and ensure secure storage of authentication credentials.
+**Integration Notes:** Implement proper challenge generation, credential storage, and verification. Ensure browser compatibility and provide fallback guidance for unsupported browsers.
 
 ## YouTube Video Integration
 

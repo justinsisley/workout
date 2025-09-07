@@ -11,14 +11,14 @@
 **Backend Security:**
 
 - Input Validation: Zod schemas for all API inputs, sanitization middleware
-- Rate Limiting: 100 requests per minute per IP, 5 SMS requests per hour per phone number
+- Rate Limiting: 100 requests per minute per IP, 10 authentication attempts per hour per username
 - CORS Policy: Restricted to production domains, localhost for development
 
 **Authentication Security:**
 
 - Token Storage: JWT tokens with 24-hour expiration, refresh token rotation
 - Session Management: Secure session handling with automatic logout
-- Password Policy: N/A - SMS OTP authentication only
+- Passkey Security: WebAuthN public key cryptography with device-bound credentials
 
 ## Performance Optimization
 

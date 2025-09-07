@@ -24,7 +24,7 @@ The architecture will include:
 
 - Next.js application with integrated PayloadCMS
 - PayloadCMS collections for data management
-- Next.js API routes for custom business logic (SMS authentication, progression logic)
+- Next.js API routes for custom business logic (passkey authentication, progression logic)
 - MongoDB for data storage
 - Single deployment pipeline
 
@@ -43,12 +43,12 @@ Testing will prioritize critical business logic (progression algorithms) and dat
 
 - **Frontend Framework:** Next.js with Tailwind CSS and ShadCN components for consistent, mobile-optimized UI
 - **Database:** MongoDB with Docker Compose for local development, MongoDB Atlas for future cloud deployment
-- **Authentication:** SMS OTP service (Twilio, AWS SNS, or similar) with phone number as user identifier
+- **Authentication:** WebAuthn passkey authentication with globally unique usernames as identifiers
 - **Video Hosting:** External video hosting service for exercise demonstrations (YouTube, Vimeo, or dedicated hosting)
 - **Deployment:** Local development first, with future cloud deployment on Vercel, Netlify, or similar
 - **Development Environment:** Docker Compose for MongoDB, local PayloadCMS development
 - **Data Structure:** Flexible document structure supporting Programs → Milestones → Days → Sessions hierarchy
 - **Mobile Optimization:** Progressive Web App (PWA) capabilities for mobile gym use
-- **Cost Constraints:** Aim to stay within free/low-cost service limits for SMS, hosting, and video services
+- **Cost Constraints:** Aim to stay within free/low-cost service limits for hosting and video services
 - **Single Developer:** Architecture must be maintainable by one person with existing technical skills
 - **Future Extensibility:** Design for potential AI integration and advanced analytics without over-engineering

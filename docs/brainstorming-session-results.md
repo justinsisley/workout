@@ -51,7 +51,7 @@ Program (overall objective + culminating event)
 - **Frontend:** Next.js with Tailwind CSS + ShadCN components
 - **Backend:** PayloadCMS (unified data management)
 - **Database:** MongoDB (local development via Docker Compose)
-- **Authentication:** SMS OTP for users, standard PayloadCMS auth for admin
+- **Authentication:** WebAuthn passkeys for users, standard PayloadCMS auth for admin
 - **Deployment:** Local development first, cloud deployment later
 
 ### Data Architecture
@@ -62,8 +62,8 @@ Program (overall objective + culminating event)
    - Access to admin interface
    - Create/manage programs, exercises
 2. **Product Users** (Custom collection)
-   - SMS OTP authentication
-   - Phone number as user ID
+   - WebAuthn passkey authentication
+   - Username as user ID
    - No admin access
    - Associated with workout data
 
@@ -75,7 +75,7 @@ Program (overall objective + culminating event)
 - `weeks` (milestone relationship, week number)
 - `days` (week relationship, day number, is_rest_day, session relationship)
 - `sessions` (exercises with sets/reps/rest periods)
-- `product_users` (phone number, current program, current milestone, current day)
+- `product_users` (username, current program, current milestone, current day)
 - `exercise_completions` (user, exercise, reps, sets, weight, time, date)
 
 ## Key Features
@@ -92,7 +92,7 @@ Program (overall objective + culminating event)
 
 ### User Features (Mobile App)
 
-- **Dead Simple Onboarding:** SMS OTP → select program → start workout
+- **Dead Simple Onboarding:** Username + passkey → select program → start workout
 - **Workout Flow:** Exercise display with video, sets/reps, completion tracking
 - **Progress Tracking:** Save actual reps/sets/weight, auto-populate previous values
 - **Alternative Exercises:** Quick access to substitute exercises
@@ -110,7 +110,7 @@ Program (overall objective + culminating event)
 
 - **Inline Video Playback:** Quick reference with fullscreen toggle
 - **Easy Number Input:** Optimized for reps, sets, weight entry
-- **Phone Auto-fill:** SMS OTP auto-population
+- **Passkey Auto-fill:** WebAuthn passkey auto-population
 - **Gym-Optimized:** Designed for phone use during workouts
 
 ## Development Phases
@@ -130,8 +130,8 @@ Program (overall objective + culminating event)
 
 ### Phase 2: User Authentication
 
-- Research PayloadCMS SMS OTP plugins
-- Implement phone number authentication
+- Research PayloadCMS WebAuthn passkey plugins
+- Implement username and passkey authentication
 - Create product users collection
 - Basic user management
 
@@ -179,7 +179,7 @@ Program (overall objective + culminating event)
 **#1 Priority: PayloadCMS Foundation Setup**
 
 - Rationale: Everything builds on this foundation
-- Next steps: Research PayloadCMS SMS auth plugins, design collection schemas
+- Next steps: Research PayloadCMS WebAuthn auth plugins, design collection schemas
 - Resources needed: PayloadCMS documentation, MongoDB setup
 - Timeline: Week 1
 
@@ -193,8 +193,8 @@ Program (overall objective + culminating event)
 **#3 Priority: Mobile User Authentication**
 
 - Rationale: Core user experience foundation
-- Next steps: Implement SMS OTP, create product users collection
-- Resources needed: SMS service (Twilio), PayloadCMS auth hooks
+- Next steps: Implement WebAuthn passkeys, create product users collection
+- Resources needed: WebAuthn library, PayloadCMS auth hooks
 - Timeline: Week 3
 
 ## Reflection & Follow-up
@@ -209,7 +209,7 @@ Program (overall objective + culminating event)
 ### Areas for Further Exploration
 
 - PayloadCMS plugin ecosystem research
-- SMS OTP implementation options
+- WebAuthn passkey implementation options
 - Mobile UX testing approaches
 - Future AI integration possibilities
 
@@ -222,7 +222,7 @@ Program (overall objective + culminating event)
 
 ### Questions That Emerged
 
-- Which PayloadCMS plugins exist for SMS authentication?
+- Which PayloadCMS plugins exist for WebAuthn authentication?
 - What's the best approach for milestone ordering in PayloadCMS?
 - How to handle video storage and delivery for exercises?
 - What's the optimal mobile input pattern for workout data?
@@ -231,7 +231,7 @@ Program (overall objective + culminating event)
 
 - **Suggested topics:** Technical implementation details, PayloadCMS collection schemas
 - **Recommended timeframe:** After initial setup and research
-- **Preparation needed:** PayloadCMS documentation review, SMS service research
+- **Preparation needed:** PayloadCMS documentation review, WebAuthn service research
 
 ---
 

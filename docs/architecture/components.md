@@ -6,7 +6,7 @@
 
 **Key Interfaces:**
 
-- SMS Authentication flow with OTP verification
+- WebAuthN Passkey authentication flow
 - Program selection and assignment interface
 - Workout dashboard with session overview
 - Exercise detail screen with video integration
@@ -24,12 +24,12 @@
 
 - PayloadCMS admin interface for program creation
 - Server actions for data mutations and business logic
-- SMS OTP authentication service integration
+- WebAuthN passkey authentication service integration
 - Data validation and business logic enforcement
 
-**Dependencies:** PayloadCMS, MongoDB, Twilio SMS service, Next.js server actions
+**Dependencies:** PayloadCMS, MongoDB, WebAuthN service, Next.js server actions
 
-**Technology Stack:** TypeScript, PayloadCMS 3.53+, MongoDB 7.0+, Twilio SDK, Next.js server actions
+**Technology Stack:** TypeScript, PayloadCMS 3.53+, MongoDB 7.0+, @simplewebauthn/server, Next.js server actions
 
 ## Data Layer Components
 
@@ -52,14 +52,14 @@
 
 **Key Interfaces:**
 
-- SMS OTP generation and verification
+- WebAuthN passkey generation and verification
 - JWT token management
 - Product user session persistence
 - Rate limiting and security enforcement
 
-**Dependencies:** Twilio SMS service, JWT library, rate limiting middleware
+**Dependencies:** WebAuthN service, JWT library, rate limiting middleware
 
-**Technology Stack:** Twilio SDK, jsonwebtoken, rate limiting middleware
+**Technology Stack:** @simplewebauthn/server, jsonwebtoken, rate limiting middleware
 
 ## Video Integration Components
 

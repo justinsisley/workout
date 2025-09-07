@@ -1,16 +1,8 @@
 // Formatting utilities
 
-export function formatPhoneNumber(phoneNumber: string): string {
-  // Remove all non-digit characters
-  const digits = phoneNumber.replace(/\D/g, '')
-
-  // Format as +1 (XXX) XXX-XXXX for US numbers
-  if (digits.length === 11 && digits.startsWith('1')) {
-    return `+1 (${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`
-  }
-
-  // Return as-is if not a standard US number
-  return phoneNumber
+export function formatUsername(username: string): string {
+  // Ensure username is properly formatted (lowercase, trimmed)
+  return username.toLowerCase().trim()
 }
 
 export function formatDuration(seconds: number): string {

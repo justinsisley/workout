@@ -139,9 +139,9 @@ export const useWorkoutStore = create<WorkoutState>((set) => ({
 ```
 src/app/
 ├── (frontend)/            # Product user-facing pages (PayloadCMS convention)
-│   ├── login/             # SMS authentication
+│   ├── login/             # Passkey authentication
 │   │   └── page.tsx
-│   ├── verify/            # OTP verification
+│   ├── register/          # Username registration & passkey setup
 │   │   └── page.tsx
 │   ├── programs/          # Program selection
 │   │   ├── page.tsx       # Program list
@@ -206,7 +206,7 @@ export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
 
 ```typescript
 // src/lib/actions.ts - Re-export server actions for client components
-export { sendOTP, verifyOTP } from '@/actions/auth'
+export { registerPasskey, authenticateWithPasskey } from '@/actions/auth'
 export { getPrograms, assignProgramToUser } from '@/actions/programs'
 export { getCurrentSession, completeExercise } from '@/actions/workouts'
 ```

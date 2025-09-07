@@ -28,7 +28,7 @@ This document defines the user experience goals, information architecture, user 
 
 #### Usability Goals
 
-- **Ease of learning:** New users can complete SMS authentication and select a program within 2 minutes
+- **Ease of learning:** New users can complete passkey authentication and select a program within 2 minutes
 - **Efficiency of use:** Users can complete full workout sessions using only mobile app during gym visits
 - **Error prevention:** Clear validation and confirmation for destructive actions (skipping exercises, program changes)
 - **Memorability:** Users can return after gaps and immediately understand their current program position
@@ -57,7 +57,7 @@ This document defines the user experience goals, information architecture, user 
 
 ```mermaid
 graph TD
-    A[SMS Authentication] --> B[Program Selection]
+    A[Passkey Authentication] --> B[Program Selection]
     B --> C[Workout Dashboard]
     C --> D[Exercise Detail Screen]
     D --> E[Exercise Completion]
@@ -83,7 +83,7 @@ graph TD
 
 **Primary Navigation (Mobile User):**
 
-- **Linear Workout Flow:** SMS Auth → Program Selection → Workout Dashboard → Exercise Detail → Completion
+- **Linear Workout Flow:** Passkey Auth → Program Selection → Workout Dashboard → Exercise Detail → Completion
 - **Progress Access:** Quick access to current position and workout history from any screen
 - **Session Controls:** Exercise completion, skipping, and alternative exercise access
 
@@ -114,7 +114,7 @@ graph TD
 **Entry Points:**
 
 - Direct app access (returning user)
-- SMS authentication (new/first-time user)
+- Passkey authentication (new/first-time user)
 - Program selection (if no current program assigned)
 
 **Success Criteria:**
@@ -129,11 +129,11 @@ graph TD
 ```mermaid
 graph TD
     A[Open App] --> B{Authenticated?}
-    B -->|No| C[Enter Phone Number]
-    C --> D[Receive SMS OTP]
-    D --> E[Enter OTP Code]
-    E --> F{Valid OTP?}
-    F -->|No| D
+    B -->|No| C[Enter Username]
+    C --> D[Check Username Availability]
+    D --> E[Register Passkey]
+    E --> F{Passkey Created?}
+    F -->|No| C
     F -->|Yes| G[Select Program]
     B -->|Yes| H{Has Current Program?}
     H -->|No| G
@@ -158,7 +158,7 @@ graph TD
 - **Video Loading Failures:** Fallback to exercise description, retry mechanism
 - **Invalid Data Entry:** Clear validation messages, smart defaults from previous sessions
 - **App Interruption:** Auto-save progress, resume from last exercise
-- **SMS Delivery Issues:** Alternative authentication methods, retry options
+- **Passkey Registration Issues:** Alternative authentication methods, retry options
 - **Program Structure Changes:** Handle admin updates gracefully, notify user of changes
 
 **Notes:** This flow prioritizes mobile gym use with minimal cognitive load and maximum efficiency.
@@ -169,7 +169,7 @@ graph TD
 
 **Entry Points:**
 
-- New user after SMS authentication
+- New user after passkey authentication
 - Existing user wanting to change programs
 - User returning after program completion
 
@@ -258,19 +258,19 @@ graph TD
 
 ### Key Screen Layouts
 
-#### SMS Authentication Screen
+#### Passkey Authentication Screen
 
-**Purpose:** Secure user authentication using phone number and SMS OTP
+**Purpose:** Secure user authentication using username and WebAuthn passkeys
 
 **Key Elements:**
 
-- Large, centered phone number input field
-- Clear "Send Code" button with loading state
-- OTP input with auto-fill support
+- Large, centered username input field
+- Clear "Check Availability" button with loading state
+- Passkey registration/authentication with WebAuthn
 - Simple, distraction-free layout
 - Clear error messaging and validation
 
-**Interaction Notes:** Optimized for quick entry with auto-fill support, minimal cognitive load during gym arrival
+**Interaction Notes:** Optimized for quick entry with passkey support, minimal cognitive load during gym arrival
 
 **Design File Reference:** `auth-flow.fig`
 
@@ -411,8 +411,8 @@ graph TD
 
 - **Number:** Optimized for numeric input with increment/decrement buttons
 - **Text:** Standard text input for notes and descriptions
-- **Phone:** Specialized for phone number entry with formatting
-- **OTP:** Six-digit code input with auto-fill support
+- **Username:** Specialized for username entry with validation
+- **Passkey:** WebAuthn passkey registration and authentication
 
 **States:**
 

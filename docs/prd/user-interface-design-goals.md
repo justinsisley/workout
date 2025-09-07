@@ -20,7 +20,7 @@ The visual design will be clean and distraction-free, avoiding gamification elem
 
 ## Core Screens and Views
 
-**SMS Authentication Screen** - Simple phone number input with SMS OTP verification
+**Passkey Authentication Screen** - Username input with WebAuthn passkey registration and authentication
 
 **Program Selection Screen** - Clean list of available workout programs with descriptions
 

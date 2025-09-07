@@ -34,12 +34,12 @@
 
 - User journey flows need detailed mapping for mobile gym use cases
 - Error handling specifications need more detail for offline scenarios
-- Technical risk areas (SMS integration, video performance) need flagging
+- Technical risk areas (passkey integration, video performance) need flagging
 
 **MEDIUM:**
 
 - Data migration strategy for program updates needs definition
-- Integration testing approach for SMS service needs specification
+- Integration testing approach for passkey authentication needs specification
 - Performance monitoring requirements need clarification
 
 **LOW:**
@@ -51,14 +51,14 @@
 
 **Features Appropriately Scoped:**
 
-- SMS authentication is essential and well-defined
+- Passkey authentication is essential and well-defined
 - Core workout execution covers all necessary functionality
 - Smart progression logic provides key differentiation
 - Admin program creation enables the core value proposition
 
 **Complexity Concerns:**
 
-- SMS OTP integration may be more complex than anticipated
+- WebAuthn passkey integration may be more complex than anticipated
 - Video performance optimization needs careful consideration
 - Regression logic implementation requires thorough testing
 
@@ -78,14 +78,14 @@
 
 **Identified Technical Risks:**
 
-- PayloadCMS SMS integration complexity
+- PayloadCMS passkey integration complexity
 - Mobile video performance optimization
 - Offline capability implementation
 - Data consistency during regression logic
 
 **Areas Needing Architect Investigation:**
 
-- SMS service integration options and complexity
+- WebAuthn passkey service integration options and complexity
 - Video hosting and delivery optimization
 - Offline data synchronization approach
 - Performance optimization for mobile gym use
@@ -102,7 +102,7 @@
 **Quality Improvements:**
 
 1. **Add performance monitoring requirements** for mobile optimization
-2. **Specify integration testing approach** for SMS service
+2. **Specify integration testing approach** for passkey authentication
 3. **Define backup and recovery strategy** for workout data
 4. **Add accessibility testing requirements** for mobile interface
 

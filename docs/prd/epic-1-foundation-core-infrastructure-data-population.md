@@ -38,7 +38,7 @@ so that **the data structure supports the complete program hierarchy and user ma
 3. **Milestones collection** includes name, theme, objective, culminating event, and days array with relationship-based ordering
 4. **Days are embedded in milestones** with dayType ('workout'|'rest'), sessions array, and relationship-based ordering (day number derived from array position)
 5. **Sessions collection** includes exercises with sets, reps, and rest periods
-6. **Product users collection** includes phone number, current program, milestone, and day tracking
+6. **Product users collection** includes username, passkey credentials, current program, milestone, and day tracking
 7. **Exercise completions collection** includes user, exercise, reps, sets, weight, time, and date
 8. **All relationships are properly configured** between collections
 9. **Collection validation rules** ensure data integrity and required fields

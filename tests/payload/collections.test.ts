@@ -3,6 +3,7 @@ import { Exercises } from '../../src/payload/collections/exercises'
 import { Sessions } from '../../src/payload/collections/sessions'
 import { Milestones } from '../../src/payload/collections/milestones'
 import { Programs } from '../../src/payload/collections/programs'
+import { ProductUsers } from '../../src/payload/collections/product-users'
 
 describe('PayloadCMS Collections', () => {
   describe('Exercises Collection', () => {
@@ -500,6 +501,141 @@ describe('PayloadCMS Collections', () => {
 
       expect((milestonesField as any)?.admin?.initCollapsed).toBe(false)
       expect((milestonesField as any)?.admin?.description).toContain('Drag and drop to reorder')
+    })
+  })
+
+  describe('ProductUsers Collection', () => {
+    it('should have correct collection configuration', () => {
+      expect(ProductUsers.slug).toBe('productUsers')
+      expect(ProductUsers.admin?.useAsTitle).toBe('username')
+      expect(ProductUsers.admin?.defaultColumns).toEqual([
+        'username',
+        'currentProgram',
+        'currentMilestone',
+        'currentDay',
+      ])
+    })
+
+    it('should have required fields', () => {
+      const fields = ProductUsers.fields || []
+      const fieldNames = fields.map((field: any) => field.name)
+
+      expect(fieldNames).toContain('username')
+      expect(fieldNames).toContain('currentProgram')
+      expect(fieldNames).toContain('currentMilestone')
+      expect(fieldNames).toContain('currentDay')
+      expect(fieldNames).toContain('lastWorkoutDate')
+      expect(fieldNames).toContain('totalWorkoutsCompleted')
+    })
+
+    it('should have username field with correct configuration', () => {
+      const usernameField = ProductUsers.fields?.find((field: any) => field.name === 'username')
+
+      expect(usernameField).toBeDefined()
+      expect((usernameField as any)?.type).toBe('text')
+      expect((usernameField as any)?.required).toBe(true)
+      expect((usernameField as any)?.unique).toBe(true)
+      expect((usernameField as any)?.index).toBe(true)
+    })
+
+    it('should have currentProgram relationship configured correctly', () => {
+      const currentProgramField = ProductUsers.fields?.find(
+        (field: any) => field.name === 'currentProgram',
+      )
+
+      expect(currentProgramField).toBeDefined()
+      expect((currentProgramField as any)?.type).toBe('relationship')
+      expect((currentProgramField as any)?.relationTo).toBe('programs')
+    })
+
+    it('should have currentMilestone relationship configured correctly', () => {
+      const currentMilestoneField = ProductUsers.fields?.find(
+        (field: any) => field.name === 'currentMilestone',
+      )
+
+      expect(currentMilestoneField).toBeDefined()
+      expect((currentMilestoneField as any)?.type).toBe('relationship')
+      expect((currentMilestoneField as any)?.relationTo).toBe('milestones')
+    })
+
+    it('should have currentDay field with correct default and validation', () => {
+      const currentDayField = ProductUsers.fields?.find((field: any) => field.name === 'currentDay')
+
+      expect(currentDayField).toBeDefined()
+      expect((currentDayField as any)?.type).toBe('number')
+      expect((currentDayField as any)?.defaultValue).toBe(1)
+      expect((currentDayField as any)?.min).toBe(1)
+    })
+
+    it('should have lastWorkoutDate as optional date field', () => {
+      const lastWorkoutDateField = ProductUsers.fields?.find(
+        (field: any) => field.name === 'lastWorkoutDate',
+      )
+
+      expect(lastWorkoutDateField).toBeDefined()
+      expect((lastWorkoutDateField as any)?.type).toBe('date')
+      expect((lastWorkoutDateField as any)?.required).toBeUndefined()
+    })
+
+    it('should have totalWorkoutsCompleted with correct default and validation', () => {
+      const totalWorkoutsField = ProductUsers.fields?.find(
+        (field: any) => field.name === 'totalWorkoutsCompleted',
+      )
+
+      expect(totalWorkoutsField).toBeDefined()
+      expect((totalWorkoutsField as any)?.type).toBe('number')
+      expect((totalWorkoutsField as any)?.defaultValue).toBe(0)
+      expect((totalWorkoutsField as any)?.min).toBe(0)
+    })
+
+    it('should have proper access controls for admin-only management', () => {
+      expect(ProductUsers.access?.read).toBeDefined()
+      expect(ProductUsers.access?.create).toBeDefined()
+      expect(ProductUsers.access?.update).toBeDefined()
+      expect(ProductUsers.access?.delete).toBeDefined()
+    })
+
+    it('should validate usernames correctly', () => {
+      const usernameField = ProductUsers.fields?.find((field: any) => field.name === 'username')
+
+      expect((usernameField as any)?.validate).toBeDefined()
+
+      // Test valid usernames
+      const validUsernames = ['justin', 'user123', 'test_user', 'admin']
+      validUsernames.forEach((username) => {
+        const result = (usernameField as any)?.validate(username)
+        expect(result).toBe(true)
+      })
+
+      // Test invalid usernames
+      const invalidUsernames = [
+        'ab',
+        'a',
+        'user@domain.com',
+        'user with spaces',
+        '',
+        null,
+        undefined,
+      ]
+      invalidUsernames.forEach((username) => {
+        const result = (usernameField as any)?.validate(username)
+        expect(result).not.toBe(true)
+      })
+    })
+
+    it('should have proper admin descriptions', () => {
+      const usernameField = ProductUsers.fields?.find((field: any) => field.name === 'username')
+      const currentProgramField = ProductUsers.fields?.find(
+        (field: any) => field.name === 'currentProgram',
+      )
+
+      expect((usernameField as any)?.admin?.description).toContain('passkey authentication')
+      expect((currentProgramField as any)?.admin?.description).toContain('currently enrolled')
+    })
+
+    it('should have proper admin configuration', () => {
+      expect(ProductUsers.admin?.description).toContain('WebAuthN passkeys')
+      expect(ProductUsers.admin?.description).toContain('separate from admin users')
     })
   })
 })

@@ -2,12 +2,12 @@
 
 ## Technical Summary
 
-The Personal Workout App implements a **unified Next.js application with integrated PayloadCMS** architecture, optimized for mobile-first gym use. The system combines a headless CMS backend with a mobile-optimized frontend, all deployed as a single application. The architecture leverages PayloadCMS for admin-driven program creation, MongoDB for flexible document storage supporting complex program hierarchies, and SMS OTP authentication for secure product user access. The mobile-first design prioritizes one-handed operation during gym sessions with seamless video integration and real-time data persistence.
+The Personal Workout App implements a **unified Next.js application with integrated PayloadCMS** architecture, optimized for mobile-first gym use. The system combines a headless CMS backend with a mobile-optimized frontend, all deployed as a single application. The architecture leverages PayloadCMS for admin-driven program creation, MongoDB for flexible document storage supporting complex program hierarchies, and WebAuthN passkey authentication for secure product user access. The mobile-first design prioritizes one-handed operation during gym sessions with seamless video integration and real-time data persistence.
 
 ## Platform and Infrastructure Choice
 
 **Platform:** Railway (Unified Next.js + MongoDB)
-**Key Services:** Railway hosting, Railway MongoDB database, Twilio SMS service, YouTube video integration
+**Key Services:** Railway hosting, Railway MongoDB database, WebAuthN passkey authentication, YouTube video integration
 **Deployment Host and Regions:** Railway US East with integrated database
 
 **Rationale:** Railway provides unified deployment of Next.js application and MongoDB database in a single environment, reducing complexity and costs by 83% compared to Vercel + MongoDB Atlas. The co-located database eliminates network latency, and the $5/month pricing aligns perfectly with the personal project budget. YouTube integration provides free video hosting with excellent mobile optimization.
@@ -56,7 +56,7 @@ graph TB
     end
 
     subgraph "External Services"
-        F[Twilio<br/>SMS Service]
+        F[WebAuthN<br/>Passkey Service]
         G[YouTube<br/>Video Hosting]
     end
 

@@ -2,16 +2,22 @@
 
 import { z } from 'zod'
 
-// Phone number validation
-export const phoneNumberSchema = z
+// Username validation
+export const usernameSchema = z
   .string()
-  .regex(/^\+[1-9]\d{1,14}$/, 'Invalid phone number format')
+  .min(3, 'Username must be at least 3 characters')
+  .max(20, 'Username must be no more than 20 characters')
+  .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores')
 
-// OTP validation
-export const otpSchema = z
-  .string()
-  .length(6, 'OTP must be 6 digits')
-  .regex(/^\d{6}$/, 'OTP must contain only numbers')
+// Passkey credential validation
+export const passkeyCredentialSchema = z.object({
+  credentialID: z.string(),
+  publicKey: z.string(),
+  counter: z.number(),
+  deviceType: z.string().optional(),
+  backedUp: z.boolean().default(false),
+  transports: z.array(z.string()).optional(),
+})
 
 // Exercise completion validation
 export const exerciseCompletionSchema = z.object({

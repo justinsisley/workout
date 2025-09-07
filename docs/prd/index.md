@@ -33,7 +33,7 @@
     - [Story 1.4: Complete Program Data Population](./epic-1-foundation-core-infrastructure-data-population.md#story-14-complete-program-data-population)
       - [Acceptance Criteria](./epic-1-foundation-core-infrastructure-data-population.md#acceptance-criteria)
   - [Epic 2: User Authentication & Program Access](./epic-2-user-authentication-program-access.md)
-    - [Story 2.1: SMS OTP Authentication System](./epic-2-user-authentication-program-access.md#story-21-sms-otp-authentication-system)
+    - [Story 2.1: Passkey Authentication System](./epic-2-user-authentication-program-access.md#story-21-passkey-authentication-system)
       - [Acceptance Criteria](./epic-2-user-authentication-program-access.md#acceptance-criteria)
     - [Story 2.2: Product User Management](./epic-2-user-authentication-program-access.md#story-22-product-user-management)
       - [Acceptance Criteria](./epic-2-user-authentication-program-access.md#acceptance-criteria)

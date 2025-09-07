@@ -19,7 +19,7 @@ tests/
 ├── components/
 │   ├── auth/
 │   │   ├── login-form.test.tsx
-│   │   └── otp-verification.test.tsx
+│   │   └── passkey-authentication.test.tsx
 │   ├── workout/
 │   │   ├── exercise-card.test.tsx
 │   │   └── workout-dashboard.test.tsx

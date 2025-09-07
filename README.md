@@ -212,10 +212,9 @@ DATABASE_URI=mongodb://localhost:27017/workout-app
 JWT_SECRET=your-super-secret-jwt-key
 PAYLOAD_SECRET=your-payload-secret-key
 
-# SMS Service (for future stories)
-TWILIO_ACCOUNT_SID=your-twilio-account-sid
-TWILIO_AUTH_TOKEN=your-twilio-auth-token
-TWILIO_PHONE_NUMBER=your-twilio-phone-number
+# WebAuthN Configuration
+WEBAUTHN_RP_ID=localhost
+WEBAUTHN_RP_NAME=Personal Workout App
 
 # Shared
 NODE_ENV=development
@@ -311,7 +310,7 @@ The application is optimized for mobile gym use:
 ## 🔐 Authentication
 
 - **Admin Users**: Email/password authentication via PayloadCMS
-- **Product Users**: SMS OTP authentication via Twilio
+- **Product Users**: Passkey-based authentication via WebAuthN
 - **JWT Tokens**: Secure session management
 - **Rate Limiting**: Protection against abuse
 
@@ -326,7 +325,7 @@ The application is optimized for mobile gym use:
 
 ### Product User Interface
 
-- SMS-based authentication
+- Passkey-based authentication
 - Program selection and assignment
 - Workout session execution
 - Progress tracking and history

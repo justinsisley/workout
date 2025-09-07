@@ -1,41 +1,43 @@
 # Epic 2: User Authentication & Program Access
 
-**Epic Goal:** Implement SMS OTP authentication for product users and create the program selection interface that allows users to access available workout programs. This epic delivers the complete user authentication flow and program access functionality, enabling users to securely log in and select their desired workout programs before beginning workout sessions.
+**Epic Goal:** Implement passkey-based authentication for product users and create the program selection interface that allows users to access available workout programs. This epic delivers the complete user authentication flow and program access functionality, enabling users to securely log in and select their desired workout programs before beginning workout sessions.
 
-## Story 2.1: SMS OTP Authentication System
+## Story 2.1: Passkey Authentication System
 
 As a **product user**,
-I want **to authenticate using my phone number and SMS OTP**,
-so that **I can securely access the workout app without complex username/password management**.
+I want **to authenticate using a username and passkey**,
+so that **I can securely access the workout app without complex password management**.
 
 ### Acceptance Criteria
 
-1. **Phone number input screen** accepts valid phone numbers with proper formatting and validation
-2. **SMS OTP service integration** sends verification codes to provided phone numbers
-3. **OTP verification screen** accepts 6-digit codes with auto-fill support for mobile devices
-4. **User session management** maintains authenticated state across app usage
-5. **Phone number storage** securely stores user phone numbers as unique identifiers
-6. **OTP expiration handling** enforces time limits on verification codes
-7. **Rate limiting** prevents SMS spam and abuse of the authentication system
-8. **Error handling** provides clear feedback for invalid phone numbers or OTP codes
-9. **Mobile optimization** includes auto-fill support and touch-friendly input fields
-10. **Security measures** implement proper session management and data protection
+1. **Username input screen** accepts valid usernames with proper formatting and validation
+2. **Username availability check** verifies username uniqueness before registration
+3. **Passkey registration** allows users to create passkeys using WebAuthN
+4. **Passkey authentication** enables secure login using registered passkeys
+5. **User session management** maintains authenticated state across app usage
+6. **Username storage** securely stores user usernames as unique identifiers
+7. **Passkey credential storage** securely stores WebAuthN credentials
+8. **Rate limiting** prevents abuse of the authentication system
+9. **Error handling** provides clear feedback for invalid usernames or authentication failures
+10. **Mobile optimization** includes touch-friendly interface optimized for mobile devices
+11. **Security measures** implement proper session management and data protection
+12. **Browser compatibility** ensures WebAuthN works across supported browsers
 
 ## Story 2.2: Product User Management
 
 As a **system administrator**,
-I want **to manage product users and their authentication data**,
+I want **to manage product users and their passkey authentication data**,
 so that **I can track user accounts and ensure proper access control**.
 
 ### Acceptance Criteria
 
-1. **Product users collection** stores phone numbers, authentication status, and user metadata
-2. **User creation** automatically creates product user records upon successful SMS authentication
-3. **User lookup** efficiently finds users by phone number for authentication
+1. **Product users collection** stores usernames, passkey credentials, authentication status, and user metadata
+2. **User creation** automatically creates product user records upon successful passkey registration
+3. **User lookup** efficiently finds users by username for authentication
 4. **User status tracking** maintains current authentication and account status
-5. **Data validation** ensures phone numbers are properly formatted and unique
+5. **Data validation** ensures usernames are properly formatted and unique
 6. **User management interface** allows admins to view and manage product users
-7. **Security compliance** implements proper data protection for phone number storage
+7. **Security compliance** implements proper data protection for username and passkey credential storage
 8. **User session tracking** maintains current user state and authentication status
 9. **Error handling** gracefully handles duplicate users and authentication failures
 10. **Data integrity** ensures user data consistency across authentication flows

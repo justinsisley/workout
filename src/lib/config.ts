@@ -12,10 +12,9 @@ interface EnvironmentConfig {
   JWT_SECRET: string
   PAYLOAD_SECRET: string
 
-  // SMS Service
-  TWILIO_ACCOUNT_SID: string
-  TWILIO_AUTH_TOKEN: string
-  TWILIO_PHONE_NUMBER: string
+  // WebAuthN Configuration
+  WEBAUTHN_RP_ID: string
+  WEBAUTHN_RP_NAME: string
 
   // Shared
   NODE_ENV: 'development' | 'production' | 'test'
@@ -29,10 +28,6 @@ function getEnvVar(key: keyof EnvironmentConfig): string {
   return value
 }
 
-function getOptionalEnvVar(key: keyof EnvironmentConfig, defaultValue: string): string {
-  return process.env[key] || defaultValue
-}
-
 export const config: EnvironmentConfig = {
   // Frontend
   NEXT_PUBLIC_APP_URL: getEnvVar('NEXT_PUBLIC_APP_URL'),
@@ -42,10 +37,9 @@ export const config: EnvironmentConfig = {
   JWT_SECRET: getEnvVar('JWT_SECRET'),
   PAYLOAD_SECRET: getEnvVar('PAYLOAD_SECRET'),
 
-  // SMS Service
-  TWILIO_ACCOUNT_SID: getOptionalEnvVar('TWILIO_ACCOUNT_SID', ''),
-  TWILIO_AUTH_TOKEN: getOptionalEnvVar('TWILIO_AUTH_TOKEN', ''),
-  TWILIO_PHONE_NUMBER: getOptionalEnvVar('TWILIO_PHONE_NUMBER', ''),
+  // WebAuthN Configuration
+  WEBAUTHN_RP_ID: getEnvVar('WEBAUTHN_RP_ID'),
+  WEBAUTHN_RP_NAME: getEnvVar('WEBAUTHN_RP_NAME'),
 
   // Shared
   NODE_ENV: (process.env.NODE_ENV as EnvironmentConfig['NODE_ENV']) || 'development',
@@ -58,6 +52,8 @@ export function validateEnvironment(): void {
     'DATABASE_URI',
     'JWT_SECRET',
     'PAYLOAD_SECRET',
+    'WEBAUTHN_RP_ID',
+    'WEBAUTHN_RP_NAME',
   ]
 
   const missingVars: string[] = []
@@ -82,8 +78,7 @@ export const {
   DATABASE_URI,
   JWT_SECRET,
   PAYLOAD_SECRET,
-  TWILIO_ACCOUNT_SID,
-  TWILIO_AUTH_TOKEN,
-  TWILIO_PHONE_NUMBER,
+  WEBAUTHN_RP_ID,
+  WEBAUTHN_RP_NAME,
   NODE_ENV,
 } = config

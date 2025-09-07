@@ -147,7 +147,7 @@ A seamless fitness ecosystem where:
 
 ### Core Features (Must Have)
 
-- **SMS OTP Authentication:** Phone number-based login system for product users (Justin and wife)
+- **Passkey Authentication:** Username and WebAuthn passkey-based login system for product users (Justin and wife)
 - **Program Selection Interface:** Simple interface for users to select from available workout programs
 - **Exercise Display with Video:** Mobile-optimized exercise presentation with inline video playback and fullscreen toggle
 - **Workout Session Tracking:** Ability to log sets, reps, weight, and completion status for each exercise
@@ -175,7 +175,7 @@ A seamless fitness ecosystem where:
 
 The MVP will be considered successful when:
 
-1. **Both primary users can authenticate** using SMS OTP and access the app
+1. **Both primary users can authenticate** using WebAuthn passkeys and access the app
 2. **At least one complete workout program** is created and available in the system
 3. **Users can complete a full workout session** using only the mobile app during a gym visit
 4. **All workout data is properly saved** and retrievable for future sessions
@@ -269,7 +269,7 @@ A comprehensive personal fitness ecosystem that becomes the central hub for all 
 - **Hosting/Infrastructure:**
   - Local development: Docker Compose for MongoDB
   - Future deployment: Cloud hosting (Vercel, Netlify, or similar) with MongoDB Atlas
-  - Authentication: SMS OTP service (Twilio or similar)
+  - Authentication: WebAuthn passkey service (browser-native)
 
 ### Architecture Considerations
 
@@ -277,15 +277,15 @@ A comprehensive personal fitness ecosystem that becomes the central hub for all 
 - **Service Architecture:**
   - PayloadCMS as headless CMS for data management
   - Next.js API routes for custom business logic
-  - SMS service integration for authentication
+  - WebAuthn passkey service integration for authentication
   - Video hosting for exercise demonstrations
 - **Integration Requirements:**
-  - SMS OTP service for user authentication
+  - WebAuthn passkey service for user authentication
   - Video hosting service for exercise videos
   - Potential future integrations with fitness wearables
 - **Security/Compliance:**
-  - Phone number privacy and data protection
-  - Secure SMS OTP implementation
+  - Username privacy and data protection
+  - Secure WebAuthn passkey implementation
   - Local data storage with backup strategies
   - User data isolation between primary users
 
@@ -310,7 +310,7 @@ A comprehensive personal fitness ecosystem that becomes the central hub for all 
 - **Mobile Usage:** Users will primarily access the app via mobile devices during workouts
 - **Data Persistence:** Users want to maintain long-term workout data and progress tracking
 - **Program Flexibility:** Users will want to create and modify workout programs over time
-- **SMS Authentication:** Phone number-based authentication is acceptable and practical for both users
+- **Passkey Authentication:** Username and WebAuthn passkey-based authentication is acceptable and practical for both users
 - **Video Content:** Exercise videos can be sourced from existing online content or created as needed
 - **Internet Connectivity:** Reliable internet access available during gym sessions
 - **Personal Use Focus:** No need for commercial features, social sharing, or multi-user scalability beyond household
@@ -319,7 +319,7 @@ A comprehensive personal fitness ecosystem that becomes the central hub for all 
 
 ### Key Risks
 
-- **SMS Authentication Complexity:** PayloadCMS SMS OTP integration may be more complex than anticipated, potentially requiring custom development or third-party plugins
+- **WebAuthn Authentication Complexity:** PayloadCMS WebAuthn passkey integration may be more complex than anticipated, potentially requiring custom development or third-party plugins
 - **Mobile Performance Issues:** App performance on mobile devices during gym use may not meet expectations, especially with video playback and data entry
 - **Data Loss Risk:** Local development setup could lead to data loss if not properly backed up, affecting long-term progress tracking
 - **User Adoption Resistance:** One or both users may prefer existing methods (paper tracking) and resist switching to digital solution
@@ -330,7 +330,7 @@ A comprehensive personal fitness ecosystem that becomes the central hub for all 
 
 ### Open Questions
 
-- **PayloadCMS SMS Integration:** What plugins or custom development is needed for SMS OTP authentication?
+- **PayloadCMS WebAuthn Integration:** What plugins or custom development is needed for WebAuthn passkey authentication?
 - **Video Content Strategy:** Should exercise videos be hosted locally, on external services, or embedded from existing sources?
 - **Data Backup Strategy:** How should workout data be backed up to prevent loss during development and deployment?
 - **Program Structure Complexity:** How complex should the initial program structure be, and what's the minimum viable hierarchy?
@@ -340,8 +340,8 @@ A comprehensive personal fitness ecosystem that becomes the central hub for all 
 
 ### Areas Needing Further Research
 
-- **PayloadCMS Plugin Ecosystem:** Research available plugins for SMS authentication and mobile optimization
-- **SMS Service Options:** Compare Twilio, AWS SNS, and other SMS services for cost and reliability
+- **PayloadCMS Plugin Ecosystem:** Research available plugins for WebAuthn authentication and mobile optimization
+- **WebAuthn Service Options:** Compare WebAuthn libraries and browser compatibility for passkey authentication
 - **Video Hosting Solutions:** Evaluate options for exercise video storage and delivery
 - **Mobile UX Patterns:** Research best practices for mobile fitness app interfaces
 - **MongoDB Backup Strategies:** Investigate backup and recovery options for local development
@@ -352,10 +352,10 @@ A comprehensive personal fitness ecosystem that becomes the central hub for all 
 
 ### Immediate Actions
 
-1. **Research PayloadCMS SMS Authentication Options**
-   - Investigate available plugins for SMS OTP integration
+1. **Research PayloadCMS WebAuthn Authentication Options**
+   - Investigate available plugins for WebAuthn passkey integration
    - Evaluate custom development requirements
-   - Compare SMS service providers (Twilio, AWS SNS, etc.)
+   - Compare WebAuthn libraries and browser compatibility
 
 2. **Set Up Development Environment**
    - Initialize Next.js project with Tailwind CSS and ShadCN components
@@ -376,10 +376,10 @@ A comprehensive personal fitness ecosystem that becomes the central hub for all 
    - Validate collection relationships work as expected
 
 5. **Implement Basic User Authentication**
-   - Research and implement SMS OTP authentication
+   - Research and implement WebAuthn passkey authentication
    - Create product_users collection and management
    - Test authentication flow with both primary users
-   - Ensure secure phone number storage and validation
+   - Ensure secure username storage and passkey validation
 
 ### PM Handoff
 

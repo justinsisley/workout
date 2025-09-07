@@ -2,9 +2,9 @@
 
 ## Functional Requirements
 
-**FR1:** The system shall provide SMS OTP authentication for product users using phone numbers as unique identifiers.
+**FR1:** The system shall provide passkey-based authentication for product users using globally unique usernames as identifiers.
 
-**FR2:** The system shall support two distinct user types: Admin users (PayloadCMS built-in) and Product users (custom collection with SMS authentication).
+**FR2:** The system shall support two distinct user types: Admin users (PayloadCMS built-in) and Product users (custom collection with passkey authentication).
 
 **FR3:** The system shall provide a PayloadCMS admin interface for creating and managing workout programs with the hierarchy: Programs → Milestones (with embedded days) → Sessions.
 
@@ -46,7 +46,7 @@
 
 **NFR6:** The system shall maintain user data isolation between primary users (Justin and wife).
 
-**NFR7:** The system shall implement secure phone number storage and SMS OTP validation.
+**NFR7:** The system shall implement secure username storage and WebAuthN passkey validation.
 
 **NFR8:** The system shall support local development with Docker Compose for MongoDB.
 
@@ -56,4 +56,4 @@
 
 **NFR11:** The system shall use MongoDB for flexible document structure supporting complex program hierarchies.
 
-**NFR12:** The system shall aim to stay within free/low-cost service limits (SMS services, hosting).
+**NFR12:** The system shall aim to stay within free/low-cost service limits (hosting only - no third-party authentication services).

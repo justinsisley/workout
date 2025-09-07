@@ -7,16 +7,19 @@ sequenceDiagram
     participant U as Product User
     participant F as Frontend
     participant A as API
-    participant T as Twilio
+    participant W as WebAuthN
     participant D as Database
 
-    U->>F: Enter phone number
-    F->>A: POST /auth/send-otp
-    A->>T: Send SMS OTP
-    T->>U: SMS with OTP code
-    U->>F: Enter OTP code
-    F->>A: POST /auth/verify-otp
-    A->>D: Verify OTP and create/update product user
+    U->>F: Enter username
+    F->>A: Check username availability
+    A->>D: Verify username uniqueness
+    A->>F: Username available
+    F->>W: Register passkey
+    W->>U: Passkey creation prompt
+    U->>W: Create passkey (biometric/PIN)
+    W->>F: Passkey credential
+    F->>A: Send username + passkey credential
+    A->>D: Create product user with passkey
     D->>A: Product user data
     A->>F: JWT token + product user data
     F->>U: Authentication successful

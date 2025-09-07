@@ -113,10 +113,10 @@ DATABASE_URI=mongodb://localhost:27017/workout-app
 JWT_SECRET=your-super-secret-jwt-key
 PAYLOAD_SECRET=your-payload-secret-key
 
-# SMS Service
-TWILIO_ACCOUNT_SID=your-twilio-account-sid
-TWILIO_AUTH_TOKEN=your-twilio-auth-token
-TWILIO_PHONE_NUMBER=your-twilio-phone-number
+# WebAuthN Configuration
+WEBAUTHN_RP_ID=localhost
+WEBAUTHN_RP_NAME=Personal Workout App
+WEBAUTHN_ORIGIN=http://localhost:3000
 
 # Video Service (YouTube - No API keys required for embedding)
 # YouTube video embedding requires no authentication

@@ -73,6 +73,7 @@ export interface Config {
     sessions: Session;
     milestones: Milestone;
     programs: Program;
+    productUsers: ProductUser;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -85,6 +86,7 @@ export interface Config {
     sessions: SessionsSelect<false> | SessionsSelect<true>;
     milestones: MilestonesSelect<false> | MilestonesSelect<true>;
     programs: ProgramsSelect<false> | ProgramsSelect<true>;
+    productUsers: ProductUsersSelect<false> | ProductUsersSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -342,6 +344,60 @@ export interface Program {
   createdAt: string;
 }
 /**
+ * Product users are app users who authenticate via WebAuthN passkeys. They are completely separate from admin users.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "productUsers".
+ */
+export interface ProductUser {
+  id: string;
+  /**
+   * Globally unique username for passkey authentication. Must be unique across all product users.
+   */
+  username: string;
+  /**
+   * WebAuthN passkey credentials for this user.
+   */
+  passkeyCredentials?:
+    | {
+        credentialID: string;
+        publicKey: string;
+        counter: number;
+        deviceType?: string | null;
+        backedUp?: boolean | null;
+        transports?:
+          | {
+              transport?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * The program the user is currently enrolled in.
+   */
+  currentProgram?: (string | null) | Program;
+  /**
+   * The current milestone within the program.
+   */
+  currentMilestone?: (string | null) | Milestone;
+  /**
+   * The current day number within the milestone (1-based).
+   */
+  currentDay?: number | null;
+  /**
+   * Date of the last completed workout.
+   */
+  lastWorkoutDate?: string | null;
+  /**
+   * Total number of workouts completed by this user.
+   */
+  totalWorkoutsCompleted?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
@@ -371,6 +427,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'programs';
         value: string | Program;
+      } | null)
+    | ({
+        relationTo: 'productUsers';
+        value: string | ProductUser;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -531,6 +591,36 @@ export interface ProgramsSelect<T extends boolean = true> {
         id?: T;
       };
   isPublished?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "productUsers_select".
+ */
+export interface ProductUsersSelect<T extends boolean = true> {
+  username?: T;
+  passkeyCredentials?:
+    | T
+    | {
+        credentialID?: T;
+        publicKey?: T;
+        counter?: T;
+        deviceType?: T;
+        backedUp?: T;
+        transports?:
+          | T
+          | {
+              transport?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  currentProgram?: T;
+  currentMilestone?: T;
+  currentDay?: T;
+  lastWorkoutDate?: T;
+  totalWorkoutsCompleted?: T;
   updatedAt?: T;
   createdAt?: T;
 }

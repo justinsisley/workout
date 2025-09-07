@@ -15,8 +15,8 @@ workout-app/
 │   │   └── common/             # Shared components
 │   ├── app/                    # Next.js App Router
 │   │   ├── (frontend)/         # Product user-facing pages (PayloadCMS convention)
-│   │   │   ├── login/          # SMS authentication
-│   │   │   ├── verify/         # OTP verification
+│   │   │   ├── login/          # Passkey authentication
+│   │   │   ├── register/       # Username registration & passkey setup
 │   │   │   ├── programs/       # Program selection
 │   │   │   ├── workout/        # Workout execution
 │   │   │   │   ├── dashboard/  # Workout overview

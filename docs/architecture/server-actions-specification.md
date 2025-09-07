@@ -27,25 +27,35 @@ The application uses Next.js Server Actions with **PayloadCMS Local API** for al
 'use server'
 
 import { getPayload } from 'payload'
-import { twilioClient } from '@/lib/twilio'
+import {
+  generateRegistrationOptions,
+  verifyRegistrationResponse,
+  generateAuthenticationOptions,
+  verifyAuthenticationResponse,
+} from '@simplewebauthn/server'
 import { signJWT } from '@/lib/auth'
 
-export async function sendOTP(phoneNumber: string) {
-  // Validate phone number format
-  // Send SMS via Twilio
-  // Store OTP with expiration
-}
-
-export async function verifyOTP(phoneNumber: string, otp: string) {
-  // Verify OTP
+export async function checkUsernameAvailability(username: string) {
   const payload = await getPayload()
 
-  // Create or update product user using PayloadCMS Local API
-  const productUser = await payload.findOrCreate({
+  const result = await payload.find({
     collection: 'productUsers',
-    where: { phoneNumber: { equals: phoneNumber } },
+    where: { username: { equals: username } },
+    limit: 1,
+  })
+
+  return { available: result.docs.length === 0 }
+}
+
+export async function registerPasskey(username: string, credential: any) {
+  const payload = await getPayload()
+
+  // Create product user with username and passkey credential
+  const productUser = await payload.create({
+    collection: 'productUsers',
     data: {
-      phoneNumber,
+      username,
+      passkeyCredentials: [credential],
     },
   })
 
@@ -53,6 +63,38 @@ export async function verifyOTP(phoneNumber: string, otp: string) {
   const token = signJWT({ productUserId: productUser.id })
 
   return { success: true, productUser, token }
+}
+
+export async function authenticateWithPasskey(username: string, credential: any) {
+  const payload = await getPayload()
+
+  // Find user by username
+  const result = await payload.find({
+    collection: 'productUsers',
+    where: { username: { equals: username } },
+    limit: 1,
+  })
+
+  const productUser = result.docs[0]
+  if (!productUser) {
+    throw new Error('User not found')
+  }
+
+  // Verify passkey credential
+  const verification = await verifyAuthenticationResponse({
+    response: credential,
+    expectedChallenge: expectedChallenge,
+    expectedOrigin: process.env.NEXT_PUBLIC_APP_URL,
+    expectedRPID: process.env.WEBAUTHN_RP_ID,
+    authenticator: productUser.passkeyCredentials[0],
+  })
+
+  if (verification.verified) {
+    const token = signJWT({ productUserId: productUser.id })
+    return { success: true, productUser, token }
+  }
+
+  throw new Error('Authentication failed')
 }
 ```
 

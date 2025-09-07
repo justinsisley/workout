@@ -22,5 +22,5 @@
 - Request rate and response times
 - Error rate and error types
 - Database query performance
-- SMS service delivery rates
+- WebAuthN authentication success rates
 - Authentication success rates

@@ -39,7 +39,7 @@
     - [Authentication Components](./components.md#authentication-components)
     - [Video Integration Components](./components.md#video-integration-components)
   - [External APIs](./external-apis.md)
-    - [Twilio SMS API](./external-apis.md#twilio-sms-api)
+    - [WebAuthN/FIDO2 API](./external-apis.md#webauthnfido2-api)
     - [YouTube Video Integration](./external-apis.md#youtube-video-integration)
   - [Core Workflows](./core-workflows.md)
     - [Product User Authentication Workflow](./core-workflows.md#product-user-authentication-workflow)

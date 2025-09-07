@@ -2,7 +2,7 @@
 
 export interface ProductUser {
   id: string
-  phoneNumber: string
+  username: string
   displayName?: string
   currentProgram?: string
   currentMilestone?: string
@@ -27,8 +27,11 @@ export interface AuthToken {
   exp: number
 }
 
-export interface OTPVerification {
-  phoneNumber: string
-  otp: string
-  expiresAt: Date
+export interface PasskeyCredential {
+  credentialID: string
+  publicKey: string
+  counter: number
+  deviceType?: string
+  backedUp: boolean
+  transports?: string[]
 }

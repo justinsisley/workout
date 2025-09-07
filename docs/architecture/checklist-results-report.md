@@ -92,7 +92,7 @@
 
 1. **Begin development setup** with the specified project structure
 2. **Implement core data models** using PayloadCMS collections
-3. **Set up authentication flow** with Twilio SMS integration
+3. **Set up authentication flow** with WebAuthn passkey integration
 4. **Create basic UI components** using ShadCN and Tailwind CSS
 
 **Quality Improvements:**
@@ -105,7 +105,7 @@
 **Next Steps:**
 
 1. **Start Epic 1 development** with project setup and data population
-2. **Implement SMS authentication** as the first product user-facing feature
+2. **Implement WebAuthn passkey authentication** as the first product user-facing feature
 3. **Create admin interface** for program creation and management
 4. **Build mobile workout interface** with video integration
 

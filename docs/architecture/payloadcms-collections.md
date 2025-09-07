@@ -85,7 +85,7 @@ This architecture is designed around **PayloadCMS's collection and field abstrac
 
 **2. Product Users (`productUsers` collection):**
 
-- Custom SMS OTP authentication only
+- Custom WebAuthN passkey authentication only
 - No access to PayloadCMS admin interface
 - Access to workout app features only
 - Tracked by admin users for management purposes
@@ -133,23 +133,23 @@ interface AdminUser {
 
 ## ProductUsers Collection (App Users)
 
-**Purpose:** Represents product users (Justin and wife) with phone-based authentication and program progress tracking. This is completely separate from PayloadCMS admin users.
+**Purpose:** Represents product users (Justin and wife) with WebAuthN passkey authentication and program progress tracking. This is completely separate from PayloadCMS admin users.
 
 **PayloadCMS Collection Definition:**
 
 ```typescript
 export const ProductUsers: CollectionConfig = {
   slug: 'productUsers',
-  auth: false, // Custom SMS authentication only
+  auth: false, // Custom WebAuthN authentication only
   fields: [
     {
-      name: 'phoneNumber',
+      name: 'username',
       type: 'text',
       required: true,
       unique: true,
       index: true,
       admin: {
-        description: 'Phone number for SMS authentication',
+        description: 'Username for WebAuthN passkey authentication',
       },
     },
     {
@@ -215,8 +215,9 @@ export const ProductUsers: CollectionConfig = {
 ```typescript
 interface ProductUser {
   id: string
-  phoneNumber: string
+  username: string
   displayName?: string
+  passkeyCredentials: PasskeyCredential[]
   currentProgram?: string
   currentMilestone?: string
   currentDay: number
@@ -224,6 +225,15 @@ interface ProductUser {
   totalWorkoutsCompleted: number
   createdAt: Date
   updatedAt: Date
+}
+
+interface PasskeyCredential {
+  credentialID: string
+  publicKey: string
+  counter: number
+  deviceType?: string
+  backedUp: boolean
+  transports: string[]
 }
 ```
 

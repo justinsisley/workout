@@ -88,6 +88,11 @@ jobs:
         env:
           DATABASE_URI: mongodb://localhost:27017/workout-app-test
           NODE_ENV: test
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
+          JWT_SECRET: test-jwt-secret-placeholder
+          PAYLOAD_SECRET: test-payload-secret-placeholder
+          WEBAUTHN_RP_ID: localhost
+          WEBAUTHN_RP_NAME: Workout App
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
@@ -165,6 +170,8 @@ jobs:
           NEXT_PUBLIC_APP_URL: http://localhost:3000
           JWT_SECRET: e2e-jwt-secret-placeholder
           PAYLOAD_SECRET: e2e-payload-secret-placeholder
+          WEBAUTHN_RP_ID: localhost
+          WEBAUTHN_RP_NAME: Workout App
 
       - name: Run E2E tests
         run: npm run test:e2e
@@ -174,6 +181,8 @@ jobs:
           NEXT_PUBLIC_APP_URL: http://localhost:3000
           JWT_SECRET: e2e-jwt-secret-placeholder
           PAYLOAD_SECRET: e2e-payload-secret-placeholder
+          WEBAUTHN_RP_ID: localhost
+          WEBAUTHN_RP_NAME: Workout App
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
@@ -238,6 +247,8 @@ jobs:
           DATABASE_URI: mongodb://localhost:27017/workout-app-build
           JWT_SECRET: build-jwt-secret-placeholder
           PAYLOAD_SECRET: build-payload-secret-placeholder
+          WEBAUTHN_RP_ID: localhost
+          WEBAUTHN_RP_NAME: Workout App
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4

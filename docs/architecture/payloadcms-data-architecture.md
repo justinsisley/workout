@@ -17,7 +17,7 @@ The relationship-based ordering system is implemented through PayloadCMS relatio
 **Core Collections:**
 
 - `users` - PayloadCMS admin users with email/password authentication
-- `productUsers` - Product users with SMS OTP authentication
+- `productUsers` - Product users with WebAuthn passkey authentication
 - `programs` - Workout programs with embedded milestone relationships and metadata
 - `milestones` - Program phases with embedded days and sessions
 - `sessions` - Workout sessions with embedded exercises and session-specific data

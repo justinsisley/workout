@@ -16,7 +16,7 @@ This is the DEFINITIVE technology selection for the entire project. All developm
 | Data Validation      | Zod                             | 4.1+     | Schema validation and type safety | Runtime type validation for API inputs and data integrity                |
 | Database             | MongoDB                         | 7.0+     | Document database                 | Perfect for complex program hierarchies and flexible schemas             |
 | Video Integration    | YouTube API                     | Latest   | Video hosting and embedding       | Free video hosting with excellent mobile optimization and embedding      |
-| Authentication       | Twilio SMS OTP                  | Latest   | Phone-based auth                  | Simple, secure authentication without password management                |
+| Authentication       | WebAuthN/FIDO2                  | Latest   | Passkey-based auth                | Simple, secure authentication without password management                |
 | Frontend Testing     | Vitest + Testing Library        | Latest   | Unit and integration tests        | Fast, modern testing framework with excellent React support              |
 | Backend Testing      | Vitest                          | Latest   | Server action testing             | Direct testing of server actions and business logic                      |
 | E2E Testing          | Playwright                      | Latest   | End-to-end testing                | Reliable cross-browser testing for mobile scenarios                      |

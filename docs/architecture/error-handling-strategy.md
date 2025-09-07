@@ -25,10 +25,10 @@ type ServerActionResult<T = any> = ServerActionSuccess<T> | ServerActionError;
   "success": false,
   "error": {
     "code": "VALIDATION_ERROR",
-    "message": "Invalid phone number format",
+    "message": "Invalid username format",
     "details": {
-      "field": "phoneNumber",
-      "value": "invalid-phone"
+      "field": "username",
+      "value": "invalid-username"
     },
     "timestamp": "2024-12-19T10:30:00Z"
   }
@@ -39,7 +39,7 @@ type ServerActionResult<T = any> = ServerActionSuccess<T> | ServerActionError;
   "success": true,
   "data": {
     "id": "user-123",
-    "phoneNumber": "+1234567890"
+    "username": "testuser"
   }
 }
 ```

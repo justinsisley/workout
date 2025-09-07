@@ -9,8 +9,8 @@ export const APP_CONFIG = {
 export const API_ENDPOINTS = {
   health: '/api/health',
   auth: {
-    sendOTP: '/api/auth/send-otp',
-    verifyOTP: '/api/auth/verify-otp',
+    registerPasskey: '/api/auth/register-passkey',
+    authenticatePasskey: '/api/auth/authenticate-passkey',
   },
   programs: '/api/programs',
   workouts: '/api/workouts',
@@ -20,7 +20,7 @@ export const API_ENDPOINTS = {
 export const ROUTES = {
   home: '/',
   login: '/login',
-  verify: '/verify',
+  register: '/register',
   programs: '/programs',
   workout: {
     dashboard: '/workout/dashboard',
@@ -49,8 +49,8 @@ export const WORKOUT_STATUS = {
 } as const
 
 export const VALIDATION_LIMITS = {
-  PHONE_NUMBER_LENGTH: 15,
-  OTP_LENGTH: 6,
+  USERNAME_MIN_LENGTH: 3,
+  USERNAME_MAX_LENGTH: 20,
   MAX_SETS: 20,
   MAX_REPS: 1000,
   MAX_WEIGHT: 1000,
