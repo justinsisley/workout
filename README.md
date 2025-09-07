@@ -160,6 +160,14 @@ npm run db:up exited with code 127
 - `npm run test:watch` - Run tests in watch mode
 - `npm run test:coverage` - Run tests with coverage
 
+### Dependency Management
+
+- `npm run update-deps:check` - Check available updates (grouped by type)
+- `npm run update-deps` - Interactive dependency updates
+- `npm run update-deps:patch` - Interactive patch updates only
+- `npm run update-deps:minor` - Interactive minor updates only
+- `npm run update-deps:major` - Interactive major updates only
+
 ### Project Structure
 
 ```
@@ -224,6 +232,31 @@ docker-compose up -d
 # Stop MongoDB
 docker-compose down
 ```
+
+## 📦 Dependency Management
+
+The project uses **npm-check-updates (ncu)** for systematic dependency management with clear grouping by update type.
+
+### Available Commands
+
+- **`npm run update-deps:check`** - View available updates grouped by type (patch, minor, major)
+- **`npm run update-deps`** - Interactive updates for all dependencies
+- **`npm run update-deps:patch`** - Interactive patch updates only (safest)
+- **`npm run update-deps:minor`** - Interactive minor updates only (usually safe)
+- **`npm run update-deps:major`** - Interactive major updates only (requires testing)
+
+### Update Strategy
+
+- **Patch Updates**: Backwards-compatible bug fixes - safe to apply automatically
+- **Minor Updates**: Backwards-compatible features - usually safe, test after applying
+- **Major Updates**: Potentially breaking changes - requires thorough testing
+
+### Workflow
+
+1. **Check Updates**: `npm run update-deps:check` to see what's available
+2. **Select Updates**: Use interactive mode to choose specific packages
+3. **Test Changes**: Run tests after applying updates
+4. **Commit Changes**: Use conventional commit format for dependency updates
 
 ## 🧪 Testing
 

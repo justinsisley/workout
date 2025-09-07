@@ -1911,7 +1911,53 @@ npm test                    # Unit tests
 npm run test:integration    # Integration tests
 npm run test:e2e           # End-to-end tests
 npm run test:watch         # Watch mode for development
+
+# Dependency management
+npm run update-deps         # Interactive dependency updates
+npm run update-deps:check   # Check available updates (grouped by type)
+npm run update-deps:patch   # Interactive patch updates only
+npm run update-deps:minor   # Interactive minor updates only
+npm run update-deps:major   # Interactive major updates only
 ```
+
+### Dependency Management
+
+The project uses **npm-check-updates (ncu)** for systematic dependency management with clear grouping by update type.
+
+#### Configuration
+
+The dependency update system is configured via `.ncurc.json`:
+
+```json
+{
+  "format": ["group"],
+  "target": "latest",
+  "upgrade": false,
+  "dep": "prod,dev,optional",
+  "loglevel": "info"
+}
+```
+
+#### Available Commands
+
+- **`npm run update-deps:check`** - View available updates grouped by type (patch, minor, major)
+- **`npm run update-deps`** - Interactive updates for all dependencies
+- **`npm run update-deps:patch`** - Interactive patch updates only (safest)
+- **`npm run update-deps:minor`** - Interactive minor updates only (usually safe)
+- **`npm run update-deps:major`** - Interactive major updates only (requires testing)
+
+#### Update Strategy
+
+**Patch Updates**: Backwards-compatible bug fixes - safe to apply automatically
+**Minor Updates**: Backwards-compatible features - usually safe, test after applying
+**Major Updates**: Potentially breaking changes - requires thorough testing
+
+#### Workflow
+
+1. **Check Updates**: `npm run update-deps:check` to see what's available
+2. **Select Updates**: Use interactive mode to choose specific packages
+3. **Test Changes**: Run tests after applying updates
+4. **Commit Changes**: Use conventional commit format for dependency updates
 
 ### Environment Configuration
 
