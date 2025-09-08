@@ -1,5 +1,51 @@
 # Development Workflow
 
+## Git Commit Standards
+
+### CRITICAL: Never Bypass Pre-commit Hooks
+
+**🚨 NEVER use `git commit --no-verify`** - Pre-commit hooks exist to maintain code quality and should never be bypassed.
+
+**Why this matters:**
+
+- Pre-commit hooks enforce linting, formatting, and type checking
+- They catch issues before they enter the codebase
+- Bypassing them defeats the purpose of having quality gates
+- It can introduce broken code that fails CI/CD pipelines
+
+**Instead of bypassing hooks:**
+
+1. Fix the linting/formatting issues: `npm run format`
+2. Fix type errors: `npm run type-check`
+3. Ensure tests pass: `npm test`
+4. Only then commit your changes
+
+**If hooks are consistently failing:**
+
+- Review and fix the underlying code quality issues
+- Update hook configuration if genuinely needed (rare)
+- Never bypass as a "quick fix"
+
+### Commit Process
+
+```bash
+# 1. Check what you're committing
+git status
+git diff
+
+# 2. Stage your changes
+git add <files>
+
+# 3. Ensure quality gates pass
+npm run format      # Fix formatting
+npm run lint        # Check linting
+npm run type-check  # Verify types
+npm test           # Run tests
+
+# 4. Commit (hooks will run automatically)
+git commit -m "your commit message"
+```
+
 ## Local Development Setup
 
 ### Prerequisites
