@@ -30,24 +30,13 @@ describe('PayloadCMS Cascade Behavior Tests', () => {
     })
 
     it('should have proper cascade behavior configuration for Programs', () => {
-      // Programs should be affected when exercises are deleted (through embedded sessions)
-      const culminatingEventField = Programs.fields?.find(
-        (field: any) => field.name === 'culminatingEvent',
-      )
-      expect(culminatingEventField, 'CulminatingEvent field should exist in Programs').toBeDefined()
-      expect(
-        (culminatingEventField as any).type,
-        'CulminatingEvent field should be relationship type',
-      ).toBe('relationship')
-      expect(
-        (culminatingEventField as any).relationTo,
-        'CulminatingEvent field should relate to exercises',
-      ).toBe('exercises')
-
+      // Programs should be affected when exercises are deleted through embedded structure
       // Check embedded milestones structure
       const milestonesField = Programs.fields?.find((field: any) => field.name === 'milestones')
       expect(milestonesField, 'Milestones field should exist in Programs').toBeDefined()
       expect((milestonesField as any).type, 'Milestones field should be array type').toBe('array')
+      
+      // Culminating events have been removed as per change log - programs can have meaningful final days without special treatment
     })
 
     it('should have proper cascade behavior configuration for ProductUsers', () => {
@@ -132,7 +121,6 @@ describe('PayloadCMS Cascade Behavior Tests', () => {
     it('should have proper optional relationship configurations for cascade behavior', () => {
       const optionalRelationships = [
         { collection: Exercises, field: 'alternatives', relationTo: 'exercises' },
-        { collection: Programs, field: 'culminatingEvent', relationTo: 'exercises' },
         { collection: ProductUsers, field: 'currentProgram', relationTo: 'programs' },
         { collection: ProductUsers, field: 'currentMilestone', relationTo: 'programs' },
       ]
@@ -208,7 +196,6 @@ describe('PayloadCMS Cascade Behavior Tests', () => {
       const relationshipFields = [
         { collection: ExerciseCompletions, field: 'productUser' },
         { collection: ExerciseCompletions, field: 'exercise' },
-        { collection: Programs, field: 'culminatingEvent' },
         { collection: ProductUsers, field: 'currentProgram' },
         { collection: ProductUsers, field: 'currentMilestone' },
         { collection: Exercises, field: 'alternatives' },
@@ -244,11 +231,6 @@ describe('PayloadCMS Cascade Behavior Tests', () => {
           collection: ExerciseCompletions,
           field: 'exercise',
           shouldContain: 'exercise that was completed',
-        },
-        {
-          collection: Programs,
-          field: 'culminatingEvent',
-          shouldContain: 'final session or event',
         },
         { collection: ProductUsers, field: 'currentProgram', shouldContain: 'currently enrolled' },
         { collection: ProductUsers, field: 'currentMilestone', shouldContain: 'current milestone' },

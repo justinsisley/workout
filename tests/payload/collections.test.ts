@@ -111,21 +111,12 @@ describe('PayloadCMS Collections', () => {
       expect(fieldNames).toContain('name')
       expect(fieldNames).toContain('description')
       expect(fieldNames).toContain('objective')
-      expect(fieldNames).toContain('culminatingEvent')
+      // culminatingEvent removed as per change log
       expect(fieldNames).toContain('milestones')
       expect(fieldNames).toContain('isPublished')
     })
 
-    it('should have culminatingEvent relationship configured correctly', () => {
-      const culminatingEventField = Programs.fields?.find(
-        (field: any) => field.name === 'culminatingEvent',
-      )
-
-      expect(culminatingEventField).toBeDefined()
-      expect((culminatingEventField as any)?.type).toBe('relationship')
-      expect((culminatingEventField as any)?.relationTo).toBe('exercises')
-      expect((culminatingEventField as any)?.admin?.allowCreate).toBe(true)
-    })
+    // culminatingEvent relationship test removed - field removed as per change log
 
     it('should have embedded milestones array with proper configuration', () => {
       const milestonesField = Programs.fields?.find((field: any) => field.name === 'milestones')
@@ -158,15 +149,13 @@ describe('PayloadCMS Collections', () => {
       const nameField = Programs.fields?.find((field: any) => field.name === 'name')
       const descriptionField = Programs.fields?.find((field: any) => field.name === 'description')
       const objectiveField = Programs.fields?.find((field: any) => field.name === 'objective')
-      const culminatingEventField = Programs.fields?.find(
-        (field: any) => field.name === 'culminatingEvent',
-      )
+      // culminatingEvent field removed as per change log - was optional
 
       // All fields should be optional (no required: true) for progressive validation
       expect((nameField as any)?.required).toBeUndefined()
       expect((descriptionField as any)?.required).toBeUndefined()
       expect((objectiveField as any)?.required).toBeUndefined()
-      expect((culminatingEventField as any)?.required).toBeUndefined()
+      // culminatingEvent field removed as per change log
     })
 
     it('should have isPublished field with correct default', () => {
@@ -355,10 +344,10 @@ describe('PayloadCMS Collections', () => {
       expect(ExerciseCompletions.admin?.defaultColumns).toEqual([
         'productUser',
         'exercise',
-        'session',
+        'program',
+        'milestoneIndex',
+        'dayIndex',
         'completedAt',
-        'sets',
-        'reps',
       ])
     })
 
@@ -368,6 +357,9 @@ describe('PayloadCMS Collections', () => {
 
       expect(fieldNames).toContain('productUser')
       expect(fieldNames).toContain('exercise')
+      expect(fieldNames).toContain('program')
+      expect(fieldNames).toContain('milestoneIndex')
+      expect(fieldNames).toContain('dayIndex')
       expect(fieldNames).toContain('completedAt')
     })
 
@@ -493,7 +485,7 @@ describe('PayloadCMS Collections', () => {
         'exercises.alternatives': { relationTo: 'exercises', hasMany: true },
 
         // Programs collection relationships
-        'programs.culminatingEvent': { relationTo: 'exercises' },
+        // programs.culminatingEvent removed as per change log
 
         // ProductUsers collection relationships
         'productUsers.currentProgram': { relationTo: 'programs' },

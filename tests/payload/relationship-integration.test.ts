@@ -20,13 +20,6 @@ describe('PayloadCMS Relationship Configuration Tests', () => {
           required: false,
         },
 
-        // Programs -> Exercises
-        {
-          collection: Programs,
-          field: 'culminatingEvent',
-          relationTo: 'exercises',
-          required: false,
-        },
 
         // ProductUsers -> Programs
         {
@@ -137,7 +130,6 @@ describe('PayloadCMS Relationship Configuration Tests', () => {
       const relationshipFields = [
         { collection: ExerciseCompletions, field: 'productUser' },
         { collection: ExerciseCompletions, field: 'exercise' },
-        { collection: Programs, field: 'culminatingEvent' },
         { collection: ProductUsers, field: 'currentProgram' },
         { collection: ProductUsers, field: 'currentMilestone' },
       ]
@@ -165,11 +157,6 @@ describe('PayloadCMS Relationship Configuration Tests', () => {
           collection: ExerciseCompletions,
           field: 'exercise',
           shouldContain: 'exercise that was completed',
-        },
-        {
-          collection: Programs,
-          field: 'culminatingEvent',
-          shouldContain: 'final session or event',
         },
         { collection: ProductUsers, field: 'currentProgram', shouldContain: 'currently enrolled' },
         { collection: ProductUsers, field: 'currentMilestone', shouldContain: 'current milestone' },
@@ -209,7 +196,6 @@ describe('PayloadCMS Relationship Configuration Tests', () => {
     it('should have proper optional field configurations', () => {
       const optionalFields = [
         { collection: Exercises, field: 'alternatives' },
-        { collection: Programs, field: 'culminatingEvent' },
         { collection: ProductUsers, field: 'currentProgram' },
         { collection: ProductUsers, field: 'currentMilestone' },
       ]
@@ -227,7 +213,6 @@ describe('PayloadCMS Relationship Configuration Tests', () => {
       const relationshipFields = [
         { collection: ExerciseCompletions, field: 'productUser' },
         { collection: ExerciseCompletions, field: 'exercise' },
-        { collection: Programs, field: 'culminatingEvent' },
         { collection: ProductUsers, field: 'currentProgram' },
         { collection: ProductUsers, field: 'currentMilestone' },
       ]
@@ -255,8 +240,7 @@ describe('PayloadCMS Relationship Configuration Tests', () => {
         { collection: ExerciseCompletions, field: 'productUser', relationTo: 'productUsers' },
         { collection: ExerciseCompletions, field: 'exercise', relationTo: 'exercises' },
 
-        // Programs should cascade when exercises are deleted
-        { collection: Programs, field: 'culminatingEvent', relationTo: 'exercises' },
+        // Programs no longer have culminating events - removed as per change log
 
         // ProductUsers should cascade when programs are deleted
         { collection: ProductUsers, field: 'currentProgram', relationTo: 'programs' },
