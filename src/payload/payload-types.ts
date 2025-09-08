@@ -326,17 +326,17 @@ export interface ProductUser {
    */
   currentProgram?: (string | null) | Program;
   /**
-   * The current day number within the milestone (1-based).
+   * The current milestone index within the program (0-based).
+   */
+  currentMilestone?: number | null;
+  /**
+   * The current day index within the milestone (0-based).
    */
   currentDay?: number | null;
   /**
    * Date of the last completed workout.
    */
   lastWorkoutDate?: string | null;
-  /**
-   * Total number of workouts completed by this user.
-   */
-  totalWorkoutsCompleted?: number | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -570,9 +570,9 @@ export interface ProductUsersSelect<T extends boolean = true> {
         id?: T;
       };
   currentProgram?: T;
+  currentMilestone?: T;
   currentDay?: T;
   lastWorkoutDate?: T;
-  totalWorkoutsCompleted?: T;
   updatedAt?: T;
   createdAt?: T;
 }

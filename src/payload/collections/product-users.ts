@@ -4,7 +4,7 @@ export const ProductUsers: CollectionConfig = {
   slug: 'productUsers',
   admin: {
     useAsTitle: 'username',
-    defaultColumns: ['username', 'currentProgram', 'currentDay'],
+    defaultColumns: ['username', 'currentProgram', 'currentMilestone', 'currentDay'],
     description:
       'Product users are app users who authenticate via WebAuthN passkeys. They are completely separate from admin users.',
     group: 'Application Data',
@@ -95,22 +95,22 @@ export const ProductUsers: CollectionConfig = {
         description: 'The program the user is currently enrolled in.',
       },
     },
-    // TODO: Replace with milestone index in Phase 3
-    // {
-    //   name: 'currentMilestone',
-    //   type: 'relationship',
-    //   relationTo: 'milestones',
-    //   admin: {
-    //     description: 'The current milestone within the program.',
-    //   },
-    // },
+    {
+      name: 'currentMilestone',
+      type: 'number',
+      defaultValue: 0,
+      min: 0,
+      admin: {
+        description: 'The current milestone index within the program (0-based).',
+      },
+    },
     {
       name: 'currentDay',
       type: 'number',
-      defaultValue: 1,
-      min: 1,
+      defaultValue: 0,
+      min: 0,
       admin: {
-        description: 'The current day number within the milestone (1-based).',
+        description: 'The current day index within the milestone (0-based).',
       },
     },
     {
@@ -118,15 +118,6 @@ export const ProductUsers: CollectionConfig = {
       type: 'date',
       admin: {
         description: 'Date of the last completed workout.',
-      },
-    },
-    {
-      name: 'totalWorkoutsCompleted',
-      type: 'number',
-      defaultValue: 0,
-      min: 0,
-      admin: {
-        description: 'Total number of workouts completed by this user.',
       },
     },
   ],
