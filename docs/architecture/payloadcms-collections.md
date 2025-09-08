@@ -451,6 +451,16 @@ export const Programs: CollectionConfig = {
                   },
                 },
                 {
+                  name: 'duration',
+                  type: 'number',
+                  label: 'Duration (seconds)',
+                  min: 0,
+                  admin: {
+                    description:
+                      'Exercise duration in seconds for time-based exercises (e.g., planks, timed runs). Optional.',
+                  },
+                },
+                {
                   name: 'notes',
                   type: 'textarea',
                   label: 'Notes',
@@ -488,6 +498,18 @@ export const Programs: CollectionConfig = {
 }
 ```
 
+**Time-Based Exercise Support Developer Notes:**
+
+The `duration` field supports time-based exercises where duration is more important than repetitions:
+
+- **Duration Field:** Optional `duration` field supports time-based exercises (planks, runs, endurance workouts)
+- **Units:** Duration stored in seconds for consistency with `restPeriod` field
+- **Admin Interface:** Time input with seconds/minutes conversion for user-friendly entry
+- **Use Cases:**
+  - Plank: 1 set, 1 rep, 30 seconds duration
+  - Timed run: 1 set, 1 rep, 300 seconds duration (5 minutes)
+  - Sprint intervals: 1 set, 1 rep, 30 seconds duration
+
 **TypeScript Interface:**
 
 ```typescript
@@ -506,9 +528,10 @@ interface Program {
         exercise: string // Reference to Exercise ID
         sets: number
         reps: number
-        restPeriod?: number
-        weight?: number
-        notes?: string
+        restPeriod?: number // Rest time between sets (seconds)
+        weight?: number // Weight to use (lbs)
+        duration?: number // Exercise duration in seconds (for time-based exercises)
+        notes?: string // Additional instructions
       }[]
       restNotes?: string
     }[]

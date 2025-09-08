@@ -68,7 +68,7 @@ This document outlines the admin interface specifications for the new embedded s
 │ │   │   └─────────────────────────────────────────┘ │ │ │
 │ │   │   ┌─────────────────────────────────────────┐ │ │ │
 │ │   │   │ ▼ Exercise 4: Planks            [Edit] │ │ │ │
-│ │   │   │   Sets: [3] Reps: [30s]                │ │ │ │
+│ │   │   │   Sets: [3] Reps: [1] Duration: [30s]   │ │ │ │
 │ │   │   │   Rest: [60s] Weight: [0lbs]           │ │ │ │
 │ │   │   │   Notes: [Hold straight line...]       │ │ │ │
 │ │   │   └─────────────────────────────────────────┘ │ │ │
@@ -135,6 +135,7 @@ This document outlines the admin interface specifications for the new embedded s
 - **Reps:** Number input (min: 1)
 - **Rest Period:** Number input with "seconds" label
 - **Weight:** Number input with "lbs" label (optional)
+- **Duration:** Number input with "seconds" label (optional, for time-based exercises)
 - **Notes:** Textarea for additional instructions
 - **Actions:** Delete, Duplicate buttons
 
@@ -213,6 +214,34 @@ This document outlines the admin interface specifications for the new embedded s
 - **Publishing Warnings:** Yellow warning icons for incomplete sections
 - **Completion Status:** Green checkmarks for completed sections
 
+## Time Duration Field Implementation
+
+### Duration Field Specifications
+
+**Admin Interface Requirements:**
+
+- Duration input field appears in exercise configuration within workout days
+- Input accepts both seconds (30s) and minutes:seconds (5:30) formats
+- Converts all input to seconds for database storage
+- Field appears alongside existing sets, reps, weight, notes fields
+- Optional field with clear labeling for time-based exercises
+- Consistent with existing `restPeriod` field implementation pattern
+
+**Input Field Design:**
+
+- **Label:** "Duration (optional)"
+- **Placeholder:** "e.g., 30s or 2:30"
+- **Helper Text:** "For time-based exercises like planks, runs, or holds"
+- **Validation:** Accept formats like "30", "30s", "2:30", "1:30:00"
+- **Storage:** Always convert to seconds (30s → 30, 2:30 → 150, 1:30:00 → 5400)
+
+**Visual Integration:**
+
+```
+Exercise Configuration Row:
+[Exercise Dropdown] [Sets: 3] [Reps: 10] [Rest: 60s] [Weight: 0lbs] [Duration: 30s] [Notes...]
+```
+
 ## User Experience Enhancements
 
 ### 1. Smart Defaults
@@ -234,6 +263,7 @@ This document outlines the admin interface specifications for the new embedded s
 - Default reps: 10
 - Default rest period: 60 seconds
 - Default weight: 0
+- Default duration: 0 (hidden unless time-based exercise)
 
 ### 2. Bulk Actions
 
