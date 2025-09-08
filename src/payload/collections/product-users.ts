@@ -97,20 +97,19 @@ export const ProductUsers: CollectionConfig = {
     },
     {
       name: 'currentMilestone',
-      type: 'number',
-      defaultValue: 0,
-      min: 0,
+      type: 'relationship',
+      relationTo: 'programs',
       admin: {
-        description: 'The current milestone index within the program (0-based).',
+        description: 'The current milestone within the program.',
       },
     },
     {
       name: 'currentDay',
       type: 'number',
-      defaultValue: 0,
-      min: 0,
+      defaultValue: 1,
+      min: 1,
       admin: {
-        description: 'The current day index within the milestone (0-based).',
+        description: 'The current day index within the milestone (1-based).',
       },
     },
     {
@@ -118,6 +117,15 @@ export const ProductUsers: CollectionConfig = {
       type: 'date',
       admin: {
         description: 'Date of the last completed workout.',
+      },
+    },
+    {
+      name: 'totalWorkoutsCompleted',
+      type: 'number',
+      defaultValue: 0,
+      min: 0,
+      admin: {
+        description: 'Total number of workouts completed by this user.',
       },
     },
   ],

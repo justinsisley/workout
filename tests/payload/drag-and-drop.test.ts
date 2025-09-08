@@ -90,7 +90,9 @@ describe('PayloadCMS Drag-and-Drop Ordering Tests', () => {
       const exerciseField = (exercisesField as any).fields.find((f: any) => f.name === 'exercise')
       expect(exerciseField, 'Exercise relationship field should exist').toBeDefined()
       expect(exerciseField.type, 'Exercise field should be relationship type').toBe('relationship')
-      expect(exerciseField.relationTo, 'Exercise field should relate to exercises').toBe('exercises')
+      expect(exerciseField.relationTo, 'Exercise field should relate to exercises').toBe(
+        'exercises',
+      )
       expect(exerciseField.required, 'Exercise field should be required').toBe(true)
 
       // Verify sets field exists
@@ -104,9 +106,7 @@ describe('PayloadCMS Drag-and-Drop Ordering Tests', () => {
 
   describe('Array Field Admin Configuration', () => {
     it('should have proper admin configuration for array fields', () => {
-      const arrayFields = [
-        { collection: Programs, field: 'milestones' },
-      ]
+      const arrayFields = [{ collection: Programs, field: 'milestones' }]
 
       arrayFields.forEach(({ collection, field }) => {
         const arrayField = collection.fields?.find((f: any) => f.name === field)
@@ -154,17 +154,10 @@ describe('PayloadCMS Drag-and-Drop Ordering Tests', () => {
         { collection: Programs, field: 'milestones' }, // No minRows specified
       ]
 
-      arrayFields.forEach(({ collection, field, minRows }) => {
+      arrayFields.forEach(({ collection, field }) => {
         const arrayField = collection.fields?.find((f: any) => f.name === field)
 
         expect(arrayField, `Array field ${field} should exist in ${collection.slug}`).toBeDefined()
-
-        if (minRows !== undefined) {
-          expect(
-            (arrayField as any).minRows,
-            `Field ${field} should have minRows: ${minRows}`,
-          ).toBe(minRows)
-        }
       })
     })
 
@@ -178,10 +171,7 @@ describe('PayloadCMS Drag-and-Drop Ordering Tests', () => {
       )
 
       // Days array should have minRows requirement
-      expect(
-        (daysField as any).minRows,
-        'Days array should have minRows requirement',
-      ).toBe(1)
+      expect((daysField as any).minRows, 'Days array should have minRows requirement').toBe(1)
 
       // Exercises array should have minRows requirement
       expect(
@@ -204,9 +194,7 @@ describe('PayloadCMS Drag-and-Drop Ordering Tests', () => {
       // This test verifies that the array fields are properly configured
       // to generate correct TypeScript types
 
-      const arrayFields = [
-        { collection: Programs, field: 'milestones' },
-      ]
+      const arrayFields = [{ collection: Programs, field: 'milestones' }]
 
       arrayFields.forEach(({ collection, field }) => {
         const arrayField = collection.fields?.find((f: any) => f.name === field)

@@ -284,6 +284,10 @@ export interface Program {
       }[]
     | null;
   /**
+   * Optional culminating exercise or event that represents the program completion. Can be saved as draft without this field.
+   */
+  culminatingEvent?: (string | null) | Exercise;
+  /**
    * Check this box to make the program visible to product users. ⚠️ All required fields must be filled before publishing.
    */
   isPublished?: boolean | null;
@@ -326,17 +330,21 @@ export interface ProductUser {
    */
   currentProgram?: (string | null) | Program;
   /**
-   * The current milestone index within the program (0-based).
+   * The current milestone within the program.
    */
-  currentMilestone?: number | null;
+  currentMilestone?: (string | null) | Program;
   /**
-   * The current day index within the milestone (0-based).
+   * The current day index within the milestone (1-based).
    */
   currentDay?: number | null;
   /**
    * Date of the last completed workout.
    */
   lastWorkoutDate?: string | null;
+  /**
+   * Total number of workouts completed by this user.
+   */
+  totalWorkoutsCompleted?: number | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -555,6 +563,7 @@ export interface ProgramsSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  culminatingEvent?: T;
   isPublished?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -585,6 +594,7 @@ export interface ProductUsersSelect<T extends boolean = true> {
   currentMilestone?: T;
   currentDay?: T;
   lastWorkoutDate?: T;
+  totalWorkoutsCompleted?: T;
   updatedAt?: T;
   createdAt?: T;
 }

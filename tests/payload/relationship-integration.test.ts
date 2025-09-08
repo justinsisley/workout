@@ -61,41 +61,39 @@ describe('PayloadCMS Relationship Configuration Tests', () => {
         },
       ]
 
-      relationshipConfigs.forEach(
-        ({ collection, field, nestedField, relationTo, required, hasMany }) => {
-          const fieldObj = nestedField
-            ? getNestedField(collection, field, nestedField)
-            : collection.fields?.find((f: any) => f.name === field)
+      relationshipConfigs.forEach(({ collection, field, relationTo, required, hasMany }) => {
+        const fieldObj = collection.fields?.find((f: any) => f.name === field)
 
-          expect(fieldObj, `Field ${field} should exist in ${collection.slug}`).toBeDefined()
-          expect(fieldObj.type, `Field ${field} should be relationship type`).toBe('relationship')
-          expect(fieldObj.relationTo, `Field ${field} should relate to ${relationTo}`).toBe(
-            relationTo,
+        expect(fieldObj, `Field ${field} should exist in ${collection.slug}`).toBeDefined()
+        expect((fieldObj as any).type, `Field ${field} should be relationship type`).toBe(
+          'relationship',
+        )
+        expect((fieldObj as any).relationTo, `Field ${field} should relate to ${relationTo}`).toBe(
+          relationTo,
+        )
+
+        if (required !== undefined) {
+          if (required) {
+            expect(
+              (fieldObj as any).required,
+              `Field ${field} should be required: ${required}`,
+            ).toBe(required)
+          } else {
+            // For optional fields, required should be undefined or false
+            expect((fieldObj as any).required, `Field ${field} should be optional`).toBeFalsy()
+          }
+        }
+
+        if (hasMany !== undefined) {
+          expect((fieldObj as any).hasMany, `Field ${field} should have hasMany: ${hasMany}`).toBe(
+            hasMany,
           )
-
-          if (required !== undefined) {
-            if (required) {
-              expect(
-                (fieldObj as any).required,
-                `Field ${field} should be required: ${required}`,
-              ).toBe(required)
-            } else {
-              // For optional fields, required should be undefined or false
-              expect((fieldObj as any).required, `Field ${field} should be optional`).toBeFalsy()
-            }
-          }
-
-          if (hasMany !== undefined) {
-            expect(fieldObj.hasMany, `Field ${field} should have hasMany: ${hasMany}`).toBe(hasMany)
-          }
-        },
-      )
+        }
+      })
     })
 
     it('should have proper array field configurations for drag-and-drop ordering', () => {
-      const arrayFields = [
-        { collection: Programs, field: 'milestones' },
-      ]
+      const arrayFields = [{ collection: Programs, field: 'milestones' }]
 
       arrayFields.forEach(({ collection, field }) => {
         const arrayField = collection.fields?.find((f: any) => f.name === field)
@@ -122,7 +120,10 @@ describe('PayloadCMS Relationship Configuration Tests', () => {
         (field: any) => field.name === 'restNotes',
       )
 
-      expect(exercisesField?.admin?.condition, 'Exercises field should have condition').toBeDefined()
+      expect(
+        exercisesField?.admin?.condition,
+        'Exercises field should have condition',
+      ).toBeDefined()
       expect(
         restNotesField?.admin?.condition,
         'Rest notes field should have condition',
@@ -141,14 +142,14 @@ describe('PayloadCMS Relationship Configuration Tests', () => {
         { collection: ProductUsers, field: 'currentMilestone' },
       ]
 
-      relationshipFields.forEach(({ collection, field, nestedField }) => {
-        const fieldObj = nestedField
-          ? getNestedField(collection, field, nestedField)
-          : collection.fields?.find((f: any) => f.name === field)
+      relationshipFields.forEach(({ collection, field }) => {
+        const fieldObj = collection.fields?.find((f: any) => f.name === field)
 
         expect(fieldObj, `Field ${field} should exist in ${collection.slug}`).toBeDefined()
-        expect(fieldObj.type, `Field ${field} should be relationship type`).toBe('relationship')
-        expect(fieldObj.relationTo, `Field ${field} should have relationTo`).toBeDefined()
+        expect((fieldObj as any).type, `Field ${field} should be relationship type`).toBe(
+          'relationship',
+        )
+        expect((fieldObj as any).relationTo, `Field ${field} should have relationTo`).toBeDefined()
       })
     })
 
@@ -174,15 +175,13 @@ describe('PayloadCMS Relationship Configuration Tests', () => {
         { collection: ProductUsers, field: 'currentMilestone', shouldContain: 'current milestone' },
       ]
 
-      relationshipFields.forEach(({ collection, field, nestedField, shouldContain }) => {
-        const fieldObj = nestedField
-          ? getNestedField(collection, field, nestedField)
-          : collection.fields?.find((f: any) => f.name === field)
+      relationshipFields.forEach(({ collection, field, shouldContain }) => {
+        const fieldObj = collection.fields?.find((f: any) => f.name === field)
 
         expect(fieldObj, `Field ${field} should exist in ${collection.slug}`).toBeDefined()
         // Check if field has either description or label that contains the expected text
-        const hasDescription = fieldObj.admin?.description?.includes(shouldContain)
-        const hasLabel = fieldObj.label?.includes(shouldContain)
+        const hasDescription = (fieldObj as any).admin?.description?.includes(shouldContain)
+        const hasLabel = (fieldObj as any).label?.includes(shouldContain)
 
         expect(
           hasDescription || hasLabel,
@@ -199,10 +198,8 @@ describe('PayloadCMS Relationship Configuration Tests', () => {
         { collection: ExerciseCompletions, field: 'exercise' },
       ]
 
-      requiredFields.forEach(({ collection, field, nestedField }) => {
-        const fieldObj = nestedField
-          ? getNestedField(collection, field, nestedField)
-          : collection.fields?.find((f: any) => f.name === field)
+      requiredFields.forEach(({ collection, field }) => {
+        const fieldObj = collection.fields?.find((f: any) => f.name === field)
 
         expect(fieldObj, `Field ${field} should exist in ${collection.slug}`).toBeDefined()
         expect((fieldObj as any).required, `Field ${field} should be required`).toBe(true)
@@ -235,14 +232,14 @@ describe('PayloadCMS Relationship Configuration Tests', () => {
         { collection: ProductUsers, field: 'currentMilestone' },
       ]
 
-      relationshipFields.forEach(({ collection, field, nestedField }) => {
-        const fieldObj = nestedField
-          ? getNestedField(collection, field, nestedField)
-          : collection.fields?.find((f: any) => f.name === field)
+      relationshipFields.forEach(({ collection, field }) => {
+        const fieldObj = collection.fields?.find((f: any) => f.name === field)
 
         expect(fieldObj, `Field ${field} should exist in ${collection.slug}`).toBeDefined()
-        expect(fieldObj.type, `Field ${field} should be relationship type`).toBe('relationship')
-        expect(fieldObj.relationTo, `Field ${field} should have relationTo`).toBeDefined()
+        expect((fieldObj as any).type, `Field ${field} should be relationship type`).toBe(
+          'relationship',
+        )
+        expect((fieldObj as any).relationTo, `Field ${field} should have relationTo`).toBeDefined()
       })
     })
   })
@@ -266,14 +263,14 @@ describe('PayloadCMS Relationship Configuration Tests', () => {
         { collection: ProductUsers, field: 'currentMilestone', relationTo: 'programs' },
       ]
 
-      cascadeRelationships.forEach(({ collection, field, nestedField, relationTo }) => {
-        const fieldObj = nestedField
-          ? getNestedField(collection, field, nestedField)
-          : collection.fields?.find((f: any) => f.name === field)
+      cascadeRelationships.forEach(({ collection, field, relationTo }) => {
+        const fieldObj = collection.fields?.find((f: any) => f.name === field)
 
         expect(fieldObj, `Field ${field} should exist in ${collection.slug}`).toBeDefined()
-        expect(fieldObj.type, `Field ${field} should be relationship type`).toBe('relationship')
-        expect(fieldObj.relationTo, `Field ${field} should relate to ${relationTo}`).toBe(
+        expect((fieldObj as any).type, `Field ${field} should be relationship type`).toBe(
+          'relationship',
+        )
+        expect((fieldObj as any).relationTo, `Field ${field} should relate to ${relationTo}`).toBe(
           relationTo,
         )
       })
@@ -282,19 +279,3 @@ describe('PayloadCMS Relationship Configuration Tests', () => {
 })
 
 // Helper function for nested field access
-function getNestedField(collection: any, arrayFieldName: string, nestedFieldPath: string) {
-  const arrayField = collection.fields?.find((f: any) => f.name === arrayFieldName)
-  if (!arrayField || arrayField.type !== 'array') return undefined
-
-  // Handle nested field paths like "sessions.session"
-  const fieldPath = nestedFieldPath.split('.')
-  let current = arrayField.fields
-
-  for (const fieldName of fieldPath) {
-    const field = current?.find((f: any) => f.name === fieldName)
-    if (!field) return undefined
-    current = field.fields || field
-  }
-
-  return current
-}

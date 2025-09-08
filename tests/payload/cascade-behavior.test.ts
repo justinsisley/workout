@@ -155,12 +155,7 @@ describe('PayloadCMS Cascade Behavior Tests', () => {
   describe('Cascade Behavior Data Integrity', () => {
     it('should have proper access controls for cascade behavior', () => {
       // All collections should have proper access controls to prevent unauthorized deletions
-      const collections = [
-        Exercises,
-        Programs,
-        ProductUsers,
-        ExerciseCompletions,
-      ]
+      const collections = [Exercises, Programs, ProductUsers, ExerciseCompletions]
 
       collections.forEach((collection) => {
         expect(
@@ -276,4 +271,3 @@ describe('PayloadCMS Cascade Behavior Tests', () => {
     })
   })
 })
-

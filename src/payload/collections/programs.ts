@@ -220,6 +220,7 @@ export const Programs: CollectionConfig = {
               type: 'select',
               label: 'Day Type',
               required: true,
+              defaultValue: 'workout',
               options: [
                 { label: 'Workout Day', value: 'workout' },
                 { label: 'Rest Day', value: 'rest' },
@@ -332,6 +333,15 @@ export const Programs: CollectionConfig = {
           ],
         },
       ],
+    },
+    {
+      name: 'culminatingEvent',
+      type: 'relationship',
+      relationTo: 'exercises',
+      admin: {
+        description:
+          'Optional culminating exercise or event that represents the program completion. Can be saved as draft without this field.',
+      },
     },
     {
       name: 'isPublished',
