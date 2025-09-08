@@ -304,6 +304,18 @@ export const Programs: CollectionConfig = {
                   },
                 },
                 {
+                  name: 'duration',
+                  type: 'number',
+                  label: 'Duration (seconds)',
+                  min: 0,
+                  max: 3600,
+                  admin: {
+                    description: 'Duration in seconds for time-based exercises (optional)',
+                    placeholder: 'e.g., 30 for planks, 300 for 5-minute run',
+                    step: 5,
+                  },
+                },
+                {
                   name: 'notes',
                   type: 'textarea',
                   label: 'Exercise Notes',

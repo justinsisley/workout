@@ -267,6 +267,10 @@ export interface Program {
                      */
                     weight?: number | null;
                     /**
+                     * Duration in seconds for time-based exercises (optional)
+                     */
+                    duration?: number | null;
+                    /**
                      * Additional instructions or notes for this exercise (Max 500 characters)
                      */
                     notes?: string | null;
@@ -551,6 +555,7 @@ export interface ProgramsSelect<T extends boolean = true> {
                     reps?: T;
                     restPeriod?: T;
                     weight?: T;
+                    duration?: T;
                     notes?: T;
                     id?: T;
                   };
