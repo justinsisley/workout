@@ -357,6 +357,18 @@ export interface ExerciseCompletion {
    */
   exercise: string | Exercise;
   /**
+   * The program in which this exercise was completed.
+   */
+  program: string | Program;
+  /**
+   * Index of the milestone within the program (0-based).
+   */
+  milestoneIndex: number;
+  /**
+   * Index of the day within the milestone (0-based).
+   */
+  dayIndex: number;
+  /**
    * Number of sets completed for this exercise.
    */
   sets: number;
@@ -583,6 +595,9 @@ export interface ProductUsersSelect<T extends boolean = true> {
 export interface ExerciseCompletionsSelect<T extends boolean = true> {
   productUser?: T;
   exercise?: T;
+  program?: T;
+  milestoneIndex?: T;
+  dayIndex?: T;
   sets?: T;
   reps?: T;
   weight?: T;

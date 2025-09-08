@@ -4,7 +4,14 @@ export const ExerciseCompletions: CollectionConfig = {
   slug: 'exerciseCompletions',
   admin: {
     useAsTitle: 'id',
-    defaultColumns: ['productUser', 'exercise', 'completedAt', 'sets', 'reps'],
+    defaultColumns: [
+      'productUser',
+      'exercise',
+      'program',
+      'milestoneIndex',
+      'dayIndex',
+      'completedAt',
+    ],
     description:
       'Exercise completion records track when users complete exercises with their performance data.',
     group: 'Application Data',
@@ -35,16 +42,33 @@ export const ExerciseCompletions: CollectionConfig = {
         description: 'The exercise that was completed.',
       },
     },
-    // TODO: Replace with program/milestone/day tracking in Phase 3
-    // {
-    //   name: 'session',
-    //   type: 'relationship',
-    //   relationTo: 'sessions',
-    //   required: true,
-    //   admin: {
-    //     description: 'The session in which this exercise was completed.',
-    //   },
-    // },
+    {
+      name: 'program',
+      type: 'relationship',
+      relationTo: 'programs',
+      required: true,
+      admin: {
+        description: 'The program in which this exercise was completed.',
+      },
+    },
+    {
+      name: 'milestoneIndex',
+      type: 'number',
+      required: true,
+      min: 0,
+      admin: {
+        description: 'Index of the milestone within the program (0-based).',
+      },
+    },
+    {
+      name: 'dayIndex',
+      type: 'number',
+      required: true,
+      min: 0,
+      admin: {
+        description: 'Index of the day within the milestone (0-based).',
+      },
+    },
     {
       name: 'sets',
       type: 'number',
