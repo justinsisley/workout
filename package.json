@@ -12,7 +12,7 @@
     "db:up": "docker-compose up",
     "db:down": "docker-compose down",
     "db:clean": "docker-compose down -v && docker-compose up",
-    "clean": "rm -rf .next && npm run db:down",
+    "clean": "rm -rf .next node_modules package-lock.json && npm run db:down",
     "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
     "generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
     "lint": "cross-env NODE_OPTIONS=--no-deprecation next lint",
