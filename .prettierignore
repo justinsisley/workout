@@ -9,6 +9,7 @@ node_modules/
 
 # Special directories
 .bmad-core/
+.claude/
 
 # Generated files
 *.log
