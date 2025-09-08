@@ -1,25 +1,7 @@
 // Authentication types for the workout app
+// Import user types from PayloadCMS generated types
 
-export interface ProductUser {
-  id: string
-  username: string
-  displayName?: string
-  currentProgram?: string
-  currentMilestone?: number // 0-based index instead of relationship
-  currentDay: number
-  lastWorkoutDate?: Date
-  // totalWorkoutsCompleted removed - calculated dynamically from exercise completions
-  createdAt: Date
-  updatedAt: Date
-}
-
-export interface AdminUser {
-  id: string
-  email: string
-  password: string // Hashed by PayloadCMS
-  createdAt: Date
-  updatedAt: Date
-}
+export type { ProductUser, User as AdminUser } from '../payload/payload-types'
 
 export interface AuthToken {
   productUserId: string
