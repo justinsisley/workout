@@ -8,6 +8,9 @@ export const Programs: CollectionConfig = {
     group: 'Admin',
     description:
       'Fitness programs with embedded milestones, days, and exercises. Save as draft first, then publish when complete.',
+    pagination: {
+      defaultLimit: 10,
+    },
   },
   access: {
     create: ({ req: { user } }) => Boolean(user),
@@ -39,56 +42,88 @@ export const Programs: CollectionConfig = {
             errors.push('At least one milestone is required for publishing')
           } else {
             // Validate each milestone
-            data.milestones.forEach((milestone: any, milestoneIndex: number) => {
-              if (!milestone.name || milestone.name.trim() === '') {
-                errors.push(`Milestone ${milestoneIndex + 1}: name is required for publishing`)
-              }
-              if (!milestone.theme || milestone.theme.trim() === '') {
-                errors.push(`Milestone ${milestoneIndex + 1}: theme is required for publishing`)
-              }
-              if (!milestone.objective || milestone.objective.trim() === '') {
-                errors.push(`Milestone ${milestoneIndex + 1}: objective is required for publishing`)
-              }
-              if (!milestone.days || milestone.days.length === 0) {
-                errors.push(
-                  `Milestone ${milestoneIndex + 1}: at least one day is required for publishing`,
-                )
-              } else {
-                // Validate each day
-                milestone.days.forEach((day: any, dayIndex: number) => {
-                  if (!day.dayType) {
-                    errors.push(
-                      `Milestone ${milestoneIndex + 1}, Day ${dayIndex + 1}: day type is required for publishing`,
-                    )
-                  }
-                  if (day.dayType === 'workout' && (!day.exercises || day.exercises.length === 0)) {
-                    errors.push(
-                      `Milestone ${milestoneIndex + 1}, Day ${dayIndex + 1}: at least one exercise is required for workout days`,
-                    )
-                  }
-                  if (day.dayType === 'workout' && day.exercises) {
-                    // Validate each exercise in workout days
-                    day.exercises.forEach((exercise: any, exerciseIndex: number) => {
-                      if (!exercise.exercise) {
+            data.milestones.forEach(
+              (milestone: Record<string, unknown>, milestoneIndex: number) => {
+                if (
+                  !milestone.name ||
+                  (typeof milestone.name === 'string' && milestone.name.trim() === '')
+                ) {
+                  errors.push(`Milestone ${milestoneIndex + 1}: name is required for publishing`)
+                }
+                if (
+                  !milestone.theme ||
+                  (typeof milestone.theme === 'string' && milestone.theme.trim() === '')
+                ) {
+                  errors.push(`Milestone ${milestoneIndex + 1}: theme is required for publishing`)
+                }
+                if (
+                  !milestone.objective ||
+                  (typeof milestone.objective === 'string' && milestone.objective.trim() === '')
+                ) {
+                  errors.push(
+                    `Milestone ${milestoneIndex + 1}: objective is required for publishing`,
+                  )
+                }
+                if (
+                  !milestone.days ||
+                  !Array.isArray(milestone.days) ||
+                  milestone.days.length === 0
+                ) {
+                  errors.push(
+                    `Milestone ${milestoneIndex + 1}: at least one day is required for publishing`,
+                  )
+                } else {
+                  // Validate each day
+                  ;(milestone.days as Record<string, unknown>[]).forEach(
+                    (day: Record<string, unknown>, dayIndex: number) => {
+                      if (!day.dayType) {
                         errors.push(
-                          `Milestone ${milestoneIndex + 1}, Day ${dayIndex + 1}, Exercise ${exerciseIndex + 1}: exercise reference is required`,
+                          `Milestone ${milestoneIndex + 1}, Day ${dayIndex + 1}: day type is required for publishing`,
                         )
                       }
-                      if (!exercise.sets || exercise.sets < 1) {
+                      if (
+                        day.dayType === 'workout' &&
+                        (!day.exercises ||
+                          !Array.isArray(day.exercises) ||
+                          day.exercises.length === 0)
+                      ) {
                         errors.push(
-                          `Milestone ${milestoneIndex + 1}, Day ${dayIndex + 1}, Exercise ${exerciseIndex + 1}: sets must be at least 1`,
+                          `Milestone ${milestoneIndex + 1}, Day ${dayIndex + 1}: at least one exercise is required for workout days`,
                         )
                       }
-                      if (!exercise.reps || exercise.reps < 1) {
-                        errors.push(
-                          `Milestone ${milestoneIndex + 1}, Day ${dayIndex + 1}, Exercise ${exerciseIndex + 1}: reps must be at least 1`,
+                      if (day.dayType === 'workout' && day.exercises) {
+                        // Validate each exercise in workout days
+                        ;(day.exercises as Record<string, unknown>[]).forEach(
+                          (exercise: Record<string, unknown>, exerciseIndex: number) => {
+                            if (!exercise.exercise) {
+                              errors.push(
+                                `Milestone ${milestoneIndex + 1}, Day ${dayIndex + 1}, Exercise ${exerciseIndex + 1}: exercise reference is required`,
+                              )
+                            }
+                            if (
+                              !exercise.sets ||
+                              (typeof exercise.sets === 'number' && exercise.sets < 1)
+                            ) {
+                              errors.push(
+                                `Milestone ${milestoneIndex + 1}, Day ${dayIndex + 1}, Exercise ${exerciseIndex + 1}: sets must be at least 1`,
+                              )
+                            }
+                            if (
+                              !exercise.reps ||
+                              (typeof exercise.reps === 'number' && exercise.reps < 1)
+                            ) {
+                              errors.push(
+                                `Milestone ${milestoneIndex + 1}, Day ${dayIndex + 1}, Exercise ${exerciseIndex + 1}: reps must be at least 1`,
+                              )
+                            }
+                          },
                         )
                       }
-                    })
-                  }
-                })
-              }
-            })
+                    },
+                  )
+                }
+              },
+            )
           }
 
           if (errors.length > 0) {
@@ -133,6 +168,7 @@ export const Programs: CollectionConfig = {
       name: 'milestones',
       type: 'array',
       label: 'Program Milestones',
+      minRows: 1,
       admin: {
         description:
           'The milestones that make up this program, in order. Drag and drop to reorder milestones in the program sequence. At least one milestone is required for publishing.',
@@ -172,6 +208,7 @@ export const Programs: CollectionConfig = {
           name: 'days',
           type: 'array',
           label: 'Milestone Days',
+          minRows: 1,
           admin: {
             description:
               'The days that make up this milestone, in order. Drag and drop to reorder days. Mix workout and rest days as needed.',
@@ -195,8 +232,10 @@ export const Programs: CollectionConfig = {
               name: 'exercises',
               type: 'array',
               label: 'Exercises',
+              minRows: 1,
               admin: {
-                description: 'Exercises for this workout day. Only shown for workout days.',
+                description:
+                  'Exercises for this workout day. Only shown for workout days. Drag and drop to reorder exercises.',
                 condition: (_, siblingData) => siblingData?.dayType === 'workout',
                 initCollapsed: false,
               },
@@ -210,6 +249,7 @@ export const Programs: CollectionConfig = {
                   admin: {
                     description: 'Select the exercise to perform',
                     allowCreate: false,
+                    sortOptions: 'title',
                   },
                 },
                 {
@@ -218,9 +258,11 @@ export const Programs: CollectionConfig = {
                   label: 'Sets',
                   required: true,
                   min: 1,
+                  max: 20,
                   admin: {
-                    description: 'Number of sets to perform',
+                    description: 'Number of sets to perform (1-20)',
                     placeholder: 'e.g., 3',
+                    step: 1,
                   },
                 },
                 {
@@ -229,36 +271,47 @@ export const Programs: CollectionConfig = {
                   label: 'Reps',
                   required: true,
                   min: 1,
+                  max: 100,
                   admin: {
-                    description: 'Number of repetitions per set',
+                    description: 'Number of repetitions per set (1-100)',
                     placeholder: 'e.g., 10',
+                    step: 1,
                   },
                 },
                 {
                   name: 'restPeriod',
                   type: 'number',
                   label: 'Rest Period (seconds)',
+                  min: 0,
+                  max: 600,
                   admin: {
-                    description: 'Rest time between sets in seconds',
+                    description: 'Rest time between sets in seconds (0-600)',
                     placeholder: 'e.g., 60',
+                    step: 15,
                   },
                 },
                 {
                   name: 'weight',
                   type: 'number',
                   label: 'Weight (lbs)',
+                  min: 0,
+                  max: 1000,
                   admin: {
-                    description: 'Weight to use for this exercise (optional)',
+                    description: 'Weight to use for this exercise in pounds (0-1000)',
                     placeholder: 'e.g., 25',
+                    step: 2.5,
                   },
                 },
                 {
                   name: 'notes',
                   type: 'textarea',
                   label: 'Exercise Notes',
+                  maxLength: 500,
                   admin: {
-                    description: 'Additional instructions or notes for this exercise',
+                    description:
+                      'Additional instructions or notes for this exercise (Max 500 characters)',
                     placeholder: 'e.g., "Focus on slow, controlled movement"',
+                    rows: 3,
                   },
                 },
               ],
@@ -267,10 +320,13 @@ export const Programs: CollectionConfig = {
               name: 'restNotes',
               type: 'textarea',
               label: 'Rest Day Notes',
+              maxLength: 500,
               admin: {
-                description: 'Notes or instructions for this rest day. Only shown for rest days.',
+                description:
+                  'Notes or instructions for this rest day. Only shown for rest days. (Max 500 characters)',
                 condition: (_, siblingData) => siblingData?.dayType === 'rest',
                 placeholder: 'e.g., "Active recovery - light walking or stretching recommended"',
+                rows: 3,
               },
             },
           ],

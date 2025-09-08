@@ -242,7 +242,7 @@ export interface Program {
                */
               dayType: 'workout' | 'rest';
               /**
-               * Exercises for this workout day. Only shown for workout days.
+               * Exercises for this workout day. Only shown for workout days. Drag and drop to reorder exercises.
                */
               exercises?:
                 | {
@@ -251,30 +251,30 @@ export interface Program {
                      */
                     exercise: string | Exercise;
                     /**
-                     * Number of sets to perform
+                     * Number of sets to perform (1-20)
                      */
                     sets: number;
                     /**
-                     * Number of repetitions per set
+                     * Number of repetitions per set (1-100)
                      */
                     reps: number;
                     /**
-                     * Rest time between sets in seconds
+                     * Rest time between sets in seconds (0-600)
                      */
                     restPeriod?: number | null;
                     /**
-                     * Weight to use for this exercise (optional)
+                     * Weight to use for this exercise in pounds (0-1000)
                      */
                     weight?: number | null;
                     /**
-                     * Additional instructions or notes for this exercise
+                     * Additional instructions or notes for this exercise (Max 500 characters)
                      */
                     notes?: string | null;
                     id?: string | null;
                   }[]
                 | null;
               /**
-               * Notes or instructions for this rest day. Only shown for rest days.
+               * Notes or instructions for this rest day. Only shown for rest days. (Max 500 characters)
                */
               restNotes?: string | null;
               id?: string | null;
