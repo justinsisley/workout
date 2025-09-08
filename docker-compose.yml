@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   # MongoDB 7.0+ for workout-app database
   mongo:
