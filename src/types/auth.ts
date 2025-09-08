@@ -5,10 +5,10 @@ export interface ProductUser {
   username: string
   displayName?: string
   currentProgram?: string
-  currentMilestone?: string
+  currentMilestone?: number // 0-based index instead of relationship
   currentDay: number
   lastWorkoutDate?: Date
-  totalWorkoutsCompleted: number
+  // totalWorkoutsCompleted removed - calculated dynamically from exercise completions
   createdAt: Date
   updatedAt: Date
 }
