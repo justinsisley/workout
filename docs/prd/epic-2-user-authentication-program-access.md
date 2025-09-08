@@ -51,7 +51,7 @@ so that **I can choose the program that best fits my fitness goals and current l
 ### Story 2.3 Acceptance Criteria
 
 1. **Program list display** shows all available workout programs with names and descriptions
-2. **Program details view** displays program objectives, culminating events, and estimated duration
+2. **Program details view** displays program objectives and estimated duration
 3. **Program selection** allows users to choose and confirm their selected program
 4. **User program assignment** stores the selected program for the authenticated user
 5. **Program status tracking** maintains user's current program selection and progress

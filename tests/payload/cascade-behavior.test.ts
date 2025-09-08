@@ -35,7 +35,7 @@ describe('PayloadCMS Cascade Behavior Tests', () => {
       const milestonesField = Programs.fields?.find((field: any) => field.name === 'milestones')
       expect(milestonesField, 'Milestones field should exist in Programs').toBeDefined()
       expect((milestonesField as any).type, 'Milestones field should be array type').toBe('array')
-      
+
       // Culminating events have been removed as per change log - programs can have meaningful final days without special treatment
     })
 

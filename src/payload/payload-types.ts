@@ -284,10 +284,6 @@ export interface Program {
       }[]
     | null;
   /**
-   * Optional culminating exercise or event that represents the program completion. Can be saved as draft without this field.
-   */
-  culminatingEvent?: (string | null) | Exercise;
-  /**
    * Check this box to make the program visible to product users. ⚠️ All required fields must be filled before publishing.
    */
   isPublished?: boolean | null;
@@ -563,7 +559,6 @@ export interface ProgramsSelect<T extends boolean = true> {
             };
         id?: T;
       };
-  culminatingEvent?: T;
   isPublished?: T;
   updatedAt?: T;
   createdAt?: T;

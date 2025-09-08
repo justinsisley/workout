@@ -335,15 +335,6 @@ export const Programs: CollectionConfig = {
       ],
     },
     {
-      name: 'culminatingEvent',
-      type: 'relationship',
-      relationTo: 'exercises',
-      admin: {
-        description:
-          'Optional culminating exercise or event that represents the program completion. Can be saved as draft without this field.',
-      },
-    },
-    {
       name: 'isPublished',
       type: 'checkbox',
       label: 'Published',

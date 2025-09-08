@@ -20,7 +20,6 @@ describe('PayloadCMS Relationship Configuration Tests', () => {
           required: false,
         },
 
-
         // ProductUsers -> Programs
         {
           collection: ProductUsers,
