@@ -576,6 +576,12 @@ describe('PayloadCMS Collections', () => {
       const restNotesField = (daysField as any)?.fields?.find(
         (field: any) => field.name === 'restNotes',
       )
+      const isAmrapField = (daysField as any)?.fields?.find(
+        (field: any) => field.name === 'isAmrap',
+      )
+      const amrapDurationField = (daysField as any)?.fields?.find(
+        (field: any) => field.name === 'amrapDuration',
+      )
 
       expect(
         exercisesField?.admin?.condition,
@@ -585,6 +591,529 @@ describe('PayloadCMS Collections', () => {
         restNotesField?.admin?.condition,
         'Rest notes field should have condition',
       ).toBeDefined()
+      expect(
+        isAmrapField?.admin?.condition,
+        'AMRAP checkbox field should have condition',
+      ).toBeDefined()
+      expect(
+        amrapDurationField?.admin?.condition,
+        'AMRAP duration field should have condition',
+      ).toBeDefined()
+    })
+
+    it('should have AMRAP fields properly configured', () => {
+      const milestonesField = Programs.fields?.find((field: any) => field.name === 'milestones')
+      const daysField = (milestonesField as any)?.fields?.find(
+        (field: any) => field.name === 'days',
+      )
+      const isAmrapField = (daysField as any)?.fields?.find(
+        (field: any) => field.name === 'isAmrap',
+      )
+      const amrapDurationField = (daysField as any)?.fields?.find(
+        (field: any) => field.name === 'amrapDuration',
+      )
+
+      // Test isAmrap field configuration
+      expect(isAmrapField).toBeDefined()
+      expect(isAmrapField?.type).toBe('checkbox')
+      expect(isAmrapField?.label).toBe('AMRAP Day')
+      expect(isAmrapField?.defaultValue).toBe(false)
+      expect(isAmrapField?.admin?.description).toContain('AMRAP')
+
+      // Test amrapDuration field configuration
+      expect(amrapDurationField).toBeDefined()
+      expect(amrapDurationField?.type).toBe('number')
+      expect(amrapDurationField?.label).toBe('AMRAP Duration (minutes)')
+      expect(amrapDurationField?.min).toBe(1)
+      expect(amrapDurationField?.max).toBe(120)
+      expect(amrapDurationField?.admin?.description).toContain('Duration for AMRAP workout')
+    })
+
+    it('should have duration dual-field structure properly configured', () => {
+      const milestonesField = Programs.fields?.find((field: any) => field.name === 'milestones')
+      const daysField = (milestonesField as any)?.fields?.find(
+        (field: any) => field.name === 'days',
+      )
+      const exercisesField = (daysField as any)?.fields?.find(
+        (field: any) => field.name === 'exercises',
+      )
+      const durationValueField = (exercisesField as any)?.fields?.find(
+        (field: any) => field.name === 'durationValue',
+      )
+      const durationUnitField = (exercisesField as any)?.fields?.find(
+        (field: any) => field.name === 'durationUnit',
+      )
+
+      // Test durationValue field configuration
+      expect(durationValueField).toBeDefined()
+      expect(durationValueField?.type).toBe('number')
+      expect(durationValueField?.label).toBe('Duration Value')
+      expect(durationValueField?.min).toBe(0)
+      expect(durationValueField?.max).toBe(999)
+      expect(durationValueField?.admin?.width).toBe('50%')
+      expect(durationValueField?.admin?.description).toContain(
+        'Duration amount for time-based exercises',
+      )
+
+      // Test durationUnit field configuration
+      expect(durationUnitField).toBeDefined()
+      expect(durationUnitField?.type).toBe('select')
+      expect(durationUnitField?.label).toBe('Duration Unit')
+      expect(durationUnitField?.admin?.width).toBe('50%')
+      expect(durationUnitField?.admin?.description).toContain('Time unit for the duration value')
+
+      // Test duration unit options
+      const unitOptions = durationUnitField?.options
+      expect(unitOptions).toBeDefined()
+      expect(unitOptions?.length).toBe(3)
+      expect(unitOptions?.find((opt: any) => opt.value === 'seconds')).toBeDefined()
+      expect(unitOptions?.find((opt: any) => opt.value === 'minutes')).toBeDefined()
+      expect(unitOptions?.find((opt: any) => opt.value === 'hours')).toBeDefined()
+    })
+
+    it('should have distance dual-field structure properly configured', () => {
+      const milestonesField = Programs.fields?.find((field: any) => field.name === 'milestones')
+      const daysField = (milestonesField as any)?.fields?.find(
+        (field: any) => field.name === 'days',
+      )
+      const exercisesField = (daysField as any)?.fields?.find(
+        (field: any) => field.name === 'exercises',
+      )
+      const distanceValueField = (exercisesField as any)?.fields?.find(
+        (field: any) => field.name === 'distanceValue',
+      )
+      const distanceUnitField = (exercisesField as any)?.fields?.find(
+        (field: any) => field.name === 'distanceUnit',
+      )
+
+      // Test distanceValue field configuration
+      expect(distanceValueField).toBeDefined()
+      expect(distanceValueField?.type).toBe('number')
+      expect(distanceValueField?.label).toBe('Distance Value')
+      expect(distanceValueField?.min).toBe(0)
+      expect(distanceValueField?.max).toBe(999)
+      expect(distanceValueField?.admin?.width).toBe('50%')
+      expect(distanceValueField?.admin?.step).toBe(0.1)
+      expect(distanceValueField?.admin?.description).toContain(
+        'Distance amount for distance-based exercises',
+      )
+
+      // Test distanceUnit field configuration
+      expect(distanceUnitField).toBeDefined()
+      expect(distanceUnitField?.type).toBe('select')
+      expect(distanceUnitField?.label).toBe('Distance Unit')
+      expect(distanceUnitField?.admin?.width).toBe('50%')
+      expect(distanceUnitField?.admin?.description).toContain(
+        'Distance unit for the distance value',
+      )
+
+      // Test distance unit options
+      const unitOptions = distanceUnitField?.options
+      expect(unitOptions).toBeDefined()
+      expect(unitOptions?.length).toBe(2)
+      expect(unitOptions?.find((opt: any) => opt.value === 'meters')).toBeDefined()
+      expect(unitOptions?.find((opt: any) => opt.value === 'miles')).toBeDefined()
+    })
+
+    it('should have enhanced beforeValidate hook for dual-field validation', () => {
+      // Test that the Programs collection has beforeValidate hooks configured
+      expect(Programs.hooks?.beforeValidate).toBeDefined()
+      expect(Programs.hooks?.beforeValidate?.length).toBeGreaterThan(0)
+
+      // The hook should be a function that validates dual-field requirements
+      const hook = Programs.hooks?.beforeValidate?.[0]
+      expect(typeof hook).toBe('function')
+    })
+
+    it('should validate AMRAP field requirements through beforeValidate hook', () => {
+      const hook = Programs.hooks?.beforeValidate?.[0]
+
+      if (!hook) {
+        throw new Error('beforeValidate hook not found')
+      }
+
+      // Test AMRAP validation: should fail when isAmrap is true but amrapDuration is missing
+      const invalidAmrapData = {
+        isPublished: true,
+        name: 'Test Program',
+        description: 'Test Description',
+        objective: 'Test Objective',
+        milestones: [
+          {
+            name: 'Test Milestone',
+            theme: 'Test Theme',
+            objective: 'Test Objective',
+            days: [
+              {
+                dayType: 'workout',
+                isAmrap: true,
+                // amrapDuration missing - should cause validation error
+                exercises: [
+                  {
+                    exercise: 'test-exercise-id',
+                    sets: 3,
+                    reps: 10,
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      }
+
+      expect(() => {
+        hook({
+          data: invalidAmrapData,
+          operation: 'update',
+          collection: {} as any,
+          context: {} as any,
+          req: {} as any,
+        })
+      }).toThrow('AMRAP duration is required when AMRAP day is selected')
+    })
+
+    it('should validate duration dual-field requirements through beforeValidate hook', () => {
+      const hook = Programs.hooks?.beforeValidate?.[0]
+
+      if (!hook) {
+        throw new Error('beforeValidate hook not found')
+      }
+
+      // Test duration validation: should fail when durationValue is set but durationUnit is missing
+      const invalidDurationData = {
+        isPublished: true,
+        name: 'Test Program',
+        description: 'Test Description',
+        objective: 'Test Objective',
+        milestones: [
+          {
+            name: 'Test Milestone',
+            theme: 'Test Theme',
+            objective: 'Test Objective',
+            days: [
+              {
+                dayType: 'workout',
+                exercises: [
+                  {
+                    exercise: 'test-exercise-id',
+                    sets: 3,
+                    reps: 10,
+                    durationValue: 30,
+                    // durationUnit missing - should cause validation error
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      }
+
+      expect(() => {
+        hook({
+          data: invalidDurationData,
+          operation: 'update',
+          collection: {} as any,
+          context: {} as any,
+          req: {} as any,
+        })
+      }).toThrow('duration unit is required when duration value is specified')
+
+      // Test reverse: durationUnit set but durationValue missing
+      const invalidDurationData2 = {
+        isPublished: true,
+        name: 'Test Program',
+        description: 'Test Description',
+        objective: 'Test Objective',
+        milestones: [
+          {
+            name: 'Test Milestone',
+            theme: 'Test Theme',
+            objective: 'Test Objective',
+            days: [
+              {
+                dayType: 'workout',
+                exercises: [
+                  {
+                    exercise: 'test-exercise-id',
+                    sets: 3,
+                    reps: 10,
+                    durationUnit: 'seconds',
+                    // durationValue missing - should cause validation error
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      }
+
+      expect(() => {
+        hook({
+          data: invalidDurationData2,
+          operation: 'update',
+          collection: {} as any,
+          context: {} as any,
+          req: {} as any,
+        })
+      }).toThrow('duration value is required when duration unit is specified')
+    })
+
+    it('should validate distance dual-field requirements through beforeValidate hook', () => {
+      const hook = Programs.hooks?.beforeValidate?.[0]
+
+      if (!hook) {
+        throw new Error('beforeValidate hook not found')
+      }
+
+      // Test distance validation: should fail when distanceValue is set but distanceUnit is missing
+      const invalidDistanceData = {
+        isPublished: true,
+        name: 'Test Program',
+        description: 'Test Description',
+        objective: 'Test Objective',
+        milestones: [
+          {
+            name: 'Test Milestone',
+            theme: 'Test Theme',
+            objective: 'Test Objective',
+            days: [
+              {
+                dayType: 'workout',
+                exercises: [
+                  {
+                    exercise: 'test-exercise-id',
+                    sets: 3,
+                    reps: 10,
+                    distanceValue: 1.5,
+                    // distanceUnit missing - should cause validation error
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      }
+
+      expect(() => {
+        hook({
+          data: invalidDistanceData,
+          operation: 'update',
+          collection: {} as any,
+          context: {} as any,
+          req: {} as any,
+        })
+      }).toThrow('distance unit is required when distance value is specified')
+
+      // Test reverse: distanceUnit set but distanceValue missing
+      const invalidDistanceData2 = {
+        isPublished: true,
+        name: 'Test Program',
+        description: 'Test Description',
+        objective: 'Test Objective',
+        milestones: [
+          {
+            name: 'Test Milestone',
+            theme: 'Test Theme',
+            objective: 'Test Objective',
+            days: [
+              {
+                dayType: 'workout',
+                exercises: [
+                  {
+                    exercise: 'test-exercise-id',
+                    sets: 3,
+                    reps: 10,
+                    distanceUnit: 'miles',
+                    // distanceValue missing - should cause validation error
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      }
+
+      expect(() => {
+        hook({
+          data: invalidDistanceData2,
+          operation: 'update',
+          collection: {} as any,
+          context: {} as any,
+          req: {} as any,
+        })
+      }).toThrow('distance value is required when distance unit is specified')
+    })
+
+    it('should validate duration range limits through beforeValidate hook', () => {
+      const hook = Programs.hooks?.beforeValidate?.[0]
+
+      if (!hook) {
+        throw new Error('beforeValidate hook not found')
+      }
+
+      // Test duration range validation: hours > 99 should fail
+      const invalidHoursDurationData = {
+        isPublished: true,
+        name: 'Test Program',
+        description: 'Test Description',
+        objective: 'Test Objective',
+        milestones: [
+          {
+            name: 'Test Milestone',
+            theme: 'Test Theme',
+            objective: 'Test Objective',
+            days: [
+              {
+                dayType: 'workout',
+                exercises: [
+                  {
+                    exercise: 'test-exercise-id',
+                    sets: 3,
+                    reps: 10,
+                    durationValue: 100, // Exceeds 99 hour limit
+                    durationUnit: 'hours',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      }
+
+      expect(() => {
+        hook({
+          data: invalidHoursDurationData,
+          operation: 'update',
+          collection: {} as any,
+          context: {} as any,
+          req: {} as any,
+        })
+      }).toThrow('duration cannot exceed 99 hours')
+
+      // Test duration range validation: minutes > 999 should fail
+      const invalidMinutesDurationData = {
+        isPublished: true,
+        name: 'Test Program',
+        description: 'Test Description',
+        objective: 'Test Objective',
+        milestones: [
+          {
+            name: 'Test Milestone',
+            theme: 'Test Theme',
+            objective: 'Test Objective',
+            days: [
+              {
+                dayType: 'workout',
+                exercises: [
+                  {
+                    exercise: 'test-exercise-id',
+                    sets: 3,
+                    reps: 10,
+                    durationValue: 1000, // Exceeds 999 minute limit
+                    durationUnit: 'minutes',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      }
+
+      expect(() => {
+        hook({
+          data: invalidMinutesDurationData,
+          operation: 'update',
+          collection: {} as any,
+          context: {} as any,
+          req: {} as any,
+        })
+      }).toThrow('duration cannot exceed 999 minutes')
+    })
+
+    it('should validate distance range limits through beforeValidate hook', () => {
+      const hook = Programs.hooks?.beforeValidate?.[0]
+
+      if (!hook) {
+        throw new Error('beforeValidate hook not found')
+      }
+
+      // Test distance range validation: miles > 100 should fail
+      const invalidMilesDistanceData = {
+        isPublished: true,
+        name: 'Test Program',
+        description: 'Test Description',
+        objective: 'Test Objective',
+        milestones: [
+          {
+            name: 'Test Milestone',
+            theme: 'Test Theme',
+            objective: 'Test Objective',
+            days: [
+              {
+                dayType: 'workout',
+                exercises: [
+                  {
+                    exercise: 'test-exercise-id',
+                    sets: 3,
+                    reps: 10,
+                    distanceValue: 101, // Exceeds 100 mile limit
+                    distanceUnit: 'miles',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      }
+
+      expect(() => {
+        hook({
+          data: invalidMilesDistanceData,
+          operation: 'update',
+          collection: {} as any,
+          context: {} as any,
+          req: {} as any,
+        })
+      }).toThrow('distance cannot exceed 100 miles')
+
+      // Test distance range validation: meters > 50000 should fail
+      const invalidMetersDistanceData = {
+        isPublished: true,
+        name: 'Test Program',
+        description: 'Test Description',
+        objective: 'Test Objective',
+        milestones: [
+          {
+            name: 'Test Milestone',
+            theme: 'Test Theme',
+            objective: 'Test Objective',
+            days: [
+              {
+                dayType: 'workout',
+                exercises: [
+                  {
+                    exercise: 'test-exercise-id',
+                    sets: 3,
+                    reps: 10,
+                    distanceValue: 50001, // Exceeds 50,000 meter limit
+                    distanceUnit: 'meters',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      }
+
+      expect(() => {
+        hook({
+          data: invalidMetersDistanceData,
+          operation: 'update',
+          collection: {} as any,
+          context: {} as any,
+          req: {} as any,
+        })
+      }).toThrow('distance cannot exceed 50,000 meters')
     })
 
     it('should have proper cascade behavior configured through PayloadCMS', () => {
