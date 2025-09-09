@@ -92,6 +92,12 @@ export const Programs: CollectionConfig = {
                           `Milestone ${milestoneIndex + 1}, Day ${dayIndex + 1}: at least one exercise is required for workout days`,
                         )
                       }
+                      // Validate AMRAP day requirements
+                      if (day.isAmrap && !day.amrapDuration) {
+                        errors.push(
+                          `Milestone ${milestoneIndex + 1}, Day ${dayIndex + 1}: AMRAP duration is required when AMRAP day is selected`,
+                        )
+                      }
                       if (day.dayType === 'workout' && day.exercises) {
                         // Validate each exercise in workout days
                         ;(day.exercises as Record<string, unknown>[]).forEach(
@@ -301,6 +307,28 @@ export const Programs: CollectionConfig = {
               ],
               admin: {
                 description: 'Choose whether this is a workout day or rest day',
+              },
+            },
+            {
+              name: 'isAmrap',
+              type: 'checkbox',
+              label: 'AMRAP Day',
+              defaultValue: false,
+              admin: {
+                description: 'Check if this is an AMRAP (As Many Rounds As Possible) day',
+                condition: (_, siblingData) => siblingData?.dayType === 'workout',
+              },
+            },
+            {
+              name: 'amrapDuration',
+              type: 'number',
+              label: 'AMRAP Duration (minutes)',
+              min: 1,
+              max: 120,
+              admin: {
+                description: 'Duration for AMRAP workout in minutes (e.g., 12 for 12-minute AMRAP)',
+                condition: (_, siblingData) =>
+                  siblingData?.dayType === 'workout' && siblingData?.isAmrap,
               },
             },
             {
