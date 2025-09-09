@@ -334,3 +334,86 @@ export const requireAuth = (handler: Function) => {
   }
 }
 ```
+
+## Type System Architecture
+
+### PayloadCMS Generated Types
+
+PayloadCMS automatically generates TypeScript types from collection schemas:
+
+```typescript
+// Auto-generated from PayloadCMS collections
+export interface Program {
+  id: string
+  name?: string
+  description?: string
+  objective?: string
+  milestones?: Milestone[]
+  isPublished?: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Milestone {
+  id?: string
+  name?: string
+  theme?: string
+  objective?: string
+  days?: Day[]
+}
+
+export interface Day {
+  id?: string
+  dayType: 'workout' | 'rest'
+  exercises?: ExerciseConfig[]
+  restNotes?: string
+}
+
+export interface ExerciseConfig {
+  id?: string
+  exercise: string | Exercise // Exercise relationship
+  sets: number
+  reps: number
+  restPeriod?: number
+  weight?: number
+
+  // Time-based exercise fields
+  durationValue?: number
+  durationUnit?: 'seconds' | 'minutes' | 'hours'
+
+  // Distance-based exercise fields (NEW)
+  distanceValue?: number
+  distanceUnit?: 'meters' | 'miles'
+
+  notes?: string
+}
+```
+
+### Type Safety Patterns
+
+**Utility Type Guards:**
+
+```typescript
+// src/types/exercise-guards.ts
+export function hasDistance(
+  exercise: ExerciseConfig,
+): exercise is ExerciseConfig & { distanceValue: number; distanceUnit: string } {
+  return Boolean(exercise.distanceValue && exercise.distanceUnit)
+}
+
+export function hasDuration(
+  exercise: ExerciseConfig,
+): exercise is ExerciseConfig & { durationValue: number; durationUnit: string } {
+  return Boolean(exercise.durationValue && exercise.durationUnit)
+}
+
+// Usage in components:
+if (hasDistance(exercise)) {
+  // TypeScript knows distanceValue and distanceUnit are defined
+  const display = formatDistance(exercise.distanceValue, exercise.distanceUnit)
+}
+```
+
+```
+
+```

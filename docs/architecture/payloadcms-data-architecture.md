@@ -27,6 +27,66 @@ The relationship-based ordering system is implemented through PayloadCMS relatio
 - `milestones` - Now embedded within programs
 - `sessions` - Now embedded within programs
 
+## Programs Collection Schema
+
+The Programs collection implements an **embedded document architecture** with the following structure:
+
+### Exercise Configuration Fields
+
+Each exercise within a program day contains these configuration options:
+
+**Core Fields:**
+
+- `exercise` (relationship) - Reference to exercise definition
+- `sets` (number) - Number of sets to perform (1-20)
+- `reps` (number) - Number of repetitions per set (1-100)
+- `restPeriod` (number) - Rest time between sets in seconds (0-600)
+- `weight` (number) - Weight in pounds (0-1000)
+
+**Time-Based Exercise Fields:**
+
+- `durationValue` (number) - Duration amount (0-999)
+- `durationUnit` (select) - Time unit: seconds/minutes/hours
+- **Validation:** Both fields required together for time-based exercises
+
+**Distance-Based Exercise Fields:**
+
+- `distanceValue` (number) - Distance amount (0-999, step: 0.1)
+- `distanceUnit` (select) - Distance unit: meters/miles
+- **Validation:** Both fields required together for distance-based exercises
+
+**Additional Fields:**
+
+- `notes` (textarea) - Exercise-specific instructions (max 500 chars)
+
+### Field Validation Patterns
+
+**Dual-Field Validation:**
+PayloadCMS hooks enforce that paired fields (duration, distance) must be specified together:
+
+```typescript
+// Duration validation
+if (hasDurationValue && !hasDurationUnit) {
+  /* error */
+}
+if (hasDurationUnit && !hasDurationValue) {
+  /* error */
+}
+
+// Distance validation
+if (hasDistanceValue && !hasDistanceUnit) {
+  /* error */
+}
+if (hasDistanceUnit && !hasDistanceValue) {
+  /* error */
+}
+```
+
+**Unit-Specific Ranges:**
+
+- Duration: Hours ≤ 99, Minutes ≤ 999, Seconds ≤ 999
+- Distance: Both meters and miles ≤ 999 with 0.1 precision
+
 ## PayloadCMS Benefits
 
 **Automatic Features:**

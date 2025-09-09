@@ -177,6 +177,80 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
 - **Server State:** Direct server component data fetching
 - **Form State:** React Hook Form for form management
 
+## Display Utilities Architecture
+
+### Exercise Data Formatting
+
+**Distance Formatting Utility:**
+
+```typescript
+// src/utils/distance-formatter.ts
+export function formatDistance(value?: number, unit?: string): string {
+  if (!value || !unit) return ''
+
+  // Handle singular vs plural
+  if (value === 1 && unit === 'miles') {
+    return `${value} mile`
+  }
+  if (value === 1 && unit === 'meters') {
+    return `${value} meter`
+  }
+  return `${value} ${unit}`
+}
+
+// Usage examples:
+// formatDistance(20, 'meters') → "20 meters"
+// formatDistance(1, 'miles') → "1 mile"
+// formatDistance(5, 'miles') → "5 miles"
+```
+
+**Duration Formatting (existing pattern):**
+
+```typescript
+// Similar utility for time-based exercises
+export function formatDuration(value?: number, unit?: string): string {
+  if (!value || !unit) return ''
+
+  const unitLabels = {
+    seconds: value === 1 ? 'second' : 'seconds',
+    minutes: value === 1 ? 'minute' : 'minutes',
+    hours: value === 1 ? 'hour' : 'hours',
+  }
+
+  return `${value} ${unitLabels[unit as keyof typeof unitLabels]}`
+}
+```
+
+### Exercise Display Components
+
+**Component Integration Pattern:**
+
+```typescript
+// src/components/exercise-display.tsx
+import { formatDistance, formatDuration } from '@/utils/formatters'
+
+interface ExerciseDisplayProps {
+  exercise: ExerciseConfig
+}
+
+export function ExerciseDisplay({ exercise }: ExerciseDisplayProps) {
+  const distanceText = formatDistance(exercise.distanceValue, exercise.distanceUnit)
+  const durationText = formatDuration(exercise.durationValue, exercise.durationUnit)
+
+  return (
+    <div className="exercise-card">
+      <h3>{exercise.name}</h3>
+      <div className="exercise-specs">
+        <span>{exercise.sets} sets × {exercise.reps} reps</span>
+        {distanceText && <span>Distance: {distanceText}</span>}
+        {durationText && <span>Duration: {durationText}</span>}
+        {exercise.weight && <span>Weight: {exercise.weight} lbs</span>}
+      </div>
+    </div>
+  )
+}
+```
+
 ## Routing Architecture
 
 ### Route Organization
