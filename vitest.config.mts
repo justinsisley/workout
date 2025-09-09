@@ -8,9 +8,15 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
-    include: ['tests/int/**/*.{test,spec}.{ts,tsx}', 'tests/payload/**/*.{test,spec}.{ts,tsx}'],
+    include: [
+      'tests/api/**/*.{test,spec}.{ts,tsx}',
+      'tests/components/**/*.{test,spec}.{ts,tsx}',
+      'tests/services/**/*.{test,spec}.{ts,tsx}',
+    ],
     hookTimeout: 10000,
     testTimeout: 10000,
+    css: true,
+    passWithNoTests: true,
     env: {
       DATABASE_URI: 'mongodb://localhost:27017/workout-app-test',
       PAYLOAD_SECRET: 'test-payload-secret-key-for-integration-tests',
