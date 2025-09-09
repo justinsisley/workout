@@ -117,6 +117,45 @@ export const Programs: CollectionConfig = {
                                 `Milestone ${milestoneIndex + 1}, Day ${dayIndex + 1}, Exercise ${exerciseIndex + 1}: reps must be at least 1`,
                               )
                             }
+                            // Validate duration fields - both or neither required
+                            const hasDurationValue =
+                              exercise.durationValue &&
+                              typeof exercise.durationValue === 'number' &&
+                              exercise.durationValue > 0
+                            const hasDurationUnit = exercise.durationUnit
+                            if (hasDurationValue && !hasDurationUnit) {
+                              errors.push(
+                                `Milestone ${milestoneIndex + 1}, Day ${dayIndex + 1}, Exercise ${exerciseIndex + 1}: duration unit is required when duration value is specified`,
+                              )
+                            }
+                            if (hasDurationUnit && !hasDurationValue) {
+                              errors.push(
+                                `Milestone ${milestoneIndex + 1}, Day ${dayIndex + 1}, Exercise ${exerciseIndex + 1}: duration value is required when duration unit is specified`,
+                              )
+                            }
+                            // Validate reasonable duration ranges per unit
+                            if (
+                              hasDurationValue &&
+                              hasDurationUnit &&
+                              typeof exercise.durationValue === 'number'
+                            ) {
+                              const durationValue = exercise.durationValue
+                              if (exercise.durationUnit === 'hours' && durationValue > 99) {
+                                errors.push(
+                                  `Milestone ${milestoneIndex + 1}, Day ${dayIndex + 1}, Exercise ${exerciseIndex + 1}: duration cannot exceed 99 hours`,
+                                )
+                              }
+                              if (exercise.durationUnit === 'minutes' && durationValue > 999) {
+                                errors.push(
+                                  `Milestone ${milestoneIndex + 1}, Day ${dayIndex + 1}, Exercise ${exerciseIndex + 1}: duration cannot exceed 999 minutes`,
+                                )
+                              }
+                              if (exercise.durationUnit === 'seconds' && durationValue > 999) {
+                                errors.push(
+                                  `Milestone ${milestoneIndex + 1}, Day ${dayIndex + 1}, Exercise ${exerciseIndex + 1}: duration cannot exceed 999 seconds`,
+                                )
+                              }
+                            }
                           },
                         )
                       }
@@ -312,15 +351,32 @@ export const Programs: CollectionConfig = {
                   },
                 },
                 {
-                  name: 'duration',
+                  name: 'durationValue',
                   type: 'number',
-                  label: 'Duration (seconds)',
+                  label: 'Duration Value',
                   min: 0,
-                  max: 3600,
+                  max: 999,
                   admin: {
-                    description: 'Duration in seconds for time-based exercises (optional)',
-                    placeholder: 'e.g., 30 for planks, 300 for 5-minute run',
-                    step: 5,
+                    description:
+                      'Duration amount for time-based exercises like planks, holds, or timed runs. Examples: 30 seconds for plank, 5 minutes for run, 1 hour for ruck march. Both value and unit must be specified together.',
+                    placeholder: 'e.g., 30, 5, 1',
+                    step: 1,
+                    width: '50%',
+                  },
+                },
+                {
+                  name: 'durationUnit',
+                  type: 'select',
+                  label: 'Duration Unit',
+                  options: [
+                    { label: 'Seconds', value: 'seconds' },
+                    { label: 'Minutes', value: 'minutes' },
+                    { label: 'Hours', value: 'hours' },
+                  ],
+                  admin: {
+                    description:
+                      'Time unit for the duration value. Choose Seconds for short holds (planks, wall sits), Minutes for moderate activities (runs, bike rides), or Hours for long activities (ruck marches, hikes). Both value and unit must be specified together.',
+                    width: '50%',
                   },
                 },
                 {
