@@ -365,6 +365,8 @@ export interface Milestone {
 export interface Day {
   id?: string
   dayType: 'workout' | 'rest'
+  isAmrap?: boolean // AMRAP (As Many Rounds As Possible) day designation
+  amrapDuration?: number // AMRAP workout duration in minutes (1-120)
   exercises?: ExerciseConfig[]
   restNotes?: string
 }
@@ -407,10 +409,20 @@ export function hasDuration(
   return Boolean(exercise.durationValue && exercise.durationUnit)
 }
 
+// src/types/day-guards.ts
+export function isAmrapDay(day: Day): day is Day & { isAmrap: true; amrapDuration: number } {
+  return Boolean(day.isAmrap && day.amrapDuration)
+}
+
 // Usage in components:
 if (hasDistance(exercise)) {
   // TypeScript knows distanceValue and distanceUnit are defined
   const display = formatDistance(exercise.distanceValue, exercise.distanceUnit)
+}
+
+if (isAmrapDay(day)) {
+  // TypeScript knows this is an AMRAP day with duration
+  const timerDuration = day.amrapDuration * 60 // Convert to seconds
 }
 ```
 

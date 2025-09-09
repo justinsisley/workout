@@ -31,6 +31,24 @@ The relationship-based ordering system is implemented through PayloadCMS relatio
 
 The Programs collection implements an **embedded document architecture** with the following structure:
 
+### Day Configuration Fields
+
+Each day within a program milestone contains these configuration options:
+
+**Core Day Fields:**
+
+- `dayType` (select) - Type of day: 'workout' | 'rest'
+- `isAmrap` (checkbox) - Marks day as AMRAP (As Many Rounds As Possible) workout
+- `amrapDuration` (number) - AMRAP workout duration in minutes (1-120)
+- `restNotes` (textarea) - Rest day instructions (for rest days only)
+
+**AMRAP Field Validation:**
+
+- `isAmrap` field shows conditionally only for workout days
+- `amrapDuration` field shows conditionally only when `isAmrap` is true
+- `amrapDuration` is required when `isAmrap` is selected
+- AMRAP fields follow existing conditional field patterns
+
 ### Exercise Configuration Fields
 
 Each exercise within a program day contains these configuration options:

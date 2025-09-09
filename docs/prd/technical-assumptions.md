@@ -52,3 +52,4 @@ Testing will prioritize critical business logic (progression algorithms) and dat
 - **Cost Constraints:** Aim to stay within free/low-cost service limits for hosting and video services
 - **Single Developer:** Architecture must be maintainable by one person with existing technical skills
 - **Future Extensibility:** Design for potential AI integration and advanced analytics without over-engineering
+- **AMRAP Workout Support:** The embedded schema within Programs collection supports AMRAP day designation with duration specification to enable round-based workout execution in future development phases

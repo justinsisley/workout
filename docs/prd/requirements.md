@@ -6,7 +6,7 @@
 
 **FR2:** The system shall support two distinct user types: Admin users (PayloadCMS built-in) and Product users (custom collection with passkey authentication).
 
-**FR3:** The system shall provide a PayloadCMS admin interface for creating and managing workout programs with embedded milestones, days, and exercise references within a single Programs collection.
+**FR3:** The system shall provide a PayloadCMS admin interface for creating and managing workout programs with embedded milestones, days, exercise references, and AMRAP day designation within a single Programs collection.
 
 **FR3.1:** The system shall support time-based exercise configuration using dual-field duration specification with separate value (numeric) and unit (seconds/minutes/hours) fields for intuitive admin entry and semantic display.
 
@@ -14,9 +14,9 @@
 
 **FR5:** The system shall track user progress through programs including current program, milestone, and day position.
 
-**FR6:** The system shall provide a mobile-optimized workout interface for displaying exercises with inline video playback and fullscreen toggle.
+**FR6:** The system shall provide a mobile-optimized workout interface for displaying exercises with inline video playback, fullscreen toggle, and AMRAP day detection for specialized display.
 
-**FR7:** The system shall enable users to log workout completion data including sets, reps, weight, and time for each exercise.
+**FR7:** The system shall enable users to log workout completion data including sets, reps, weight, time for each exercise, and round completion tracking for AMRAP workouts.
 
 **FR7.1:** The system shall display time-based exercise durations in natural, human-readable format using the original units specified by admins (e.g., "30 seconds", "5 minutes", "1 hour") across all user interfaces.
 
@@ -35,6 +35,8 @@
 **FR14:** The system shall provide alternative exercise access during workouts for exercise substitutions.
 
 **FR15:** The system shall enable users to skip exercises when needed during workout sessions.
+
+**FR16:** The system shall support AMRAP (As Many Rounds As Possible) workout format designation with time duration specification for admin-created workout days.
 
 ## Non-Functional Requirements
 

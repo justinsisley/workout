@@ -66,6 +66,7 @@ so that **I can create and manage complete workout programs from a single interf
 12. **Collapsible sections** manage complexity with expandable/collapsible milestone and day sections
 13. **Admin interface is responsive** and works on desktop for program creation
 14. **All CRUD operations** work correctly for all collection types
+15. **AMRAP day designation** enables marking days as AMRAP (As Many Rounds As Possible) workouts with duration specification in minutes
 
 ## Story 1.4: Complete Program Data Population
 
