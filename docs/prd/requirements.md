@@ -8,6 +8,8 @@
 
 **FR3:** The system shall provide a PayloadCMS admin interface for creating and managing workout programs with embedded milestones, days, and exercise references within a single Programs collection.
 
+**FR3.1:** The system shall support time-based exercise configuration using dual-field duration specification with separate value (numeric) and unit (seconds/minutes/hours) fields for intuitive admin entry and semantic display.
+
 **FR4:** The system shall maintain an exercise library with title, description, video URL, and alternative exercises.
 
 **FR5:** The system shall track user progress through programs including current program, milestone, and day position.
@@ -15,6 +17,8 @@
 **FR6:** The system shall provide a mobile-optimized workout interface for displaying exercises with inline video playback and fullscreen toggle.
 
 **FR7:** The system shall enable users to log workout completion data including sets, reps, weight, and time for each exercise.
+
+**FR7.1:** The system shall display time-based exercise durations in natural, human-readable format using the original units specified by admins (e.g., "30 seconds", "5 minutes", "1 hour") across all user interfaces.
 
 **FR8:** The system shall auto-populate previous workout data (sets, reps, weight) for subsequent sessions of the same exercise.
 

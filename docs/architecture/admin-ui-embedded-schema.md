@@ -135,7 +135,8 @@ This document outlines the admin interface specifications for the new embedded s
 - **Reps:** Number input (min: 1)
 - **Rest Period:** Number input with "seconds" label
 - **Weight:** Number input with "lbs" label (optional)
-- **Duration:** Number input with "seconds" label (optional, for time-based exercises)
+- **Duration Value:** Number input (1-999) paired with unit selector (optional, for time-based exercises)
+- **Duration Unit:** Select dropdown (seconds/minutes/hours) paired with value field
 - **Notes:** Textarea for additional instructions
 - **Actions:** Delete, Duplicate buttons
 
@@ -216,30 +217,29 @@ This document outlines the admin interface specifications for the new embedded s
 
 ## Time Duration Field Implementation
 
-### Duration Field Specifications
+### Dual-Field Duration Specifications
 
 **Admin Interface Requirements:**
 
-- Duration input field appears in exercise configuration within workout days
-- Input accepts both seconds (30s) and minutes:seconds (5:30) formats
-- Converts all input to seconds for database storage
-- Field appears alongside existing sets, reps, weight, notes fields
-- Optional field with clear labeling for time-based exercises
-- Consistent with existing `restPeriod` field implementation pattern
+- Duration fields appear as paired value+unit inputs in exercise configuration
+- Visual grouping indicates the two fields work together as one logical unit
+- Both fields optional, but if one is set, the other becomes required
+- Contextual validation provides clear feedback for incomplete specifications
+- Semantic storage preserves user's original intent (no conversion to seconds)
 
-**Input Field Design:**
+**Dual Field Design:**
 
-- **Label:** "Duration (optional)"
-- **Placeholder:** "e.g., 30s or 2:30"
-- **Helper Text:** "For time-based exercises like planks, runs, or holds"
-- **Validation:** Accept formats like "30", "30s", "2:30", "1:30:00"
-- **Storage:** Always convert to seconds (30s → 30, 2:30 → 150, 1:30:00 → 5400)
+- **Duration Value:** Number input (1-999) with placeholder "e.g., 30, 5, 1"
+- **Duration Unit:** Select dropdown with options: Seconds, Minutes, Hours
+- **Visual Grouping:** Container styling groups fields as single logical unit
+- **Validation:** Both fields required together with contextual error messages
+- **Storage:** Preserves semantic meaning (durationValue: 1, durationUnit: 'hours')
 
 **Visual Integration:**
 
 ```
 Exercise Configuration Row:
-[Exercise Dropdown] [Sets: 3] [Reps: 10] [Rest: 60s] [Weight: 0lbs] [Duration: 30s] [Notes...]
+[Exercise Dropdown] [Sets: 3] [Reps: 10] [Rest: 60s] [Weight: 0lbs] │ Duration: [30] [Seconds ▼] │ [Notes...]
 ```
 
 ## User Experience Enhancements

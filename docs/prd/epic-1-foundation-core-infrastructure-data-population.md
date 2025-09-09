@@ -37,7 +37,7 @@ so that **the data structure supports efficient admin workflows and eliminates c
 2. **Programs collection** includes embedded milestones, days, and exercise references in single document
 3. **Milestones are embedded in programs** with name, theme, objective, and embedded days array
 4. **Days are embedded in milestones** with dayType ('workout'|'rest') and embedded exercises array for workout days
-5. **Exercises are referenced by ID** within embedded day structures with complete workout details (sets, reps, rest periods, weight, notes)
+5. **Exercises are referenced by ID** within embedded day structures with complete workout details (sets, reps, rest periods, weight, notes, and optional time duration using durationValue + durationUnit fields)
 6. **Product users collection** includes username, current program, milestone, and day tracking
 7. **Exercise completions collection** includes user, exercise, program, milestone index, and day index
 8. **All relationships are properly configured** between collections
@@ -58,12 +58,13 @@ so that **I can create and manage complete workout programs from a single interf
 4. **Embedded milestone editing** allows defining themes, objectives within the program interface
 5. **Embedded day management** enables creating workout and rest days with exercises directly in the program
 6. **Embedded exercise configuration** allows adding exercises with sets, reps, rest periods, weight, and notes within days
-7. **Conditional field visibility** shows exercises array only for workout days and rest notes only for rest days
-8. **Progressive validation** allows saving incomplete programs as drafts while preventing publishing incomplete content
-9. **Drag-and-drop ordering** enables reordering milestones, days, and exercises within the program interface
-10. **Collapsible sections** manage complexity with expandable/collapsible milestone and day sections
-11. **Admin interface is responsive** and works on desktop for program creation
-12. **All CRUD operations** work correctly for all collection types
+7. **Time duration input with unit selector** enables intuitive specification of time-based exercise durations using paired durationValue (numeric) and durationUnit (seconds/minutes/hours) fields with conditional validation requiring both fields together
+8. **Conditional field visibility** shows exercises array only for workout days and rest notes only for rest days
+9. **Progressive validation** allows saving incomplete programs as drafts while preventing publishing incomplete content
+10. **Drag-and-drop ordering** enables reordering milestones, days, and exercises within the program interface
+11. **Collapsible sections** manage complexity with expandable/collapsible milestone and day sections
+12. **Admin interface is responsive** and works on desktop for program creation
+13. **All CRUD operations** work correctly for all collection types
 
 ## Story 1.4: Complete Program Data Population
 

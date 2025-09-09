@@ -11,10 +11,10 @@ so that **I can understand what exercises I need to complete and track my progre
 ### Story 3.1 Acceptance Criteria
 
 1. **Day overview display** shows current day's exercises with estimated duration and progress
-2. **Exercise list** displays all exercises in the current day with sets, reps, and rest periods
+2. **Exercise list** displays all exercises in the current day with sets, reps, rest periods, and time durations in natural format (e.g., "30 seconds", "5 minutes", "1 hour")
 3. **Progress indicators** show completion status for each exercise in the day
 4. **Day navigation** allows users to start the workout and navigate between exercises
-5. **Time estimates** display estimated total day duration and time remaining
+5. **Time estimates** display estimated total day duration and time remaining using natural time formatting from exercise duration specifications
 6. **Mobile optimization** provides touch-friendly interface optimized for gym use
 7. **Day status tracking** maintains current position within the workout day
 8. **Exercise preview** shows exercise names and basic information
@@ -29,7 +29,7 @@ so that **I can perform exercises correctly with proper form and technique**.
 
 ### Story 3.2 Acceptance Criteria
 
-1. **Exercise detail screen** displays exercise name, description, and instructions
+1. **Exercise detail screen** displays exercise name, description, instructions, and time duration in natural format when applicable
 2. **Video integration** shows exercise demonstration videos with inline playback
 3. **Fullscreen video toggle** allows users to view videos in fullscreen mode
 4. **Video controls** provide play, pause, and seek functionality for exercise videos
@@ -48,7 +48,7 @@ so that **I can track my progress and have accurate data for future sessions**.
 
 ### Story 3.3 Acceptance Criteria
 
-1. **Data entry interface** provides easy input for sets, reps, weight, and time
+1. **Data entry interface** provides easy input for sets, reps, weight, and time with time displays in natural format matching admin specification
 2. **Auto-population** pre-fills previous workout data for the same exercise
 3. **Smart defaults** suggests appropriate values based on previous sessions
 4. **Number input optimization** provides touch-friendly number input for gym use

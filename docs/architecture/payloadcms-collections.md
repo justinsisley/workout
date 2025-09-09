@@ -451,13 +451,40 @@ export const Programs: CollectionConfig = {
                   },
                 },
                 {
-                  name: 'duration',
+                  name: 'durationValue',
                   type: 'number',
-                  label: 'Duration (seconds)',
-                  min: 0,
+                  label: 'Duration Value',
+                  min: 1,
+                  max: 999,
                   admin: {
-                    description:
-                      'Exercise duration in seconds for time-based exercises (e.g., planks, timed runs). Optional.',
+                    description: 'Duration value for time-based exercises (use with duration unit)',
+                    placeholder: 'e.g., 30, 5, 1',
+                    condition: (_, siblingData) => Boolean(siblingData?.durationUnit),
+                  },
+                  validate: (value, { siblingData }) => {
+                    if (siblingData?.durationUnit && !value) {
+                      return 'Duration value is required when unit is selected'
+                    }
+                    return true
+                  },
+                },
+                {
+                  name: 'durationUnit',
+                  type: 'select',
+                  label: 'Duration Unit',
+                  options: [
+                    { label: 'Seconds', value: 'seconds' },
+                    { label: 'Minutes', value: 'minutes' },
+                    { label: 'Hours', value: 'hours' },
+                  ],
+                  admin: {
+                    description: 'Time unit for duration value (both fields required together)',
+                  },
+                  validate: (value, { siblingData }) => {
+                    if (siblingData?.durationValue && !value) {
+                      return 'Duration unit is required when value is set'
+                    }
+                    return true
                   },
                 },
                 {
@@ -500,15 +527,16 @@ export const Programs: CollectionConfig = {
 
 **Time-Based Exercise Support Developer Notes:**
 
-The `duration` field supports time-based exercises where duration is more important than repetitions:
+The dual-field approach (`durationValue` + `durationUnit`) supports intuitive time-based exercise input:
 
-- **Duration Field:** Optional `duration` field supports time-based exercises (planks, runs, endurance workouts)
-- **Units:** Duration stored in seconds for consistency with `restPeriod` field
-- **Admin Interface:** Time input with seconds/minutes conversion for user-friendly entry
+- **Dual Fields:** `durationValue` (number) + `durationUnit` (seconds/minutes/hours) for semantic time handling
+- **User Experience:** Eliminates mental math - admins input "1 hour" instead of "3600 seconds"
+- **Validation:** Both fields required together with contextual validation per unit type
+- **Display:** Preserves original units for natural reading ("1 hour" not "3600 seconds")
 - **Use Cases:**
-  - Plank: 1 set, 1 rep, 30 seconds duration
-  - Timed run: 1 set, 1 rep, 300 seconds duration (5 minutes)
-  - Sprint intervals: 1 set, 1 rep, 30 seconds duration
+  - Plank: 1 set, 1 rep, durationValue: 30, durationUnit: 'seconds'
+  - Timed run: 1 set, 1 rep, durationValue: 5, durationUnit: 'minutes'
+  - Ruck march: 1 set, 1 rep, durationValue: 1, durationUnit: 'hours'
 
 **TypeScript Interface:**
 
@@ -530,7 +558,8 @@ interface Program {
         reps: number
         restPeriod?: number // Rest time between sets (seconds)
         weight?: number // Weight to use (lbs)
-        duration?: number // Exercise duration in seconds (for time-based exercises)
+        durationValue?: number // Duration numeric value (e.g., 1, 30, 5)
+        durationUnit?: 'seconds' | 'minutes' | 'hours' // Duration time unit
         notes?: string // Additional instructions
       }[]
       restNotes?: string
