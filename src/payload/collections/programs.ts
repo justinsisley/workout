@@ -156,6 +156,40 @@ export const Programs: CollectionConfig = {
                                 )
                               }
                             }
+                            // Validate distance fields - both or neither required
+                            const hasDistanceValue =
+                              exercise.distanceValue &&
+                              typeof exercise.distanceValue === 'number' &&
+                              exercise.distanceValue > 0
+                            const hasDistanceUnit = exercise.distanceUnit
+                            if (hasDistanceValue && !hasDistanceUnit) {
+                              errors.push(
+                                `Milestone ${milestoneIndex + 1}, Day ${dayIndex + 1}, Exercise ${exerciseIndex + 1}: distance unit is required when distance value is specified`,
+                              )
+                            }
+                            if (hasDistanceUnit && !hasDistanceValue) {
+                              errors.push(
+                                `Milestone ${milestoneIndex + 1}, Day ${dayIndex + 1}, Exercise ${exerciseIndex + 1}: distance value is required when distance unit is specified`,
+                              )
+                            }
+                            // Validate reasonable distance ranges per unit
+                            if (
+                              hasDistanceValue &&
+                              hasDistanceUnit &&
+                              typeof exercise.distanceValue === 'number'
+                            ) {
+                              const distanceValue = exercise.distanceValue
+                              if (exercise.distanceUnit === 'miles' && distanceValue > 100) {
+                                errors.push(
+                                  `Milestone ${milestoneIndex + 1}, Day ${dayIndex + 1}, Exercise ${exerciseIndex + 1}: distance cannot exceed 100 miles`,
+                                )
+                              }
+                              if (exercise.distanceUnit === 'meters' && distanceValue > 50000) {
+                                errors.push(
+                                  `Milestone ${milestoneIndex + 1}, Day ${dayIndex + 1}, Exercise ${exerciseIndex + 1}: distance cannot exceed 50,000 meters`,
+                                )
+                              }
+                            }
                           },
                         )
                       }
@@ -376,6 +410,34 @@ export const Programs: CollectionConfig = {
                   admin: {
                     description:
                       'Time unit for the duration value. Choose Seconds for short holds (planks, wall sits), Minutes for moderate activities (runs, bike rides), or Hours for long activities (ruck marches, hikes). Both value and unit must be specified together.',
+                    width: '50%',
+                  },
+                },
+                {
+                  name: 'distanceValue',
+                  type: 'number',
+                  label: 'Distance Value',
+                  min: 0,
+                  max: 999,
+                  admin: {
+                    description:
+                      'Distance amount for distance-based exercises like runs, walks, or bike rides. Examples: 1.5 miles for run, 500 meters for sprint, 3 miles for bike ride. Both value and unit must be specified together.',
+                    placeholder: 'e.g., 1.5, 500, 3',
+                    step: 0.1,
+                    width: '50%',
+                  },
+                },
+                {
+                  name: 'distanceUnit',
+                  type: 'select',
+                  label: 'Distance Unit',
+                  options: [
+                    { label: 'Meters', value: 'meters' },
+                    { label: 'Miles', value: 'miles' },
+                  ],
+                  admin: {
+                    description:
+                      'Distance unit for the distance value. Choose Meters for shorter distances (sprints, short runs), or Miles for longer distances (runs, bike rides, walks). Both value and unit must be specified together.',
                     width: '50%',
                   },
                 },
