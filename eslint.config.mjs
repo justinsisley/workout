@@ -31,7 +31,7 @@ const eslintConfig = [
     },
   },
   {
-    ignores: ['.next/', '.bmad-core/', 'src/payload/payload-types.ts'],
+    ignores: ['.next/', '.bmad-core/', 'docs/', 'src/payload/payload-types.ts'],
   },
 ]
 
