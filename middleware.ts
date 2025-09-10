@@ -7,17 +7,53 @@ const PROTECTED_ROUTES = ['/app', '/dashboard', '/workouts', '/programs', '/prof
 // Public routes that don't require authentication
 const PUBLIC_ROUTES = ['/', '/login', '/register', '/api/auth']
 
+// Security headers for enhanced protection
+const securityHeaders = {
+  // Prevent clickjacking attacks
+  'X-Frame-Options': 'DENY',
+  // Prevent MIME type sniffing
+  'X-Content-Type-Options': 'nosniff',
+  // Enable XSS protection
+  'X-XSS-Protection': '1; mode=block',
+  // Enforce HTTPS
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+  // Referrer policy
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  // Permissions policy (formerly Feature Policy)
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+  // Content Security Policy
+  'Content-Security-Policy': [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Allow inline scripts for Next.js
+    "style-src 'self' 'unsafe-inline'", // Allow inline styles for styling
+    "img-src 'self' data: https:", // Allow images from same origin, data URLs, and HTTPS
+    "font-src 'self' data:",
+    "connect-src 'self'",
+    "frame-ancestors 'none'", // Same as X-Frame-Options: DENY
+  ].join('; '),
+}
+
+/**
+ * Add security headers to response
+ */
+function addSecurityHeaders(response: NextResponse): NextResponse {
+  Object.entries(securityHeaders).forEach(([key, value]) => {
+    response.headers.set(key, value)
+  })
+  return response
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Allow all API routes except auth-protected ones to pass through
   if (pathname.startsWith('/api/') && !pathname.startsWith('/api/protected')) {
-    return NextResponse.next()
+    return addSecurityHeaders(NextResponse.next())
   }
 
   // Allow PayloadCMS admin routes to pass through (separate auth system)
   if (pathname.startsWith('/admin')) {
-    return NextResponse.next()
+    return addSecurityHeaders(NextResponse.next())
   }
 
   // Check if current path is a protected route
@@ -40,7 +76,7 @@ export function middleware(request: NextRequest) {
       // Redirect to login if no token
       const loginUrl = new URL('/login', request.url)
       loginUrl.searchParams.set('redirect', pathname)
-      return NextResponse.redirect(loginUrl)
+      return addSecurityHeaders(NextResponse.redirect(loginUrl))
     }
 
     // Verify token
@@ -49,18 +85,20 @@ export function middleware(request: NextRequest) {
       // Redirect to login if invalid token
       const loginUrl = new URL('/login', request.url)
       loginUrl.searchParams.set('redirect', pathname)
-      return NextResponse.redirect(loginUrl)
+      return addSecurityHeaders(NextResponse.redirect(loginUrl))
     }
 
     // Add user info to request headers for server components
     const requestHeaders = new Headers(request.headers)
     requestHeaders.set('x-user-id', payload.productUserId)
 
-    return NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
-    })
+    return addSecurityHeaders(
+      NextResponse.next({
+        request: {
+          headers: requestHeaders,
+        },
+      }),
+    )
   }
 
   // If accessing a public route while authenticated, allow but add user info
@@ -70,16 +108,18 @@ export function middleware(request: NextRequest) {
       const requestHeaders = new Headers(request.headers)
       requestHeaders.set('x-user-id', payload.productUserId)
 
-      return NextResponse.next({
-        request: {
-          headers: requestHeaders,
-        },
-      })
+      return addSecurityHeaders(
+        NextResponse.next({
+          request: {
+            headers: requestHeaders,
+          },
+        }),
+      )
     }
   }
 
   // Allow all other routes to pass through
-  return NextResponse.next()
+  return addSecurityHeaders(NextResponse.next())
 }
 
 export const config = {

@@ -11,6 +11,7 @@ import { isoBase64URL, isoUint8Array } from '@simplewebauthn/server/helpers'
 import { z } from 'zod'
 import { getPayload } from 'payload'
 import configPromise from '@/payload/payload.config'
+import { headers } from 'next/headers'
 
 import { WEBAUTHN_RP_ID, WEBAUTHN_RP_NAME, NEXT_PUBLIC_APP_URL } from '@/lib/config'
 import { generateJWTToken } from '@/lib/auth'
@@ -23,6 +24,59 @@ import type {
   RegistrationResponseJSON,
   AuthenticationResponseJSON,
 } from '@/types/auth'
+
+// Simple in-memory rate limiter
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>()
+
+// Rate limit settings
+const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000 // 15 minutes
+const MAX_ATTEMPTS_PER_WINDOW = 5 // 5 attempts per 15 minutes
+
+/**
+ * Simple rate limiter for authentication endpoints
+ */
+function checkRateLimit(identifier: string): { allowed: boolean; error?: string } {
+  const now = Date.now()
+  const key = `auth:${identifier}`
+
+  const current = rateLimitMap.get(key)
+
+  if (!current || now > current.resetTime) {
+    // First attempt or window expired, reset
+    rateLimitMap.set(key, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS })
+    return { allowed: true }
+  }
+
+  if (current.count >= MAX_ATTEMPTS_PER_WINDOW) {
+    const remainingTime = Math.ceil((current.resetTime - now) / 60000) // minutes
+    return {
+      allowed: false,
+      error: `Too many authentication attempts. Please try again in ${remainingTime} minute(s).`,
+    }
+  }
+
+  // Increment counter
+  current.count++
+  rateLimitMap.set(key, current)
+
+  return { allowed: true }
+}
+
+/**
+ * Get client identifier for rate limiting (IP address or fallback)
+ */
+async function getClientIdentifier(): Promise<string> {
+  try {
+    const headersList = await headers()
+    const forwardedFor = headersList.get('x-forwarded-for')
+    const realIP = headersList.get('x-real-ip')
+
+    // Use forwarded IP, real IP, or fallback to generic identifier
+    return forwardedFor?.split(',')[0]?.trim() || realIP || 'unknown'
+  } catch {
+    return 'unknown'
+  }
+}
 
 // Validation schemas
 const UsernameSchema = z
@@ -77,6 +131,13 @@ export async function generatePasskeyRegistrationOptions(
   username: string,
 ): Promise<PasskeyRegistrationResult> {
   try {
+    // Check rate limit
+    const clientId = await getClientIdentifier()
+    const rateLimitResult = checkRateLimit(clientId)
+    if (!rateLimitResult.allowed) {
+      return { success: false, error: rateLimitResult.error || 'Rate limit exceeded' }
+    }
+
     // Validate username
     const validatedUsername = UsernameSchema.parse(username)
 
@@ -147,6 +208,13 @@ export async function verifyPasskeyRegistration(
   registrationResponse: RegistrationResponseJSON,
 ): Promise<RegistrationVerificationResult> {
   try {
+    // Check rate limit
+    const clientId = await getClientIdentifier()
+    const rateLimitResult = checkRateLimit(clientId)
+    if (!rateLimitResult.allowed) {
+      return { success: false, error: rateLimitResult.error || 'Rate limit exceeded' }
+    }
+
     // Validate input
     const validatedProductUserId = ProductUserIdSchema.parse(productUserId)
 
@@ -227,6 +295,13 @@ export async function generatePasskeyAuthenticationOptions(
   username: string,
 ): Promise<PasskeyAuthenticationResult> {
   try {
+    // Check rate limit
+    const clientId = await getClientIdentifier()
+    const rateLimitResult = checkRateLimit(clientId)
+    if (!rateLimitResult.allowed) {
+      return { success: false, error: rateLimitResult.error || 'Rate limit exceeded' }
+    }
+
     // Validate username
     const validatedUsername = UsernameSchema.parse(username)
 
@@ -305,6 +380,13 @@ export async function verifyPasskeyAuthentication(
   authenticationResponse: AuthenticationResponseJSON,
 ): Promise<AuthenticationVerificationResult> {
   try {
+    // Check rate limit
+    const clientId = await getClientIdentifier()
+    const rateLimitResult = checkRateLimit(clientId)
+    if (!rateLimitResult.allowed) {
+      return { success: false, error: rateLimitResult.error || 'Rate limit exceeded' }
+    }
+
     // Validate username
     const validatedUsername = UsernameSchema.parse(username)
 
