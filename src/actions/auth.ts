@@ -1,6 +1,12 @@
 'use server'
 
-import { generateRegistrationOptions, verifyRegistrationResponse } from '@simplewebauthn/server'
+import {
+  generateRegistrationOptions,
+  verifyRegistrationResponse,
+  generateAuthenticationOptions,
+  verifyAuthenticationResponse,
+} from '@simplewebauthn/server'
+import type { AuthenticatorTransportFuture } from '@simplewebauthn/server'
 import { isoBase64URL, isoUint8Array } from '@simplewebauthn/server/helpers'
 import { z } from 'zod'
 import { getPayload } from 'payload'
@@ -9,9 +15,12 @@ import configPromise from '@/payload/payload.config'
 import { WEBAUTHN_RP_ID, WEBAUTHN_RP_NAME, NEXT_PUBLIC_APP_URL } from '@/lib/config'
 import type {
   PasskeyRegistrationResult,
+  PasskeyAuthenticationResult,
   UsernameCheckResult,
   RegistrationVerificationResult,
+  AuthenticationVerificationResult,
   RegistrationResponseJSON,
+  AuthenticationResponseJSON,
 } from '@/types/auth'
 
 // Validation schemas
@@ -207,5 +216,191 @@ export async function verifyPasskeyRegistration(
     }
 
     return { success: false, error: 'Registration verification failed' }
+  }
+}
+
+/**
+ * Generate authentication options for WebAuthN passkey login
+ */
+export async function generatePasskeyAuthenticationOptions(
+  username: string,
+): Promise<PasskeyAuthenticationResult> {
+  try {
+    // Validate username
+    const validatedUsername = UsernameSchema.parse(username)
+
+    const payload = await getPayload({ config: configPromise })
+
+    // Find user by username
+    const existingUsers = await payload.find({
+      collection: 'productUsers',
+      where: {
+        username: {
+          equals: validatedUsername,
+        },
+      },
+      limit: 1,
+    })
+
+    if (existingUsers.docs.length === 0) {
+      return { success: false, error: 'Username not found' }
+    }
+
+    const productUser = existingUsers.docs[0]
+
+    if (!productUser) {
+      return { success: false, error: 'User not found' }
+    }
+
+    // Check if user has registered passkeys
+    if (!productUser.passkeyCredentials || productUser.passkeyCredentials.length === 0) {
+      return { success: false, error: 'No passkeys registered for this user' }
+    }
+
+    // Prepare allowCredentials from stored credentials
+    const allowCredentials = productUser.passkeyCredentials.map((cred) => ({
+      id: cred.credentialID,
+      transports: (cred.transports?.map((t) => t.transport).filter((t): t is string => t != null) ||
+        []) as AuthenticatorTransportFuture[],
+    }))
+
+    // Generate WebAuthN authentication options
+    const authenticationOptions = await generateAuthenticationOptions({
+      rpID: WEBAUTHN_RP_ID,
+      allowCredentials,
+      userVerification: 'preferred',
+    })
+
+    // Store challenge for verification
+    await payload.update({
+      collection: 'productUsers',
+      id: productUser.id,
+      data: {
+        webauthnChallenge: authenticationOptions.challenge,
+      },
+    })
+
+    return {
+      success: true,
+      authenticationOptions,
+      productUser,
+    }
+  } catch (error) {
+    console.error('Passkey authentication options generation error:', error)
+
+    if (error instanceof z.ZodError) {
+      return { success: false, error: error.issues[0]?.message || 'Invalid input' }
+    }
+
+    return { success: false, error: 'Failed to generate authentication options' }
+  }
+}
+
+/**
+ * Verify passkey authentication response and complete user login
+ */
+export async function verifyPasskeyAuthentication(
+  username: string,
+  authenticationResponse: AuthenticationResponseJSON,
+): Promise<AuthenticationVerificationResult> {
+  try {
+    // Validate username
+    const validatedUsername = UsernameSchema.parse(username)
+
+    const payload = await getPayload({ config: configPromise })
+
+    // Find user by username
+    const existingUsers = await payload.find({
+      collection: 'productUsers',
+      where: {
+        username: {
+          equals: validatedUsername,
+        },
+      },
+      limit: 1,
+    })
+
+    if (existingUsers.docs.length === 0) {
+      return { success: false, error: 'User not found' }
+    }
+
+    const productUser = existingUsers.docs[0]
+
+    if (!productUser) {
+      return { success: false, error: 'User not found' }
+    }
+
+    if (!productUser.webauthnChallenge) {
+      return { success: false, error: 'No active authentication challenge' }
+    }
+
+    if (!productUser.passkeyCredentials || productUser.passkeyCredentials.length === 0) {
+      return { success: false, error: 'No passkeys registered for this user' }
+    }
+
+    // Find the credential being used
+    const credentialID = authenticationResponse.id
+    const credential = productUser.passkeyCredentials.find(
+      (cred) => cred.credentialID === credentialID,
+    )
+
+    if (!credential) {
+      return { success: false, error: 'Credential not found for this user' }
+    }
+
+    // Verify the authentication response
+    const verification = await verifyAuthenticationResponse({
+      response: authenticationResponse,
+      expectedChallenge: productUser.webauthnChallenge,
+      expectedOrigin: NEXT_PUBLIC_APP_URL,
+      expectedRPID: WEBAUTHN_RP_ID,
+      credential: {
+        id: credential.credentialID,
+        publicKey: isoBase64URL.toBuffer(credential.publicKey),
+        counter: credential.counter,
+      },
+    })
+
+    if (!verification.verified) {
+      return { success: false, error: 'Authentication verification failed' }
+    }
+
+    // Update credential counter
+    const updatedCredentials = productUser.passkeyCredentials.map((cred) => {
+      if (cred.credentialID === credentialID) {
+        return {
+          ...cred,
+          counter: verification.authenticationInfo.newCounter,
+        }
+      }
+      return cred
+    })
+
+    // Update user record with new counter and clear challenge
+    const updatedUser = await payload.update({
+      collection: 'productUsers',
+      id: productUser.id,
+      data: {
+        passkeyCredentials: updatedCredentials,
+        webauthnChallenge: null, // Clear the challenge
+      },
+    })
+
+    // TODO: Generate JWT token for session management
+    // This will be implemented in the session management task
+
+    return {
+      success: true,
+      productUser: updatedUser,
+      // token will be added when JWT implementation is complete
+    }
+  } catch (error) {
+    console.error('Passkey authentication verification error:', error)
+
+    if (error instanceof z.ZodError) {
+      return { success: false, error: error.issues[0]?.message || 'Invalid input' }
+    }
+
+    return { success: false, error: 'Authentication verification failed' }
   }
 }
