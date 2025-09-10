@@ -5,7 +5,6 @@ import React from 'react'
 import { fileURLToPath } from 'url'
 
 import config from '@/payload/payload.config'
-import './styles.css'
 
 export default async function HomePage() {
   const headers = await getHeaders()
@@ -16,8 +15,8 @@ export default async function HomePage() {
   const fileURL = `vscode://file/${fileURLToPath(import.meta.url)}`
 
   return (
-    <div className="home">
-      <div className="content">
+    <div className="flex flex-col justify-between items-center h-screen p-11 max-w-4xl mx-auto overflow-hidden max-[400px]:p-6">
+      <div className="flex flex-col items-center justify-center flex-grow">
         <picture>
           <source srcSet="https://raw.githubusercontent.com/payloadcms/payload/main/packages/ui/src/assets/payload-favicon.svg" />
           <Image
@@ -27,11 +26,19 @@ export default async function HomePage() {
             width={65}
           />
         </picture>
-        {!user && <h1>Welcome to your new project.</h1>}
-        {user && <h1>Welcome back, {user.email}</h1>}
-        <div className="links">
+        {!user && (
+          <h1 className="text-center my-10 text-6xl leading-[70px] font-bold max-lg:my-6 max-lg:text-[42px] max-lg:leading-[42px] max-md:text-[38px] max-md:leading-[38px] max-[400px]:text-[32px] max-[400px]:leading-[32px]">
+            Welcome to your new project.
+          </h1>
+        )}
+        {user && (
+          <h1 className="text-center my-10 text-6xl leading-[70px] font-bold max-lg:my-6 max-lg:text-[42px] max-lg:leading-[42px] max-md:text-[38px] max-md:leading-[38px] max-[400px]:text-[32px] max-[400px]:leading-[32px]">
+            Welcome back, {user.email}
+          </h1>
+        )}
+        <div className="flex items-center gap-3">
           <a
-            className="admin"
+            className="text-black bg-white border border-black no-underline py-1 px-2 rounded"
             href={payloadConfig.routes.admin}
             rel="noopener noreferrer"
             target="_blank"
@@ -39,7 +46,7 @@ export default async function HomePage() {
             Go to admin panel
           </a>
           <a
-            className="docs"
+            className="text-white bg-black border border-white no-underline py-1 px-2 rounded"
             href="https://payloadcms.com/docs"
             rel="noopener noreferrer"
             target="_blank"
@@ -48,9 +55,9 @@ export default async function HomePage() {
           </a>
         </div>
       </div>
-      <div className="footer">
-        <p>Update this page by editing</p>
-        <a className="codeLink" href={fileURL}>
+      <div className="flex items-center gap-2 max-lg:flex-col max-lg:gap-1.5">
+        <p className="m-0">Update this page by editing</p>
+        <a className="no-underline px-2 bg-gray-600 rounded" href={fileURL}>
           <code>app/(frontend)/page.tsx</code>
         </a>
       </div>
