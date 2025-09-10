@@ -42,6 +42,7 @@
     "@payloadcms/plugin-import-export": "^3.55.0",
     "@payloadcms/richtext-lexical": "3.55.0",
     "@payloadcms/ui": "3.55.0",
+    "@simplewebauthn/server": "^13.1.2",
     "cross-env": "^10.0.0",
     "csv-parser": "^3.2.0",
     "dotenv": "^17.2.2",

@@ -82,6 +82,11 @@ export const ProductUsers: CollectionConfig = {
             },
           ],
         },
+        {
+          name: 'registrationDate',
+          type: 'date',
+          required: true,
+        },
       ],
       admin: {
         description: 'WebAuthN passkey credentials for this user.',
@@ -126,6 +131,14 @@ export const ProductUsers: CollectionConfig = {
       min: 0,
       admin: {
         description: 'Total number of workouts completed by this user.',
+      },
+    },
+    {
+      name: 'webauthnChallenge',
+      type: 'text',
+      admin: {
+        description: 'Temporary WebAuthN challenge for registration/authentication verification.',
+        hidden: true,
       },
     },
   ],

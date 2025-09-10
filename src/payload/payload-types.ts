@@ -352,6 +352,7 @@ export interface ProductUser {
               id?: string | null;
             }[]
           | null;
+        registrationDate: string;
         id?: string | null;
       }[]
     | null;
@@ -375,6 +376,10 @@ export interface ProductUser {
    * Total number of workouts completed by this user.
    */
   totalWorkoutsCompleted?: number | null;
+  /**
+   * Temporary WebAuthN challenge for registration/authentication verification.
+   */
+  webauthnChallenge?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -760,6 +765,7 @@ export interface ProductUsersSelect<T extends boolean = true> {
               transport?: T;
               id?: T;
             };
+        registrationDate?: T;
         id?: T;
       };
   currentProgram?: T;
@@ -767,6 +773,7 @@ export interface ProductUsersSelect<T extends boolean = true> {
   currentDay?: T;
   lastWorkoutDate?: T;
   totalWorkoutsCompleted?: T;
+  webauthnChallenge?: T;
   updatedAt?: T;
   createdAt?: T;
 }
