@@ -3,6 +3,9 @@
 // Load .env files
 import 'dotenv/config'
 
+// Add jest-dom matchers
+import '@testing-library/jest-dom'
+
 // Mock CSS imports for vitest
 Object.defineProperty(require, 'extensions', {
   value: {
