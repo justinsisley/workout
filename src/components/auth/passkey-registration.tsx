@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { startRegistration } from '@simplewebauthn/browser'
-import { Loader2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { startRegistration, browserSupportsWebAuthn } from '@simplewebauthn/browser'
+import { Loader2, AlertTriangle, Smartphone } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -53,6 +53,8 @@ export function PasskeyRegistration({ onRegistrationComplete }: PasskeyRegistrat
     'username',
   )
   const [, setProductUserId] = useState<string>('')
+  const [browserSupportsPasskeys, setBrowserSupportsPasskeys] = useState<boolean>(true)
+  const [isCheckingSupport, setIsCheckingSupport] = useState(true)
 
   const form = useForm<RegistrationFormData>({
     resolver: zodResolver(registrationFormSchema),
@@ -60,6 +62,40 @@ export function PasskeyRegistration({ onRegistrationComplete }: PasskeyRegistrat
       username: '',
     },
   })
+
+  // Check browser WebAuthN support on component mount
+  useEffect(() => {
+    const checkBrowserSupport = async () => {
+      try {
+        const supportsWebAuthn = browserSupportsWebAuthn()
+
+        // Additional checks for passkey-specific features
+        const hasCredentialsCreate = typeof navigator?.credentials?.create === 'function'
+        const hasCredentialsGet = typeof navigator?.credentials?.get === 'function'
+        const isSecureContext = window.isSecureContext
+
+        const fullSupport =
+          supportsWebAuthn && hasCredentialsCreate && hasCredentialsGet && isSecureContext
+        setBrowserSupportsPasskeys(fullSupport)
+
+        if (!fullSupport) {
+          console.warn('Browser passkey support check failed:', {
+            supportsWebAuthn,
+            hasCredentialsCreate,
+            hasCredentialsGet,
+            isSecureContext,
+          })
+        }
+      } catch (error) {
+        console.error('Error checking browser support:', error)
+        setBrowserSupportsPasskeys(false)
+      } finally {
+        setIsCheckingSupport(false)
+      }
+    }
+
+    checkBrowserSupport()
+  }, [])
 
   const handleUsernameSubmit = async (data: RegistrationFormData) => {
     setIsLoading(true)
@@ -113,7 +149,34 @@ export function PasskeyRegistration({ onRegistrationComplete }: PasskeyRegistrat
         onRegistrationComplete?.(registrationResult.productUserId)
       } catch (webauthnError) {
         console.error('WebAuthN registration error:', webauthnError)
-        setError('Passkey registration failed. Please ensure your device supports passkeys.')
+
+        // Provide specific error messages based on WebAuthN error types
+        let errorMessage = 'Passkey registration failed.'
+
+        if (webauthnError instanceof Error) {
+          switch (webauthnError.name) {
+            case 'NotSupportedError':
+              errorMessage = 'Passkeys are not supported on this device or browser.'
+              break
+            case 'SecurityError':
+              errorMessage =
+                'Security error: Please ensure you are using a secure connection (HTTPS).'
+              break
+            case 'NotAllowedError':
+              errorMessage = 'Passkey registration was cancelled or timed out. Please try again.'
+              break
+            case 'InvalidStateError':
+              errorMessage = 'A passkey for this account may already exist on this device.'
+              break
+            case 'ConstraintError':
+              errorMessage = 'Device constraints prevent passkey creation. Try a different device.'
+              break
+            default:
+              errorMessage = `Passkey registration failed: ${webauthnError.message}`
+          }
+        }
+
+        setError(errorMessage)
       }
     } catch (error) {
       console.error('Registration error:', error)
@@ -129,6 +192,66 @@ export function PasskeyRegistration({ onRegistrationComplete }: PasskeyRegistrat
     setSuccess(null)
     setProductUserId('')
     form.reset()
+  }
+
+  // Show loading while checking browser support
+  if (isCheckingSupport) {
+    return (
+      <Card className="w-full max-w-md mx-auto">
+        <CardContent className="flex items-center justify-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin mr-2" />
+          <span>Checking device compatibility...</span>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  // Show browser compatibility warning if passkeys are not supported
+  if (!browserSupportsPasskeys) {
+    return (
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl flex items-center justify-center gap-2">
+            <AlertTriangle className="h-6 w-6 text-amber-500" />
+            Passkeys Not Supported
+          </CardTitle>
+          <CardDescription>
+            Your browser or device doesn&apos;t support passkey authentication
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Alert>
+            <Smartphone className="h-4 w-4" />
+            <AlertDescription className="space-y-2">
+              <p className="font-medium">To use this app, you&apos;ll need:</p>
+              <ul className="list-disc ml-4 space-y-1 text-sm">
+                <li>A modern browser (Chrome 67+, Safari 14+, Firefox 60+, Edge 18+)</li>
+                <li>A secure connection (HTTPS)</li>
+                <li>A device with biometric authentication (fingerprint, face, or PIN)</li>
+              </ul>
+            </AlertDescription>
+          </Alert>
+
+          <div className="space-y-2 text-sm text-muted-foreground">
+            <p className="font-medium">Recommended browsers:</p>
+            <ul className="list-disc ml-4 space-y-1">
+              <li>
+                <strong>Mobile:</strong> Chrome, Safari, Samsung Internet
+              </li>
+              <li>
+                <strong>Desktop:</strong> Chrome, Safari, Edge, Firefox
+              </li>
+            </ul>
+          </div>
+
+          <div className="pt-4">
+            <Button onClick={() => window.location.reload()} variant="outline" className="w-full">
+              Check Again
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
 
   if (registrationStep === 'complete') {
@@ -193,10 +316,20 @@ export function PasskeyRegistration({ onRegistrationComplete }: PasskeyRegistrat
           </form>
         </Form>
 
-        <div className="mt-6 text-sm text-muted-foreground">
-          <p className="text-center">
-            Your device will prompt you to create a passkey using your fingerprint, face, or PIN.
-          </p>
+        <div className="mt-6 space-y-3">
+          <div className="text-sm text-muted-foreground">
+            <p className="text-center">
+              Your device will prompt you to create a passkey using your fingerprint, face, or PIN.
+            </p>
+          </div>
+
+          <Alert>
+            <Smartphone className="h-4 w-4" />
+            <AlertDescription className="text-xs">
+              <strong>Secure & Private:</strong> Passkeys are stored locally on your device and
+              never shared. They work with Touch ID, Face ID, Windows Hello, or your device PIN.
+            </AlertDescription>
+          </Alert>
         </div>
       </CardContent>
     </Card>
