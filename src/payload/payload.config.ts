@@ -2,6 +2,7 @@
 import { mongooseAdapter } from '@payloadcms/db-mongodb'
 import { payloadCloudPlugin } from '@payloadcms/payload-cloud'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
+import { importExportPlugin } from '@payloadcms/plugin-import-export'
 import path from 'path'
 import { buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
@@ -36,6 +37,9 @@ export default buildConfig({
   sharp,
   plugins: [
     payloadCloudPlugin(),
+    importExportPlugin({
+      collections: ['exercises', 'programs'],
+    }),
     // storage-adapter-placeholder
   ],
 })

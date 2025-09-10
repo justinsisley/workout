@@ -1,5 +1,4 @@
 import type { CollectionConfig } from 'payload'
-import { ExerciseRowLabel } from '../../components/admin/exercise-row-label'
 
 export const Programs: CollectionConfig = {
   slug: 'programs',
@@ -342,7 +341,7 @@ export const Programs: CollectionConfig = {
                 condition: (_, siblingData) => siblingData?.dayType === 'workout',
                 initCollapsed: false,
                 components: {
-                  RowLabel: ExerciseRowLabel,
+                  RowLabel: 'src/components/admin/exercise-row-label#ExerciseRowLabel',
                 } as Record<string, unknown>,
               },
               labels: {

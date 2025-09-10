@@ -73,6 +73,8 @@ export interface Config {
     programs: Program;
     productUsers: ProductUser;
     exerciseCompletions: ExerciseCompletion;
+    exports: Export;
+    'payload-jobs': PayloadJob;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -85,6 +87,8 @@ export interface Config {
     programs: ProgramsSelect<false> | ProgramsSelect<true>;
     productUsers: ProductUsersSelect<false> | ProductUsersSelect<true>;
     exerciseCompletions: ExerciseCompletionsSelect<false> | ExerciseCompletionsSelect<true>;
+    exports: ExportsSelect<false> | ExportsSelect<true>;
+    'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -99,7 +103,13 @@ export interface Config {
     collection: 'users';
   };
   jobs: {
-    tasks: unknown;
+    tasks: {
+      createCollectionExport: TaskCreateCollectionExport;
+      inline: {
+        input: unknown;
+        output: unknown;
+      };
+    };
     workflows: unknown;
   };
 }
@@ -242,6 +252,14 @@ export interface Program {
                */
               dayType: 'workout' | 'rest';
               /**
+               * Check if this is an AMRAP (As Many Rounds As Possible) day
+               */
+              isAmrap?: boolean | null;
+              /**
+               * Duration for AMRAP workout in minutes (e.g., 12 for 12-minute AMRAP)
+               */
+              amrapDuration?: number | null;
+              /**
                * Exercises for this workout day. Only shown for workout days. Drag and drop to reorder exercises.
                */
               exercises?:
@@ -267,9 +285,21 @@ export interface Program {
                      */
                     weight?: number | null;
                     /**
-                     * Duration in seconds for time-based exercises (optional)
+                     * Duration amount for time-based exercises like planks, holds, or timed runs. Examples: 30 seconds for plank, 5 minutes for run, 1 hour for ruck march. Both value and unit must be specified together.
                      */
-                    duration?: number | null;
+                    durationValue?: number | null;
+                    /**
+                     * Time unit for the duration value. Choose Seconds for short holds (planks, wall sits), Minutes for moderate activities (runs, bike rides), or Hours for long activities (ruck marches, hikes). Both value and unit must be specified together.
+                     */
+                    durationUnit?: ('seconds' | 'minutes' | 'hours') | null;
+                    /**
+                     * Distance amount for distance-based exercises like runs, walks, or bike rides. Examples: 1.5 miles for run, 500 meters for sprint, 3 miles for bike ride. Both value and unit must be specified together.
+                     */
+                    distanceValue?: number | null;
+                    /**
+                     * Distance unit for the distance value. Choose Meters for shorter distances (sprints, short runs), or Miles for longer distances (runs, bike rides, walks). Both value and unit must be specified together.
+                     */
+                    distanceUnit?: ('meters' | 'miles') | null;
                     /**
                      * Additional instructions or notes for this exercise (Max 500 characters)
                      */
@@ -405,6 +435,135 @@ export interface ExerciseCompletion {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "exports".
+ */
+export interface Export {
+  id: string;
+  name?: string | null;
+  format?: ('csv' | 'json') | null;
+  limit?: number | null;
+  page?: number | null;
+  sort?: string | null;
+  sortOrder?: ('asc' | 'desc') | null;
+  drafts?: ('yes' | 'no') | null;
+  selectionToUse?: ('currentSelection' | 'currentFilters' | 'all') | null;
+  fields?: string[] | null;
+  collectionSlug: string;
+  where?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-jobs".
+ */
+export interface PayloadJob {
+  id: string;
+  /**
+   * Input data provided to the job
+   */
+  input?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  taskStatus?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  completedAt?: string | null;
+  totalTried?: number | null;
+  /**
+   * If hasError is true this job will not be retried
+   */
+  hasError?: boolean | null;
+  /**
+   * If hasError is true, this is the error that caused it
+   */
+  error?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Task execution log
+   */
+  log?:
+    | {
+        executedAt: string;
+        completedAt: string;
+        taskSlug: 'inline' | 'createCollectionExport';
+        taskID: string;
+        input?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        output?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        state: 'failed' | 'succeeded';
+        error?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  taskSlug?: ('inline' | 'createCollectionExport') | null;
+  queue?: string | null;
+  waitUntil?: string | null;
+  processing?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -433,6 +592,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'exerciseCompletions';
         value: string | ExerciseCompletion;
+      } | null)
+    | ({
+        relationTo: 'exports';
+        value: string | Export;
+      } | null)
+    | ({
+        relationTo: 'payload-jobs';
+        value: string | PayloadJob;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -547,6 +714,8 @@ export interface ProgramsSelect<T extends boolean = true> {
           | T
           | {
               dayType?: T;
+              isAmrap?: T;
+              amrapDuration?: T;
               exercises?:
                 | T
                 | {
@@ -555,7 +724,10 @@ export interface ProgramsSelect<T extends boolean = true> {
                     reps?: T;
                     restPeriod?: T;
                     weight?: T;
-                    duration?: T;
+                    durationValue?: T;
+                    durationUnit?: T;
+                    distanceValue?: T;
+                    distanceUnit?: T;
                     notes?: T;
                     id?: T;
                   };
@@ -619,6 +791,65 @@ export interface ExerciseCompletionsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "exports_select".
+ */
+export interface ExportsSelect<T extends boolean = true> {
+  name?: T;
+  format?: T;
+  limit?: T;
+  page?: T;
+  sort?: T;
+  sortOrder?: T;
+  drafts?: T;
+  selectionToUse?: T;
+  fields?: T;
+  collectionSlug?: T;
+  where?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-jobs_select".
+ */
+export interface PayloadJobsSelect<T extends boolean = true> {
+  input?: T;
+  taskStatus?: T;
+  completedAt?: T;
+  totalTried?: T;
+  hasError?: T;
+  error?: T;
+  log?:
+    | T
+    | {
+        executedAt?: T;
+        completedAt?: T;
+        taskSlug?: T;
+        taskID?: T;
+        input?: T;
+        output?: T;
+        state?: T;
+        error?: T;
+        id?: T;
+      };
+  taskSlug?: T;
+  queue?: T;
+  waitUntil?: T;
+  processing?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents_select".
  */
 export interface PayloadLockedDocumentsSelect<T extends boolean = true> {
@@ -648,6 +879,37 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskCreateCollectionExport".
+ */
+export interface TaskCreateCollectionExport {
+  input: {
+    name?: string | null;
+    format?: ('csv' | 'json') | null;
+    limit?: number | null;
+    page?: number | null;
+    sort?: string | null;
+    sortOrder?: ('asc' | 'desc') | null;
+    drafts?: ('yes' | 'no') | null;
+    selectionToUse?: ('currentSelection' | 'currentFilters' | 'all') | null;
+    fields?: string[] | null;
+    collectionSlug: string;
+    where?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+    user?: string | null;
+    userCollection?: string | null;
+    exportsCollection?: string | null;
+  };
+  output?: unknown;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
