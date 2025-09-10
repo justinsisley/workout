@@ -22,6 +22,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 
 import { generatePasskeyAuthenticationOptions, verifyPasskeyAuthentication } from '@/actions/auth'
+import { useAuthStore } from '@/stores/auth-store'
+import { storeToken } from '@/lib/auth'
 
 // Form validation schema
 const authenticationFormSchema = z.object({
@@ -42,6 +44,7 @@ interface PasskeyAuthenticationProps {
 }
 
 export function PasskeyAuthentication({ onAuthenticationComplete }: PasskeyAuthenticationProps) {
+  const { setProductUser } = useAuthStore()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
@@ -130,11 +133,22 @@ export function PasskeyAuthentication({ onAuthenticationComplete }: PasskeyAuthe
           return
         }
 
-        setSuccess('Authentication successful!')
-        setAuthenticationStep('complete')
+        // Handle successful authentication with JWT token
+        if (verificationResult.token && verificationResult.productUser) {
+          // Store JWT token
+          storeToken(verificationResult.token)
 
-        // Notify parent component
-        onAuthenticationComplete?.(authenticationResult.productUser.id)
+          // Update auth store
+          setProductUser(verificationResult.productUser)
+
+          setSuccess('Authentication successful!')
+          setAuthenticationStep('complete')
+
+          // Notify parent component
+          onAuthenticationComplete?.(verificationResult.productUser.id)
+        } else {
+          setError('Authentication successful but session setup failed')
+        }
       } catch (webauthnError) {
         console.error('WebAuthN authentication error:', webauthnError)
 

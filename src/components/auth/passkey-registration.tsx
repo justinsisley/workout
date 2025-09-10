@@ -26,6 +26,8 @@ import {
   generatePasskeyRegistrationOptions,
   verifyPasskeyRegistration,
 } from '@/actions/auth'
+import { useAuthStore } from '@/stores/auth-store'
+import { storeToken } from '@/lib/auth'
 
 // Form validation schema
 const registrationFormSchema = z.object({
@@ -46,6 +48,7 @@ interface PasskeyRegistrationProps {
 }
 
 export function PasskeyRegistration({ onRegistrationComplete }: PasskeyRegistrationProps) {
+  const { setProductUser } = useAuthStore()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
@@ -142,11 +145,22 @@ export function PasskeyRegistration({ onRegistrationComplete }: PasskeyRegistrat
           return
         }
 
-        setSuccess('Passkey registration successful!')
-        setRegistrationStep('complete')
+        // Handle successful registration with JWT token
+        if (verificationResult.token && verificationResult.productUser) {
+          // Store JWT token
+          storeToken(verificationResult.token)
 
-        // Notify parent component
-        onRegistrationComplete?.(registrationResult.productUserId)
+          // Update auth store
+          setProductUser(verificationResult.productUser)
+
+          setSuccess('Passkey registration successful!')
+          setRegistrationStep('complete')
+
+          // Notify parent component
+          onRegistrationComplete?.(verificationResult.productUser.id)
+        } else {
+          setError('Registration successful but authentication setup failed')
+        }
       } catch (webauthnError) {
         console.error('WebAuthN registration error:', webauthnError)
 

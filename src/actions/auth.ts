@@ -13,6 +13,7 @@ import { getPayload } from 'payload'
 import configPromise from '@/payload/payload.config'
 
 import { WEBAUTHN_RP_ID, WEBAUTHN_RP_NAME, NEXT_PUBLIC_APP_URL } from '@/lib/config'
+import { generateJWTToken } from '@/lib/auth'
 import type {
   PasskeyRegistrationResult,
   PasskeyAuthenticationResult,
@@ -200,13 +201,13 @@ export async function verifyPasskeyRegistration(
       },
     })
 
-    // TODO: Generate JWT token for authentication
-    // This will be implemented in the session management task
+    // Generate JWT token for authentication
+    const token = generateJWTToken(updatedUser)
 
     return {
       success: true,
       productUser: updatedUser,
-      // token will be added when JWT implementation is complete
+      token,
     }
   } catch (error) {
     console.error('Passkey registration verification error:', error)
@@ -386,13 +387,13 @@ export async function verifyPasskeyAuthentication(
       },
     })
 
-    // TODO: Generate JWT token for session management
-    // This will be implemented in the session management task
+    // Generate JWT token for session management
+    const token = generateJWTToken(updatedUser)
 
     return {
       success: true,
       productUser: updatedUser,
-      // token will be added when JWT implementation is complete
+      token,
     }
   } catch (error) {
     console.error('Passkey authentication verification error:', error)
