@@ -426,6 +426,115 @@ if (isAmrapDay(day)) {
 }
 ```
 
+## PayloadCMS Configuration Best Practices
+
+### Component Path Resolution (Critical Learning)
+
+**Issue:** Direct React component imports in PayloadCMS config files cause CSS extension errors during `generate:types` and `generate:importmap` commands.
+
+**Root Cause:** PayloadCMS build process cannot handle direct React component imports that may include CSS/SCSS imports.
+
+### ❌ Problematic Pattern
+
+```typescript
+// src/payload/collections/exercises.ts
+import { ExerciseRowLabel } from '../../components/admin/exercise-row-label'
+
+export const ExercisesCollection: CollectionConfig = {
+  slug: 'exercises',
+  components: {
+    RowLabel: ExerciseRowLabel, // Direct import causes build errors
+  },
+  // ... rest of config
+}
+```
+
+**Error Symptoms:**
+- `npm run generate:types` fails with CSS extension errors
+- `npm run generate:importmap` fails during build process
+- Build process cannot resolve React component dependencies
+
+### ✅ Correct Pattern
+
+```typescript
+// src/payload/collections/exercises.ts
+// No direct component imports needed
+
+export const ExercisesCollection: CollectionConfig = {
+  slug: 'exercises',
+  components: {
+    RowLabel: 'src/components/admin/exercise-row-label#ExerciseRowLabel',
+    //         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //         String path resolved at runtime by PayloadCMS
+  },
+  // ... rest of config
+}
+```
+
+**Path Resolution Rules:**
+- Use **absolute paths** from project root (not relative paths)
+- Format: `'src/path/to/component#ComponentName'`  
+- PayloadCMS resolves these strings at runtime
+- No direct imports means no CSS resolution conflicts
+
+### Configuration Workflow
+
+**After Component Path Changes:**
+```bash
+# 1. Update PayloadCMS config with string paths
+# 2. Regenerate import map
+npm run generate:importmap
+
+# 3. Regenerate TypeScript definitions
+npm run generate:types
+
+# 4. Restart development server
+npm run dev
+```
+
+### Component Development Guidelines
+
+**Component File Structure:**
+```typescript
+// src/components/admin/exercise-row-label.tsx
+import React from 'react'
+import './exercise-row-label.scss' // CSS imports are safe in component files
+
+export const ExerciseRowLabel: React.FC<Props> = ({ doc, ...props }) => {
+  return (
+    <div className="exercise-row-label">
+      {/* Component implementation */}
+    </div>
+  )
+}
+```
+
+**PayloadCMS Config File Structure:**
+```typescript  
+// src/payload/collections/exercises.ts
+// NO CSS imports
+// NO direct React component imports
+// ONLY string-based component references
+
+export const ExercisesCollection: CollectionConfig = {
+  slug: 'exercises',
+  components: {
+    RowLabel: 'src/components/admin/exercise-row-label#ExerciseRowLabel',
+  },
+}
+```
+
+### Build Process Integration
+
+The string-based component resolution integrates with PayloadCMS's build pipeline:
+
+1. **Development:** Components resolved dynamically via string paths
+2. **Build Time:** `generate:importmap` creates component mappings
+3. **Type Generation:** `generate:types` uses mappings for TypeScript definitions
+4. **Runtime:** PayloadCMS loads components using resolved paths
+
+This approach prevents CSS resolution conflicts while maintaining full component functionality and type safety.
+
 ```
 
 ```

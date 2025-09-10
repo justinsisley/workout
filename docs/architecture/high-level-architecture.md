@@ -55,11 +55,18 @@ graph TB
         C[PayloadCMS<br/>Admin Interface]
         D[MongoDB<br/>Database]
         E[Static Assets<br/>Local CDN]
+        H[Import/Export<br/>Data Migration]
     end
 
     subgraph "External Services"
         F[WebAuthN<br/>Passkey Service]
         G[YouTube<br/>Video Hosting]
+    end
+
+    subgraph "Data Flow"
+        I[Development Export<br/>JSON/CSV]
+        J[Production Import<br/>Data Migration]
+        K[Automated Backups<br/>Daily Exports]
     end
 
     A --> B
@@ -69,6 +76,11 @@ graph TB
     B --> F
     B --> G
     C --> D
+    C --> H
+    H --> I
+    H --> J
+    H --> K
+    I --> J
 ```
 
 ## Architectural Patterns
@@ -80,3 +92,34 @@ graph TB
 - **Server-Side Rendering:** Next.js SSR for optimal mobile performance - _Rationale:_ Fast loading times and immediate data availability for mobile gym use
 - **Mobile-First Design:** Progressive enhancement from mobile to desktop - _Rationale:_ Primary use case is mobile gym sessions, desktop only for admin interface
 - **Progressive Validation:** Allow saving incomplete content while providing publishing controls - _Rationale:_ Supports iterative content creation workflows without blocking admin productivity
+- **Data Import/Export Architecture:** PayloadCMS plugin-based data migration and backup system - _Rationale:_ Ensures seamless production deployments and data protection with automated backup capabilities
+
+## Data Migration Architecture
+
+### Import/Export System Integration
+
+The application integrates **PayloadCMS Import/Export Plugin** for comprehensive data management across environments. This system provides:
+
+**Key Capabilities:**
+- **Complete Data Export:** All collections (programs, exercises, users, media, productUsers, exerciseCompletions)
+- **Relationship Preservation:** JSON exports maintain all nested structures and references
+- **Development-to-Production Migration:** Structured data transfer workflow
+- **Automated Backup Strategy:** Daily exports of critical business data
+- **Collection Dependency Management:** Ordered import/export prevents relationship conflicts
+
+**Migration Workflow:**
+1. **Development:** Create and populate programs/exercises via admin interface
+2. **Export:** Generate JSON exports from development admin panel (`/admin`)
+3. **Staging:** Import and validate data integrity in staging environment
+4. **Production:** Final import to production with verified data relationships
+5. **Backup:** Automated daily exports stored with timestamp naming convention
+
+**Component Path Resolution:**
+The architecture enforces **string-based component paths** in PayloadCMS configurations to prevent CSS resolution errors during build processes. This ensures reliable `generate:types` and `generate:importmap` command execution.
+
+**Data Flow Benefits:**
+- **Zero Downtime Migration:** Import/export doesn't require application restarts  
+- **Incremental Updates:** Ability to import specific collections independently
+- **Rollback Capability:** Previous exports serve as rollback points
+- **Data Validation:** PayloadCMS validation rules enforced during import
+- **Type Safety:** Generated TypeScript types ensure data consistency across environments

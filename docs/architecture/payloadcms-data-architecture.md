@@ -105,6 +105,90 @@ if (hasDistanceUnit && !hasDistanceValue) {
 - Duration: Hours ≤ 99, Minutes ≤ 999, Seconds ≤ 999
 - Distance: Both meters and miles ≤ 999 with 0.1 precision
 
+## Import/Export Data Management
+
+The application leverages **PayloadCMS Import/Export Plugin** (`@payloadcms/plugin-import-export`) for comprehensive data backup, migration, and seeding capabilities.
+
+### Enabled Collections
+
+All core collections support import/export functionality:
+
+- ✅ **programs** - Complete workout programs with embedded milestones and exercises
+- ✅ **exercises** - Exercise library with descriptions, videos, and alternatives  
+- ✅ **users** - Admin users
+- ✅ **media** - Uploaded files and images
+- ✅ **productUsers** - App users (product users)
+- ✅ **exerciseCompletions** - User progress tracking data
+
+### Plugin Configuration
+
+```typescript
+// src/payload/payload.config.ts
+importExportPlugin({
+  collections: {
+    programs: true,
+    exercises: true,
+    users: true,
+    media: true,
+    productUsers: true,
+    exerciseCompletions: true,
+  }
+})
+```
+
+### Data Migration Strategy
+
+**Collection Dependency Order:**
+1. **exercises** (no dependencies)
+2. **media** (no dependencies)  
+3. **users** (no dependencies)
+4. **programs** (depends on exercises)
+5. **productUsers** (no dependencies)
+6. **exerciseCompletions** (depends on exercises, programs, productUsers)
+
+**Export/Import Process:**
+- **JSON Format**: Preserves all relationships and nested data structure
+- **CSV Format**: Flattened data suitable for spreadsheet editing
+- **Admin Interface**: Available at `/admin` with dedicated import/export pages
+- **Relationship Integrity**: All exercise references and embedded structures maintained
+
+## Component Path Resolution
+
+**Critical Learning from Story 1.4:**
+
+PayloadCMS requires **string-based component paths** instead of direct React component imports to prevent build-time CSS extension errors during `generate:types` and `generate:importmap` commands.
+
+### ❌ Incorrect Pattern (Causes Build Errors)
+
+```typescript
+import { ExerciseRowLabel } from '../../components/admin/exercise-row-label'
+
+// In collection config:
+components: {
+  RowLabel: ExerciseRowLabel, // Direct import causes CSS errors
+}
+```
+
+### ✅ Correct Pattern (Build-Safe)
+
+```typescript
+// No direct import needed
+
+// In collection config:
+components: {
+  RowLabel: 'src/components/admin/exercise-row-label#ExerciseRowLabel',
+  //         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  //         Absolute path from project root + export name
+}
+```
+
+**Path Resolution Rules:**
+- Use absolute paths from project root (not relative paths)
+- Format: `'src/path/to/component#ComponentName'`
+- No direct React component imports in PayloadCMS configuration files
+- Run `npm run generate:importmap` after path changes
+- Run `npm run generate:types` to update TypeScript definitions
+
 ## PayloadCMS Benefits
 
 **Automatic Features:**
@@ -114,6 +198,8 @@ if (hasDistanceUnit && !hasDistanceValue) {
 - Admin interface provides drag-and-drop reordering for junction collections
 - Data validation and constraints are enforced at the field level
 - Local API provides direct database access with full type safety
+- **Import/Export Plugin**: Automated data backup and migration capabilities
+- **Component Resolution**: String-based component path system prevents build errors
 
 **Developer Experience:**
 
@@ -122,3 +208,5 @@ if (hasDistanceUnit && !hasDistanceValue) {
 - Server actions use PayloadCMS Local API for type-safe database operations
 - Admin interface is automatically generated and customizable
 - No need for REST/GraphQL APIs - Local API handles all data operations
+- **Production Data Migration**: Seamless development-to-production data transfer
+- **Backup Strategy**: Built-in export capabilities for data protection
