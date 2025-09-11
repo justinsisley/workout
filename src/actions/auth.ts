@@ -249,13 +249,13 @@ export async function verifyPasskeyRegistration(
     const { credential } = verification.registrationInfo
 
     // Store the credential in the user record
-    const updatedUser = await payload.update({
+    await payload.update({
       collection: 'productUsers',
       id: validatedProductUserId,
       data: {
         passkeyCredentials: [
           {
-            credentialID: isoBase64URL.fromBuffer(credential.id as unknown as Uint8Array),
+            credentialID: credential.id as string,
             publicKey: isoBase64URL.fromBuffer(credential.publicKey),
             counter: credential.counter,
             deviceType: verification.registrationInfo.credentialDeviceType,
@@ -267,6 +267,12 @@ export async function verifyPasskeyRegistration(
         ],
         webauthnChallenge: null, // Clear the challenge
       },
+    })
+
+    // Fetch the updated user for JWT token generation
+    const updatedUser = await payload.findByID({
+      collection: 'productUsers',
+      id: validatedProductUserId,
     })
 
     // Generate JWT token for authentication

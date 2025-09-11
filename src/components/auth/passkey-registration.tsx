@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { startRegistration, browserSupportsWebAuthn } from '@simplewebauthn/browser'
 import { Loader2, AlertTriangle, Smartphone } from 'lucide-react'
 
@@ -62,6 +62,7 @@ export function PasskeyRegistration({
   const [, setProductUserId] = useState<string>('')
   const [browserSupportsPasskeys, setBrowserSupportsPasskeys] = useState<boolean>(true)
   const [isCheckingSupport, setIsCheckingSupport] = useState(true)
+  const autoRegistrationAttempted = useRef(false)
 
   const form = useForm<RegistrationFormData>({
     resolver: zodResolver(registrationFormSchema),
@@ -111,12 +112,24 @@ export function PasskeyRegistration({
       registrationStep === 'passkey' &&
       !isCheckingSupport &&
       browserSupportsPasskeys &&
-      !isLoading
+      !isLoading &&
+      !error && // Don't auto-trigger if there's an error
+      !success && // Don't auto-trigger if already successful
+      !autoRegistrationAttempted.current // Only attempt once
     ) {
+      autoRegistrationAttempted.current = true
       handleUsernameSubmit({ username })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [username, registrationStep, isCheckingSupport, browserSupportsPasskeys, isLoading])
+  }, [
+    username,
+    registrationStep,
+    isCheckingSupport,
+    browserSupportsPasskeys,
+    isLoading,
+    error,
+    success,
+  ])
 
   const handleUsernameSubmit = async (data: RegistrationFormData) => {
     setIsLoading(true)
@@ -223,6 +236,7 @@ export function PasskeyRegistration({
     setError(null)
     setSuccess(null)
     setProductUserId('')
+    autoRegistrationAttempted.current = false
     form.reset()
   }
 
