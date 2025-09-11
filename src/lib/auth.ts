@@ -116,4 +116,3 @@ export async function initializeAuthFromToken(): Promise<{
 
   return { isValid: true, payload }
 }
-
