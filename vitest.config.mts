@@ -12,6 +12,7 @@ export default defineConfig({
       'tests/api/**/*.{test,spec}.{ts,tsx}',
       'tests/components/**/*.{test,spec}.{ts,tsx}',
       'tests/services/**/*.{test,spec}.{ts,tsx}',
+      'tests/utils/**/*.{test,spec}.{ts,tsx}',
     ],
     hookTimeout: 10000,
     testTimeout: 10000,
