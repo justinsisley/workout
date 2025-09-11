@@ -49,17 +49,18 @@ export function UsernameRegistration({ onUsernameConfirmed }: UsernameRegistrati
   })
 
   const handleUsernameChange = async (username: string) => {
-    // Clear previous status
-    setAvailabilityStatus(null)
-    setAvailabilityMessage('')
-
     // Don't check if username doesn't meet basic validation
     const validation = usernameSchema.safeParse({ username })
     if (!validation.success) {
+      // Only clear status if validation fails
+      setAvailabilityStatus(null)
+      setAvailabilityMessage('')
       return
     }
 
+    // Show checking state while preserving alert visibility
     setIsCheckingAvailability(true)
+    setAvailabilityMessage('Checking availability...')
 
     try {
       const result = await checkUsernameAvailability(username)
@@ -140,11 +141,19 @@ export function UsernameRegistration({ onUsernameConfirmed }: UsernameRegistrati
                 className={
                   availabilityStatus === 'available'
                     ? 'border-green-200 bg-green-50'
-                    : 'border-red-200 bg-red-50'
+                    : availabilityStatus === 'taken'
+                      ? 'border-red-200 bg-red-50'
+                      : 'border-blue-200 bg-blue-50'
                 }
               >
                 <AlertDescription
-                  className={availabilityStatus === 'available' ? 'text-green-700' : 'text-red-700'}
+                  className={
+                    availabilityStatus === 'available'
+                      ? 'text-green-700'
+                      : availabilityStatus === 'taken'
+                        ? 'text-red-700'
+                        : 'text-blue-700'
+                  }
                 >
                   {availabilityMessage}
                 </AlertDescription>
