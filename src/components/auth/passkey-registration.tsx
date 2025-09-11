@@ -44,16 +44,20 @@ const registrationFormSchema = z.object({
 type RegistrationFormData = z.infer<typeof registrationFormSchema>
 
 interface PasskeyRegistrationProps {
+  username?: string // Optional username to pre-fill or skip username entry
   onRegistrationComplete?: (productUserId: string) => void
 }
 
-export function PasskeyRegistration({ onRegistrationComplete }: PasskeyRegistrationProps) {
+export function PasskeyRegistration({
+  username,
+  onRegistrationComplete,
+}: PasskeyRegistrationProps) {
   const { setProductUser } = useAuthStore()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [registrationStep, setRegistrationStep] = useState<'username' | 'passkey' | 'complete'>(
-    'username',
+    username ? 'passkey' : 'username',
   )
   const [, setProductUserId] = useState<string>('')
   const [browserSupportsPasskeys, setBrowserSupportsPasskeys] = useState<boolean>(true)
@@ -62,7 +66,7 @@ export function PasskeyRegistration({ onRegistrationComplete }: PasskeyRegistrat
   const form = useForm<RegistrationFormData>({
     resolver: zodResolver(registrationFormSchema),
     defaultValues: {
-      username: '',
+      username: username || '',
     },
   })
 
@@ -99,6 +103,20 @@ export function PasskeyRegistration({ onRegistrationComplete }: PasskeyRegistrat
 
     checkBrowserSupport()
   }, [])
+
+  // Auto-trigger passkey registration if username is provided
+  useEffect(() => {
+    if (
+      username &&
+      registrationStep === 'passkey' &&
+      !isCheckingSupport &&
+      browserSupportsPasskeys &&
+      !isLoading
+    ) {
+      handleUsernameSubmit({ username })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [username, registrationStep, isCheckingSupport, browserSupportsPasskeys, isLoading])
 
   const handleUsernameSubmit = async (data: RegistrationFormData) => {
     setIsLoading(true)

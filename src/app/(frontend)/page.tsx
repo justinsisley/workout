@@ -1,65 +1,60 @@
-import { headers as getHeaders } from 'next/headers.js'
-import Image from 'next/image'
-import { getPayload } from 'payload'
+'use client'
+
+import Link from 'next/link'
 import React from 'react'
-import { fileURLToPath } from 'url'
+import { Button } from '@/components/ui/button'
+import { useAuthStore } from '@/stores/auth-store'
 
-import config from '@/payload/payload.config'
-
-export default async function HomePage() {
-  const headers = await getHeaders()
-  const payloadConfig = await config
-  const payload = await getPayload({ config: payloadConfig })
-  const { user } = await payload.auth({ headers })
-
-  const fileURL = `vscode://file/${fileURLToPath(import.meta.url)}`
+export default function HomePage() {
+  const { productUser, isAuthenticated, logout } = useAuthStore()
 
   return (
     <div className="flex flex-col justify-between items-center h-screen p-11 max-w-4xl mx-auto overflow-hidden max-[400px]:p-6">
       <div className="flex flex-col items-center justify-center flex-grow">
-        <picture>
-          <source srcSet="https://raw.githubusercontent.com/payloadcms/payload/main/packages/ui/src/assets/payload-favicon.svg" />
-          <Image
-            alt="Payload Logo"
-            height={65}
-            src="https://raw.githubusercontent.com/payloadcms/payload/main/packages/ui/src/assets/payload-favicon.svg"
-            width={65}
-          />
-        </picture>
-        {!user && (
-          <h1 className="text-center my-10 text-6xl leading-[70px] font-bold max-lg:my-6 max-lg:text-[42px] max-lg:leading-[42px] max-md:text-[38px] max-md:leading-[38px] max-[400px]:text-[32px] max-[400px]:leading-[32px]">
-            Welcome to your new project.
-          </h1>
+        <div className="text-6xl mb-8">🏋️‍♂️</div>
+
+        {!isAuthenticated && (
+          <>
+            <h1 className="text-center my-10 text-6xl leading-[70px] font-bold max-lg:my-6 max-lg:text-[42px] max-lg:leading-[42px] max-md:text-[38px] max-md:leading-[38px] max-[400px]:text-[32px] max-[400px]:leading-[32px]">
+              Welcome to Workout App
+            </h1>
+            <p className="text-center text-gray-600 mb-8 max-w-2xl">
+              Track your fitness journey with our comprehensive workout program. Get started by
+              creating an account with just a username and passkey.
+            </p>
+            <div className="flex items-center gap-4">
+              <Button asChild>
+                <Link href="/register">Get Started</Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link href="/login">Sign In</Link>
+              </Button>
+            </div>
+          </>
         )}
-        {user && (
-          <h1 className="text-center my-10 text-6xl leading-[70px] font-bold max-lg:my-6 max-lg:text-[42px] max-lg:leading-[42px] max-md:text-[38px] max-md:leading-[38px] max-[400px]:text-[32px] max-[400px]:leading-[32px]">
-            Welcome back, {user.email}
-          </h1>
+
+        {isAuthenticated && productUser && (
+          <>
+            <h1 className="text-center my-10 text-6xl leading-[70px] font-bold max-lg:my-6 max-lg:text-[42px] max-lg:leading-[42px] max-md:text-[38px] max-md:leading-[38px] max-[400px]:text-[32px] max-[400px]:leading-[32px]">
+              Welcome back, {productUser.username}!
+            </h1>
+            <p className="text-center text-gray-600 mb-8">
+              Ready to continue your fitness journey?
+            </p>
+            <div className="flex items-center gap-4">
+              <Button asChild>
+                <Link href="/app">Go to Workouts</Link>
+              </Button>
+              <Button variant="outline" onClick={logout}>
+                Sign Out
+              </Button>
+            </div>
+          </>
         )}
-        <div className="flex items-center gap-3">
-          <a
-            className="text-black bg-white border border-black no-underline py-1 px-2 rounded"
-            href={payloadConfig.routes.admin}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            Go to admin panel
-          </a>
-          <a
-            className="text-white bg-black border border-white no-underline py-1 px-2 rounded"
-            href="https://payloadcms.com/docs"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            Documentation
-          </a>
-        </div>
       </div>
+
       <div className="flex items-center gap-2 max-lg:flex-col max-lg:gap-1.5">
-        <p className="m-0">Update this page by editing</p>
-        <a className="no-underline px-2 bg-gray-600 rounded" href={fileURL}>
-          <code>app/(frontend)/page.tsx</code>
-        </a>
+        <p className="m-0 text-gray-500">Secure authentication with WebAuthN passkeys</p>
       </div>
     </div>
   )
