@@ -31,6 +31,7 @@ import type {
   UserStatusUpdate,
   AuthenticationEvent,
   AuthenticationErrorType,
+  ProductUser,
 } from '@/types/auth'
 
 // Simple in-memory rate limiter
@@ -602,7 +603,7 @@ export async function updateUserStatus(
       data: statusUpdate,
     })
 
-    return { success: true, productUser: updatedUser }
+    return { success: true, productUser: updatedUser as ProductUser }
   } catch (error) {
     console.error('User status update error:', error)
 

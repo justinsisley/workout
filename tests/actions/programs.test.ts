@@ -1,0 +1,364 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import {
+  assignProgramToUser,
+  updateUserProgress,
+  getPrograms,
+  getProgramById,
+} from '@/actions/programs'
+import type { Program } from '@/types/program'
+
+// Mock PayloadCMS
+vi.mock('payload', () => ({
+  getPayload: vi.fn(),
+}))
+
+// Mock next/cache
+vi.mock('next/cache', () => ({
+  revalidatePath: vi.fn(),
+}))
+
+// Mock auth
+vi.mock('@/lib/auth', () => ({
+  getCurrentProductUser: vi.fn(),
+}))
+
+// Mock config
+vi.mock('@/payload/payload.config', () => ({
+  default: {},
+}))
+
+const mockPayload = {
+  find: vi.fn(),
+  findByID: vi.fn(),
+  update: vi.fn(),
+  create: vi.fn(),
+}
+
+const mockCurrentUser = {
+  id: 'user123',
+  username: 'testuser',
+  currentProgram: null,
+  currentMilestone: 0,
+  currentDay: 0,
+}
+
+const mockProgram: Program = {
+  id: 'program123',
+  name: 'Test Program',
+  description: 'A test program',
+  objective: 'Test objective',
+  isPublished: true,
+  milestones: [
+    {
+      id: 'milestone1',
+      name: 'Test Milestone',
+      theme: 'Test Theme',
+      objective: 'Test milestone objective',
+      days: [],
+    },
+  ],
+  createdAt: '2023-01-01T00:00:00.000Z',
+  updatedAt: '2023-01-01T00:00:00.000Z',
+}
+
+describe('Programs Server Actions', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+
+    const { getPayload } = require('payload')
+    getPayload.mockResolvedValue(mockPayload)
+
+    const { getCurrentProductUser } = require('@/lib/auth')
+    getCurrentProductUser.mockResolvedValue(mockCurrentUser)
+  })
+
+  describe('getPrograms', () => {
+    it('successfully retrieves published programs', async () => {
+      mockPayload.find.mockResolvedValue({
+        docs: [mockProgram],
+      })
+
+      const result = await getPrograms()
+
+      expect(result.success).toBe(true)
+      expect(result.programs).toHaveLength(1)
+      expect(result.programs?.[0]?.name).toBe('Test Program')
+      expect(mockPayload.find).toHaveBeenCalledWith({
+        collection: 'programs',
+        where: {
+          isPublished: { equals: true },
+        },
+        depth: 2,
+        sort: 'name',
+      })
+    })
+
+    it('handles database errors gracefully', async () => {
+      mockPayload.find.mockRejectedValue(new Error('Database error'))
+
+      const result = await getPrograms()
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Failed to load programs')
+    })
+  })
+
+  describe('getProgramById', () => {
+    it('successfully retrieves a program by id', async () => {
+      mockPayload.findByID.mockResolvedValue(mockProgram)
+
+      const result = await getProgramById('program123')
+
+      expect(result.success).toBe(true)
+      expect(result.programs).toHaveLength(1)
+      expect(result.programs?.[0]?.id).toBe('program123')
+    })
+
+    it('returns error for invalid program id format', async () => {
+      const result = await getProgramById('')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('Program ID is required')
+    })
+
+    it('returns error when program not found', async () => {
+      mockPayload.findByID.mockResolvedValue(null)
+
+      const result = await getProgramById('nonexistent')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Program not found or not published')
+    })
+
+    it('returns error when program is not published', async () => {
+      mockPayload.findByID.mockResolvedValue({
+        ...mockProgram,
+        isPublished: false,
+      })
+
+      const result = await getProgramById('program123')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Program not found or not published')
+    })
+  })
+
+  describe('assignProgramToUser', () => {
+    beforeEach(() => {
+      mockPayload.findByID.mockResolvedValue(mockProgram)
+      mockPayload.update.mockResolvedValue({ id: 'user123' })
+    })
+
+    it('successfully assigns a program to authenticated user', async () => {
+      const result = await assignProgramToUser('program123')
+
+      expect(result.success).toBe(true)
+      expect(mockPayload.update).toHaveBeenCalledWith({
+        collection: 'productUsers',
+        id: 'user123',
+        data: {
+          currentProgram: 'program123',
+          currentMilestone: 0,
+          currentDay: 0,
+        },
+      })
+    })
+
+    it('returns authentication error when user not logged in', async () => {
+      const { getCurrentProductUser } = require('@/lib/auth')
+      getCurrentProductUser.mockResolvedValue(null)
+
+      const result = await assignProgramToUser('program123')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('You must be logged in')
+      expect(result.errorType).toBe('authentication')
+    })
+
+    it('returns validation error for invalid program id', async () => {
+      const result = await assignProgramToUser('')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('Invalid program selection')
+      expect(result.errorType).toBe('validation')
+    })
+
+    it('returns not_found error when program does not exist', async () => {
+      mockPayload.findByID.mockResolvedValue(null)
+
+      const result = await assignProgramToUser('nonexistent')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('no longer available')
+      expect(result.errorType).toBe('not_found')
+    })
+
+    it('returns not_found error when program is not published', async () => {
+      mockPayload.findByID.mockResolvedValue({
+        ...mockProgram,
+        isPublished: false,
+      })
+
+      const result = await assignProgramToUser('program123')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('no longer available')
+      expect(result.errorType).toBe('not_found')
+    })
+
+    it('returns already_assigned error when user already has this program', async () => {
+      const { getCurrentProductUser } = require('@/lib/auth')
+      getCurrentProductUser.mockResolvedValue({
+        ...mockCurrentUser,
+        currentProgram: 'program123',
+      })
+
+      const result = await assignProgramToUser('program123')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('already enrolled in this program')
+      expect(result.errorType).toBe('already_assigned')
+    })
+
+    it('handles database update errors', async () => {
+      mockPayload.update.mockRejectedValue(new Error('Update failed'))
+
+      const result = await assignProgramToUser('program123')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('We encountered an issue assigning your program')
+      expect(result.errorType).toBe('system_error')
+    })
+
+    it('handles duplicate assignment conflicts', async () => {
+      mockPayload.update.mockRejectedValue(new Error('duplicate key error'))
+
+      const result = await assignProgramToUser('program123')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('conflict with your program assignment')
+      expect(result.errorType).toBe('already_assigned')
+    })
+  })
+
+  describe('updateUserProgress', () => {
+    beforeEach(() => {
+      const { getCurrentProductUser } = require('@/lib/auth')
+      getCurrentProductUser.mockResolvedValue({
+        ...mockCurrentUser,
+        currentProgram: 'program123',
+      })
+      mockPayload.update.mockResolvedValue({ id: 'user123' })
+    })
+
+    it('successfully updates user progress', async () => {
+      const result = await updateUserProgress(1, 5)
+
+      expect(result.success).toBe(true)
+      expect(mockPayload.update).toHaveBeenCalledWith({
+        collection: 'productUsers',
+        id: 'user123',
+        data: {
+          currentMilestone: 1,
+          currentDay: 5,
+        },
+      })
+    })
+
+    it('returns authentication error when user not logged in', async () => {
+      const { getCurrentProductUser } = require('@/lib/auth')
+      getCurrentProductUser.mockResolvedValue(null)
+
+      const result = await updateUserProgress(1, 5)
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('You must be logged in')
+      expect(result.errorType).toBe('authentication')
+    })
+
+    it('returns no_active_program error when user has no current program', async () => {
+      const { getCurrentProductUser } = require('@/lib/auth')
+      getCurrentProductUser.mockResolvedValue({
+        ...mockCurrentUser,
+        currentProgram: null,
+      })
+
+      const result = await updateUserProgress(1, 5)
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('need to select a program')
+      expect(result.errorType).toBe('no_active_program')
+    })
+
+    it('returns validation error for negative milestone', async () => {
+      const result = await updateUserProgress(-1, 5)
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('Invalid progress values')
+      expect(result.errorType).toBe('validation')
+    })
+
+    it('returns validation error for negative day', async () => {
+      const result = await updateUserProgress(1, -1)
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('Invalid progress values')
+      expect(result.errorType).toBe('validation')
+    })
+
+    it('handles database update errors', async () => {
+      mockPayload.update.mockRejectedValue(new Error('Update failed'))
+
+      const result = await updateUserProgress(1, 5)
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('We encountered an issue updating your progress')
+      expect(result.errorType).toBe('system_error')
+    })
+
+    it('handles unauthorized errors', async () => {
+      mockPayload.update.mockRejectedValue(new Error('unauthorized access'))
+
+      const result = await updateUserProgress(1, 5)
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('You must be logged in')
+      expect(result.errorType).toBe('authentication')
+    })
+  })
+
+  describe('Error Response Consistency', () => {
+    it('maintains consistent error response format across all functions', async () => {
+      // Test authentication error format consistency
+      const { getCurrentProductUser } = require('@/lib/auth')
+      getCurrentProductUser.mockResolvedValue(null)
+
+      const assignResult = await assignProgramToUser('program123')
+      const updateResult = await updateUserProgress(1, 5)
+
+      expect(assignResult).toMatchObject({
+        success: false,
+        error: expect.any(String),
+        errorType: 'authentication',
+      })
+
+      expect(updateResult).toMatchObject({
+        success: false,
+        error: expect.any(String),
+        errorType: 'authentication',
+      })
+    })
+
+    it('provides user-friendly error messages', async () => {
+      const { getCurrentProductUser } = require('@/lib/auth')
+      getCurrentProductUser.mockResolvedValue(null)
+
+      const result = await assignProgramToUser('program123')
+
+      expect(result.error).not.toContain('null')
+      expect(result.error).not.toContain('undefined')
+      expect(result.error).not.toContain('TypeError')
+      expect(result.error).toContain('logged in')
+    })
+  })
+})

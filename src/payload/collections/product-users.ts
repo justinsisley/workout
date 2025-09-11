@@ -102,19 +102,20 @@ export const ProductUsers: CollectionConfig = {
     },
     {
       name: 'currentMilestone',
-      type: 'relationship',
-      relationTo: 'programs',
+      type: 'number',
+      defaultValue: 0,
+      min: 0,
       admin: {
-        description: 'The current milestone within the program.',
+        description: 'The current milestone index within the program (0-based).',
       },
     },
     {
       name: 'currentDay',
       type: 'number',
-      defaultValue: 1,
-      min: 1,
+      defaultValue: 0,
+      min: 0,
       admin: {
-        description: 'The current day index within the milestone (1-based).',
+        description: 'The current day index within the milestone (0-based).',
       },
     },
     {

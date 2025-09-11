@@ -80,4 +80,17 @@ export interface GetProgramsResult {
 export interface AssignProgramResult {
   success: boolean
   error?: string
+  errorType?: 'authentication' | 'validation' | 'not_found' | 'already_assigned' | 'system_error'
+}
+
+export interface UpdateProgressResult {
+  success: boolean
+  error?: string
+  errorType?: 'authentication' | 'validation' | 'no_active_program' | 'system_error'
+}
+
+export interface UserProgress {
+  currentProgram: string | null
+  currentMilestone: number
+  currentDay: number
 }

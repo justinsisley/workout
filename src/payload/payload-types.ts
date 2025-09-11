@@ -361,11 +361,11 @@ export interface ProductUser {
    */
   currentProgram?: (string | null) | Program;
   /**
-   * The current milestone within the program.
+   * The current milestone index within the program (0-based).
    */
-  currentMilestone?: (string | null) | Program;
+  currentMilestone?: number | null;
   /**
-   * The current day index within the milestone (1-based).
+   * The current day index within the milestone (0-based).
    */
   currentDay?: number | null;
   /**

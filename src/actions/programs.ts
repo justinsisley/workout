@@ -5,10 +5,19 @@ import configPromise from '@/payload/payload.config'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { getCurrentProductUser } from '@/lib/auth'
-import type { Program, GetProgramsResult, AssignProgramResult } from '@/types/program'
+import type {
+  Program,
+  GetProgramsResult,
+  AssignProgramResult,
+  UpdateProgressResult,
+} from '@/types/program'
 
 // Validation schemas
 const ProgramIdSchema = z.string().min(1, 'Program ID is required')
+const ProgressUpdateSchema = z.object({
+  currentMilestone: z.number().int().min(0, 'Milestone index must be 0 or greater'),
+  currentDay: z.number().int().min(0, 'Day index must be 0 or greater'),
+})
 
 /**
  * Get all published programs for program selection
@@ -90,7 +99,8 @@ export async function assignProgramToUser(programId: string): Promise<AssignProg
     if (!currentUser) {
       return {
         success: false,
-        error: 'Authentication required',
+        error: 'You must be logged in to select a program. Please sign in and try again.',
+        errorType: 'authentication',
       }
     }
 
@@ -106,18 +116,28 @@ export async function assignProgramToUser(programId: string): Promise<AssignProg
     if (!program || !program.isPublished) {
       return {
         success: false,
-        error: 'Program not found or not available',
+        error: 'The selected program is no longer available. Please choose a different program.',
+        errorType: 'not_found',
       }
     }
 
-    // Update product user with new program assignment
+    // Check if user already has this program assigned (edge case handling)
+    if (currentUser.currentProgram === validatedProgramId) {
+      return {
+        success: false,
+        error: 'You are already enrolled in this program. Continue with your current workouts!',
+        errorType: 'already_assigned',
+      }
+    }
+
+    // Update product user with new program assignment and initialize progress tracking
     await payload.update({
       collection: 'productUsers',
       id: currentUser.id,
       data: {
         currentProgram: validatedProgramId,
-        currentMilestone: null, // Will be properly indexed in Task 4
-        currentDay: 1, // Reset to first day (1-based as per schema)
+        currentMilestone: 0, // 0-based milestone index (first milestone)
+        currentDay: 0, // 0-based day index (first day)
       },
     })
 
@@ -130,12 +150,113 @@ export async function assignProgramToUser(programId: string): Promise<AssignProg
     console.error('Assign program to user error:', error)
 
     if (error instanceof z.ZodError) {
-      return { success: false, error: error.issues[0]?.message || 'Invalid input' }
+      return {
+        success: false,
+        error: 'Invalid program selection. Please try again with a different program.',
+        errorType: 'validation',
+      }
+    }
+
+    // Handle specific PayloadCMS errors
+    if (error && typeof error === 'object' && 'message' in error) {
+      const errorMessage = error.message as string
+      if (errorMessage.includes('duplicate')) {
+        return {
+          success: false,
+          error: 'There was a conflict with your program assignment. Please refresh and try again.',
+          errorType: 'already_assigned',
+        }
+      }
+      if (errorMessage.includes('unauthorized')) {
+        return {
+          success: false,
+          error: 'You must be logged in to select a program. Please sign in and try again.',
+          errorType: 'authentication',
+        }
+      }
     }
 
     return {
       success: false,
-      error: 'Failed to assign program',
+      error: 'We encountered an issue assigning your program. Please try again in a moment.',
+      errorType: 'system_error',
+    }
+  }
+}
+
+/**
+ * Update user progress tracking for current program
+ */
+export async function updateUserProgress(
+  currentMilestone: number,
+  currentDay: number,
+): Promise<UpdateProgressResult> {
+  try {
+    const validatedProgress = ProgressUpdateSchema.parse({ currentMilestone, currentDay })
+
+    // Get current authenticated user
+    const currentUser = await getCurrentProductUser()
+    if (!currentUser) {
+      return {
+        success: false,
+        error: 'You must be logged in to update your progress. Please sign in and try again.',
+        errorType: 'authentication',
+      }
+    }
+
+    if (!currentUser.currentProgram) {
+      return {
+        success: false,
+        error:
+          'You need to select a program before tracking progress. Please choose a program first.',
+        errorType: 'no_active_program',
+      }
+    }
+
+    const payload = await getPayload({ config: configPromise })
+
+    // Update user progress
+    await payload.update({
+      collection: 'productUsers',
+      id: currentUser.id,
+      data: {
+        currentMilestone: validatedProgress.currentMilestone,
+        currentDay: validatedProgress.currentDay,
+      },
+    })
+
+    // Revalidate relevant paths
+    revalidatePath('/dashboard')
+    revalidatePath('/workout')
+
+    return { success: true }
+  } catch (error) {
+    console.error('Update user progress error:', error)
+
+    if (error instanceof z.ZodError) {
+      return {
+        success: false,
+        error: 'Invalid progress values. Please check your milestone and day numbers.',
+        errorType: 'validation',
+      }
+    }
+
+    // Handle specific PayloadCMS errors
+    if (error && typeof error === 'object' && 'message' in error) {
+      const errorMessage = error.message as string
+      if (errorMessage.includes('unauthorized')) {
+        return {
+          success: false,
+          error: 'You must be logged in to update your progress. Please sign in and try again.',
+          errorType: 'authentication',
+        }
+      }
+    }
+
+    return {
+      success: false,
+      error: 'We encountered an issue updating your progress. Please try again in a moment.',
+      errorType: 'system_error',
     }
   }
 }

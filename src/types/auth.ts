@@ -112,7 +112,7 @@ export interface AuthenticationErrorResult {
 
 export interface UserStatusUpdate {
   currentProgram?: string
-  currentMilestone?: string
+  currentMilestone?: number
   currentDay?: number
   lastWorkoutDate?: string
   totalWorkoutsCompleted?: number
