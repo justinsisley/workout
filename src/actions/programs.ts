@@ -268,6 +268,237 @@ export async function assignProgramToUser(programId: string): Promise<AssignProg
 }
 
 /**
+ * Advance user to the next day in their current program
+ */
+export async function advanceToNextDay(): Promise<UpdateProgressResult> {
+  try {
+    // Get current authenticated user
+    const currentUser = await getCurrentProductUser()
+    if (!currentUser) {
+      return {
+        success: false,
+        error: 'You must be logged in to advance your progress. Please sign in and try again.',
+        errorType: 'authentication',
+      }
+    }
+
+    if (!currentUser.currentProgram) {
+      return {
+        success: false,
+        error:
+          'You need to select a program before advancing progress. Please choose a program first.',
+        errorType: 'no_active_program',
+      }
+    }
+
+    const payload = await getPayload({ config: configPromise })
+
+    // Get current program with full structure
+    const program = await payload.findByID({
+      collection: 'programs',
+      id: currentUser.currentProgram as string,
+      depth: 2,
+    })
+
+    if (!program || !program.isPublished) {
+      return {
+        success: false,
+        error: 'Your current program is no longer available. Please select a new program.',
+        errorType: 'not_found',
+      }
+    }
+
+    const typedProgram = program as Program
+    const currentMilestone = currentUser.currentMilestone ?? 0
+    const currentDay = currentUser.currentDay ?? 0
+
+    // Validate current milestone exists
+    if (currentMilestone >= typedProgram.milestones.length) {
+      return {
+        success: false,
+        error: 'Program completed! You have finished all milestones.',
+        errorType: 'validation',
+      }
+    }
+
+    const milestone = typedProgram.milestones[currentMilestone]
+    if (!milestone) {
+      return {
+        success: false,
+        error: 'Invalid milestone data. Please restart your program.',
+        errorType: 'validation',
+      }
+    }
+
+    const nextDay = currentDay + 1
+
+    // Check if we need to advance to next milestone
+    if (nextDay >= milestone.days.length) {
+      // This was the last day of the milestone, advance to next milestone
+      const nextMilestone = currentMilestone + 1
+
+      if (nextMilestone >= typedProgram.milestones.length) {
+        // Program completed!
+        await payload.update({
+          collection: 'productUsers',
+          id: currentUser.id,
+          data: {
+            currentMilestone: nextMilestone,
+            currentDay: 0,
+            // Could add programCompletedDate: new Date() here if we had that field
+          },
+        })
+
+        revalidatePath('/dashboard')
+        revalidatePath('/workout')
+
+        return {
+          success: true,
+          // Could return completion status here
+        }
+      } else {
+        // Advance to first day of next milestone
+        await payload.update({
+          collection: 'productUsers',
+          id: currentUser.id,
+          data: {
+            currentMilestone: nextMilestone,
+            currentDay: 0,
+          },
+        })
+      }
+    } else {
+      // Advance to next day in current milestone
+      await payload.update({
+        collection: 'productUsers',
+        id: currentUser.id,
+        data: {
+          currentDay: nextDay,
+        },
+      })
+    }
+
+    // Revalidate relevant paths
+    revalidatePath('/dashboard')
+    revalidatePath('/workout')
+
+    return { success: true }
+  } catch (error) {
+    console.error('Advance to next day error:', error)
+
+    // Handle specific PayloadCMS errors
+    if (error && typeof error === 'object' && 'message' in error) {
+      const errorMessage = error.message as string
+      if (errorMessage.includes('unauthorized')) {
+        return {
+          success: false,
+          error: 'You must be logged in to advance your progress. Please sign in and try again.',
+          errorType: 'authentication',
+        }
+      }
+    }
+
+    return {
+      success: false,
+      error: 'We encountered an issue advancing your progress. Please try again in a moment.',
+      errorType: 'system_error',
+    }
+  }
+}
+
+/**
+ * Advance user to the next milestone in their current program
+ */
+export async function advanceToNextMilestone(): Promise<UpdateProgressResult> {
+  try {
+    // Get current authenticated user
+    const currentUser = await getCurrentProductUser()
+    if (!currentUser) {
+      return {
+        success: false,
+        error: 'You must be logged in to advance your progress. Please sign in and try again.',
+        errorType: 'authentication',
+      }
+    }
+
+    if (!currentUser.currentProgram) {
+      return {
+        success: false,
+        error:
+          'You need to select a program before advancing progress. Please choose a program first.',
+        errorType: 'no_active_program',
+      }
+    }
+
+    const payload = await getPayload({ config: configPromise })
+
+    // Get current program with full structure
+    const program = await payload.findByID({
+      collection: 'programs',
+      id: currentUser.currentProgram as string,
+      depth: 2,
+    })
+
+    if (!program || !program.isPublished) {
+      return {
+        success: false,
+        error: 'Your current program is no longer available. Please select a new program.',
+        errorType: 'not_found',
+      }
+    }
+
+    const typedProgram = program as Program
+    const currentMilestone = currentUser.currentMilestone ?? 0
+    const nextMilestone = currentMilestone + 1
+
+    // Check if next milestone exists
+    if (nextMilestone >= typedProgram.milestones.length) {
+      return {
+        success: false,
+        error: 'You are already on the final milestone of your program.',
+        errorType: 'validation',
+      }
+    }
+
+    // Advance to first day of next milestone
+    await payload.update({
+      collection: 'productUsers',
+      id: currentUser.id,
+      data: {
+        currentMilestone: nextMilestone,
+        currentDay: 0, // Start at first day of new milestone
+      },
+    })
+
+    // Revalidate relevant paths
+    revalidatePath('/dashboard')
+    revalidatePath('/workout')
+
+    return { success: true }
+  } catch (error) {
+    console.error('Advance to next milestone error:', error)
+
+    // Handle specific PayloadCMS errors
+    if (error && typeof error === 'object' && 'message' in error) {
+      const errorMessage = error.message as string
+      if (errorMessage.includes('unauthorized')) {
+        return {
+          success: false,
+          error: 'You must be logged in to advance your progress. Please sign in and try again.',
+          errorType: 'authentication',
+        }
+      }
+    }
+
+    return {
+      success: false,
+      error: 'We encountered an issue advancing your progress. Please try again in a moment.',
+      errorType: 'system_error',
+    }
+  }
+}
+
+/**
  * Update user progress tracking for current program
  */
 export async function updateUserProgress(

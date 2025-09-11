@@ -86,7 +86,7 @@ export interface AssignProgramResult {
 export interface UpdateProgressResult {
   success: boolean
   error?: string
-  errorType?: 'authentication' | 'validation' | 'no_active_program' | 'system_error'
+  errorType?: 'authentication' | 'validation' | 'no_active_program' | 'not_found' | 'system_error'
 }
 
 export interface UserProgress {

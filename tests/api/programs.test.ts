@@ -4,6 +4,8 @@ import {
   updateUserProgress,
   getPrograms,
   getProgramById,
+  advanceToNextDay,
+  advanceToNextMilestone,
 } from '@/actions/programs'
 import type { Program } from '@/types/program'
 
@@ -342,6 +344,264 @@ describe('Programs Server Actions', () => {
     })
   })
 
+  describe('advanceToNextDay', () => {
+    beforeEach(() => {
+      const { getCurrentProductUser } = require('@/lib/auth')
+      getCurrentProductUser.mockResolvedValue({
+        ...mockCurrentUser,
+        currentProgram: 'program123',
+        currentMilestone: 0,
+        currentDay: 0,
+      })
+      mockPayload.findByID.mockResolvedValue(mockProgram)
+      mockPayload.update.mockResolvedValue({ id: 'user123' })
+    })
+
+    it('successfully advances to next day within milestone', async () => {
+      const result = await advanceToNextDay()
+
+      expect(result.success).toBe(true)
+      expect(mockPayload.update).toHaveBeenCalledWith({
+        collection: 'productUsers',
+        id: 'user123',
+        data: {
+          currentDay: 1, // Advanced from 0 to 1
+        },
+      })
+    })
+
+    it('advances to next milestone when reaching end of milestone days', async () => {
+      const { getCurrentProductUser } = require('@/lib/auth')
+      getCurrentProductUser.mockResolvedValue({
+        ...mockCurrentUser,
+        currentProgram: 'program123',
+        currentMilestone: 0,
+        currentDay: 0, // Last day of milestone (only 1 day in our mock)
+      })
+
+      // Mock program with multiple milestones
+      mockPayload.findByID.mockResolvedValue({
+        ...mockProgram,
+        milestones: [
+          {
+            ...mockProgram.milestones[0]!,
+            days: [mockProgram.milestones[0]!.days[0]!], // Only 1 day
+          },
+          {
+            id: 'milestone2',
+            name: 'Second Milestone',
+            theme: 'Second Theme',
+            objective: 'Second objective',
+            days: [
+              {
+                id: 'day1-m2',
+                dayType: 'workout',
+                exercises: [{ id: 'ex2', exercise: 'exercise456', sets: 3, reps: 12 }],
+              },
+            ],
+          },
+        ],
+      })
+
+      const result = await advanceToNextDay()
+
+      expect(result.success).toBe(true)
+      expect(mockPayload.update).toHaveBeenCalledWith({
+        collection: 'productUsers',
+        id: 'user123',
+        data: {
+          currentMilestone: 1, // Advanced to next milestone
+          currentDay: 0, // Reset to first day of new milestone
+        },
+      })
+    })
+
+    it('completes program when finishing last day of last milestone', async () => {
+      const { getCurrentProductUser } = require('@/lib/auth')
+      getCurrentProductUser.mockResolvedValue({
+        ...mockCurrentUser,
+        currentProgram: 'program123',
+        currentMilestone: 0,
+        currentDay: 0, // Last day of last milestone
+      })
+
+      // Mock program with only one milestone and one day
+      mockPayload.findByID.mockResolvedValue({
+        ...mockProgram,
+        milestones: [
+          {
+            ...mockProgram.milestones[0]!,
+            days: [mockProgram.milestones[0]!.days[0]!], // Only 1 day
+          },
+        ],
+      })
+
+      const result = await advanceToNextDay()
+
+      expect(result.success).toBe(true)
+      expect(mockPayload.update).toHaveBeenCalledWith({
+        collection: 'productUsers',
+        id: 'user123',
+        data: {
+          currentMilestone: 1, // Beyond last milestone (indicates completion)
+          currentDay: 0,
+        },
+      })
+    })
+
+    it('returns authentication error when user not logged in', async () => {
+      const { getCurrentProductUser } = require('@/lib/auth')
+      getCurrentProductUser.mockResolvedValue(null)
+
+      const result = await advanceToNextDay()
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('You must be logged in')
+      expect(result.errorType).toBe('authentication')
+    })
+
+    it('returns no_active_program error when user has no current program', async () => {
+      const { getCurrentProductUser } = require('@/lib/auth')
+      getCurrentProductUser.mockResolvedValue({
+        ...mockCurrentUser,
+        currentProgram: null,
+      })
+
+      const result = await advanceToNextDay()
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('need to select a program')
+      expect(result.errorType).toBe('no_active_program')
+    })
+
+    it('returns not_found error when program no longer exists', async () => {
+      mockPayload.findByID.mockResolvedValue(null)
+
+      const result = await advanceToNextDay()
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('no longer available')
+      expect(result.errorType).toBe('not_found')
+    })
+
+    it('returns validation error when program already completed', async () => {
+      const { getCurrentProductUser } = require('@/lib/auth')
+      getCurrentProductUser.mockResolvedValue({
+        ...mockCurrentUser,
+        currentProgram: 'program123',
+        currentMilestone: 5, // Beyond program length
+        currentDay: 0,
+      })
+
+      const result = await advanceToNextDay()
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('Program completed')
+      expect(result.errorType).toBe('validation')
+    })
+  })
+
+  describe('advanceToNextMilestone', () => {
+    beforeEach(() => {
+      const { getCurrentProductUser } = require('@/lib/auth')
+      getCurrentProductUser.mockResolvedValue({
+        ...mockCurrentUser,
+        currentProgram: 'program123',
+        currentMilestone: 0,
+        currentDay: 2,
+      })
+      mockPayload.update.mockResolvedValue({ id: 'user123' })
+    })
+
+    it('successfully advances to next milestone', async () => {
+      // Mock program with multiple milestones
+      mockPayload.findByID.mockResolvedValue({
+        ...mockProgram,
+        milestones: [
+          mockProgram.milestones[0],
+          {
+            id: 'milestone2',
+            name: 'Second Milestone',
+            theme: 'Second Theme',
+            objective: 'Second objective',
+            days: [
+              {
+                id: 'day1-m2',
+                dayType: 'workout',
+                exercises: [{ id: 'ex2', exercise: 'exercise456', sets: 3, reps: 12 }],
+              },
+            ],
+          },
+        ],
+      })
+
+      const result = await advanceToNextMilestone()
+
+      expect(result.success).toBe(true)
+      expect(mockPayload.update).toHaveBeenCalledWith({
+        collection: 'productUsers',
+        id: 'user123',
+        data: {
+          currentMilestone: 1, // Advanced to next milestone
+          currentDay: 0, // Reset to first day
+        },
+      })
+    })
+
+    it('returns authentication error when user not logged in', async () => {
+      const { getCurrentProductUser } = require('@/lib/auth')
+      getCurrentProductUser.mockResolvedValue(null)
+
+      const result = await advanceToNextMilestone()
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('You must be logged in')
+      expect(result.errorType).toBe('authentication')
+    })
+
+    it('returns no_active_program error when user has no current program', async () => {
+      const { getCurrentProductUser } = require('@/lib/auth')
+      getCurrentProductUser.mockResolvedValue({
+        ...mockCurrentUser,
+        currentProgram: null,
+      })
+
+      const result = await advanceToNextMilestone()
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('need to select a program')
+      expect(result.errorType).toBe('no_active_program')
+    })
+
+    it('returns validation error when already on final milestone', async () => {
+      const { getCurrentProductUser } = require('@/lib/auth')
+      getCurrentProductUser.mockResolvedValue({
+        ...mockCurrentUser,
+        currentProgram: 'program123',
+        currentMilestone: 0, // Only one milestone in mock program
+        currentDay: 0,
+      })
+
+      mockPayload.findByID.mockResolvedValue(mockProgram) // Only 1 milestone
+
+      const result = await advanceToNextMilestone()
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('already on the final milestone')
+      expect(result.errorType).toBe('validation')
+    })
+
+    it('returns not_found error when program no longer exists', async () => {
+      mockPayload.findByID.mockResolvedValue(null)
+
+      const result = await advanceToNextMilestone()
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('no longer available')
+      expect(result.errorType).toBe('not_found')
+    })
+  })
+
   describe('Error Response Consistency', () => {
     it('maintains consistent error response format across all functions', async () => {
       // Test authentication error format consistency
@@ -350,6 +610,8 @@ describe('Programs Server Actions', () => {
 
       const assignResult = await assignProgramToUser('program123')
       const updateResult = await updateUserProgress(1, 5)
+      const advanceDayResult = await advanceToNextDay()
+      const advanceMilestoneResult = await advanceToNextMilestone()
 
       expect(assignResult).toMatchObject({
         success: false,
@@ -358,6 +620,18 @@ describe('Programs Server Actions', () => {
       })
 
       expect(updateResult).toMatchObject({
+        success: false,
+        error: expect.any(String),
+        errorType: 'authentication',
+      })
+
+      expect(advanceDayResult).toMatchObject({
+        success: false,
+        error: expect.any(String),
+        errorType: 'authentication',
+      })
+
+      expect(advanceMilestoneResult).toMatchObject({
         success: false,
         error: expect.any(String),
         errorType: 'authentication',
