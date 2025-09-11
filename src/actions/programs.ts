@@ -11,6 +11,13 @@ import type {
   AssignProgramResult,
   UpdateProgressResult,
 } from '@/types/program'
+import {
+  validateUserProgress,
+  getProgressErrorMessage,
+  getRepairInstructions,
+  isValidProgressPosition,
+  type ProgressValidationError,
+} from '@/utils/validation'
 
 // Validation schemas
 const ProgramIdSchema = z.string().min(1, 'Program ID is required')
@@ -18,6 +25,83 @@ const ProgressUpdateSchema = z.object({
   currentMilestone: z.number().int().min(0, 'Milestone index must be 0 or greater'),
   currentDay: z.number().int().min(0, 'Day index must be 0 or greater'),
 })
+
+/**
+ * Apply automatic progress repair based on validation results
+ */
+async function repairProgressWithRollback(
+  userId: string,
+  program: Program,
+  currentProgress: { currentMilestone: number; currentDay: number },
+  validationErrors: ProgressValidationError[],
+): Promise<{ milestone: number; day: number; repairDescription: string } | null> {
+  const payload = await getPayload({ config: configPromise })
+
+  try {
+    // Determine the best repair action
+    const repairableError = validationErrors.find((e) => e.can_auto_repair)
+    if (!repairableError) {
+      return null
+    }
+
+    let newMilestone = 0
+    let newDay = 0
+    let repairDescription = 'Reset progress to beginning'
+
+    // Try to find valid position based on error type
+    if (
+      repairableError.type === 'corrupted_progress' ||
+      repairableError.type === 'milestone_index_invalid' ||
+      repairableError.type === 'day_index_invalid'
+    ) {
+      // Try to adjust to valid position first
+      if (
+        currentProgress.currentMilestone >= 0 &&
+        currentProgress.currentMilestone < program.milestones.length
+      ) {
+        const milestone = program.milestones[currentProgress.currentMilestone]
+        const maxDay = (milestone?.days?.length || 1) - 1
+
+        if (currentProgress.currentDay > maxDay) {
+          // Adjust day to last day of current milestone
+          newMilestone = currentProgress.currentMilestone
+          newDay = maxDay
+          repairDescription = 'Adjusted to last day of current milestone'
+        }
+      } else if (currentProgress.currentMilestone >= program.milestones.length) {
+        // Set to last day of last milestone
+        const lastMilestone = program.milestones[program.milestones.length - 1]
+        newMilestone = program.milestones.length - 1
+        newDay = Math.max(0, (lastMilestone?.days?.length || 1) - 1)
+        repairDescription = 'Adjusted to last day of program'
+      }
+    }
+
+    // Validate the repair position is actually valid
+    if (!isValidProgressPosition(program, newMilestone, newDay)) {
+      // Fallback to beginning
+      newMilestone = 0
+      newDay = 0
+      repairDescription = 'Reset progress to beginning (fallback)'
+    }
+
+    // Apply the repair
+    await payload.update({
+      collection: 'productUsers',
+      id: userId,
+      data: {
+        currentMilestone: newMilestone,
+        currentDay: newDay,
+      },
+    })
+
+    return { milestone: newMilestone, day: newDay, repairDescription }
+  } catch (repairError) {
+    console.error('Progress repair failed, rolling back:', repairError)
+    // Rollback attempt failed - this is logged but we don't throw to avoid infinite loops
+    return null
+  }
+}
 
 /**
  * Get all published programs for program selection
@@ -271,6 +355,8 @@ export async function assignProgramToUser(programId: string): Promise<AssignProg
  * Advance user to the next day in their current program
  */
 export async function advanceToNextDay(): Promise<UpdateProgressResult> {
+  const originalProgress = { currentMilestone: 0, currentDay: 0 }
+
   try {
     // Get current authenticated user
     const currentUser = await getCurrentProductUser()
@@ -312,28 +398,74 @@ export async function advanceToNextDay(): Promise<UpdateProgressResult> {
     const currentMilestone = currentUser.currentMilestone ?? 0
     const currentDay = currentUser.currentDay ?? 0
 
-    // Validate current milestone exists
-    if (currentMilestone >= typedProgram.milestones.length) {
-      return {
-        success: false,
-        error: 'Program completed! You have finished all milestones.',
-        errorType: 'validation',
+    // Store original progress for rollback
+    originalProgress.currentMilestone = currentMilestone
+    originalProgress.currentDay = currentDay
+
+    // Comprehensive progress validation
+    const userProgress = {
+      currentProgram: currentUser.currentProgram as string | null,
+      currentMilestone,
+      currentDay,
+    }
+
+    const validationResult = validateUserProgress(
+      typedProgram,
+      userProgress,
+      currentUser.currentProgram as string,
+    )
+
+    // Handle validation errors with repair mechanisms
+    if (!validationResult.isValid) {
+      const criticalError = validationResult.errors.find((e) =>
+        [
+          'corrupted_progress',
+          'program_structure_changed',
+          'milestone_index_invalid',
+          'day_index_invalid',
+        ].includes(e.type),
+      )
+
+      if (criticalError) {
+        // Attempt to repair progress
+        const repairResult = await repairProgressWithRollback(
+          currentUser.id,
+          typedProgram,
+          { currentMilestone, currentDay },
+          validationResult.errors,
+        )
+
+        if (repairResult) {
+          return {
+            success: false,
+            error: `${getProgressErrorMessage(validationResult.errors)} Your progress has been automatically corrected.`,
+            errorType: criticalError.type as 'corrupted_progress' | 'program_structure_changed',
+            repairAction: {
+              type: 'adjust_to_valid_position',
+              newMilestone: repairResult.milestone,
+              newDay: repairResult.day,
+              description: repairResult.repairDescription,
+            },
+          }
+        } else {
+          return {
+            success: false,
+            error: getProgressErrorMessage(validationResult.errors),
+            errorType: criticalError.type as 'corrupted_progress' | 'program_structure_changed',
+            repairAction: {
+              type: 'assign_new_program',
+              description: 'Please select a new program',
+            },
+          }
+        }
       }
     }
 
-    const milestone = typedProgram.milestones[currentMilestone]
-    if (!milestone) {
-      return {
-        success: false,
-        error: 'Invalid milestone data. Please restart your program.',
-        errorType: 'validation',
-      }
-    }
-
+    // Proceed with day advancement if validation passed
     const nextDay = currentDay + 1
 
     // Check if we need to advance to next milestone
-    if (nextDay >= milestone.days.length) {
+    if (nextDay >= (typedProgram.milestones[currentMilestone]?.days?.length || 0)) {
       // This was the last day of the milestone, advance to next milestone
       const nextMilestone = currentMilestone + 1
 
@@ -345,17 +477,13 @@ export async function advanceToNextDay(): Promise<UpdateProgressResult> {
           data: {
             currentMilestone: nextMilestone,
             currentDay: 0,
-            // Could add programCompletedDate: new Date() here if we had that field
           },
         })
 
         revalidatePath('/dashboard')
         revalidatePath('/workout')
 
-        return {
-          success: true,
-          // Could return completion status here
-        }
+        return { success: true }
       } else {
         // Advance to first day of next milestone
         await payload.update({
@@ -386,6 +514,25 @@ export async function advanceToNextDay(): Promise<UpdateProgressResult> {
   } catch (error) {
     console.error('Advance to next day error:', error)
 
+    // Rollback mechanism - attempt to restore original progress
+    try {
+      const currentUser = await getCurrentProductUser()
+      if (currentUser) {
+        const payload = await getPayload({ config: configPromise })
+        await payload.update({
+          collection: 'productUsers',
+          id: currentUser.id,
+          data: {
+            currentMilestone: originalProgress.currentMilestone,
+            currentDay: originalProgress.currentDay,
+          },
+        })
+        console.log('Progress rolled back successfully after error')
+      }
+    } catch (rollbackError) {
+      console.error('Progress rollback failed:', rollbackError)
+    }
+
     // Handle specific PayloadCMS errors
     if (error && typeof error === 'object' && 'message' in error) {
       const errorMessage = error.message as string
@@ -400,7 +547,8 @@ export async function advanceToNextDay(): Promise<UpdateProgressResult> {
 
     return {
       success: false,
-      error: 'We encountered an issue advancing your progress. Please try again in a moment.',
+      error:
+        'We encountered an issue advancing your progress. Your previous progress has been restored.',
       errorType: 'system_error',
     }
   }
@@ -410,6 +558,8 @@ export async function advanceToNextDay(): Promise<UpdateProgressResult> {
  * Advance user to the next milestone in their current program
  */
 export async function advanceToNextMilestone(): Promise<UpdateProgressResult> {
+  const originalProgress = { currentMilestone: 0, currentDay: 0 }
+
   try {
     // Get current authenticated user
     const currentUser = await getCurrentProductUser()
@@ -449,6 +599,71 @@ export async function advanceToNextMilestone(): Promise<UpdateProgressResult> {
 
     const typedProgram = program as Program
     const currentMilestone = currentUser.currentMilestone ?? 0
+    const currentDay = currentUser.currentDay ?? 0
+
+    // Store original progress for rollback
+    originalProgress.currentMilestone = currentMilestone
+    originalProgress.currentDay = currentDay
+
+    // Comprehensive progress validation
+    const userProgress = {
+      currentProgram: currentUser.currentProgram as string | null,
+      currentMilestone,
+      currentDay,
+    }
+
+    const validationResult = validateUserProgress(
+      typedProgram,
+      userProgress,
+      currentUser.currentProgram as string,
+    )
+
+    // Handle validation errors with repair mechanisms
+    if (!validationResult.isValid) {
+      const criticalError = validationResult.errors.find((e) =>
+        [
+          'corrupted_progress',
+          'program_structure_changed',
+          'milestone_index_invalid',
+          'day_index_invalid',
+        ].includes(e.type),
+      )
+
+      if (criticalError) {
+        // Attempt to repair progress
+        const repairResult = await repairProgressWithRollback(
+          currentUser.id,
+          typedProgram,
+          { currentMilestone, currentDay },
+          validationResult.errors,
+        )
+
+        if (repairResult) {
+          return {
+            success: false,
+            error: `${getProgressErrorMessage(validationResult.errors)} Your progress has been automatically corrected.`,
+            errorType: criticalError.type as 'corrupted_progress' | 'program_structure_changed',
+            repairAction: {
+              type: 'adjust_to_valid_position',
+              newMilestone: repairResult.milestone,
+              newDay: repairResult.day,
+              description: repairResult.repairDescription,
+            },
+          }
+        } else {
+          return {
+            success: false,
+            error: getProgressErrorMessage(validationResult.errors),
+            errorType: criticalError.type as 'corrupted_progress' | 'program_structure_changed',
+            repairAction: {
+              type: 'assign_new_program',
+              description: 'Please select a new program',
+            },
+          }
+        }
+      }
+    }
+
     const nextMilestone = currentMilestone + 1
 
     // Check if next milestone exists
@@ -478,6 +693,25 @@ export async function advanceToNextMilestone(): Promise<UpdateProgressResult> {
   } catch (error) {
     console.error('Advance to next milestone error:', error)
 
+    // Rollback mechanism - attempt to restore original progress
+    try {
+      const currentUser = await getCurrentProductUser()
+      if (currentUser) {
+        const payload = await getPayload({ config: configPromise })
+        await payload.update({
+          collection: 'productUsers',
+          id: currentUser.id,
+          data: {
+            currentMilestone: originalProgress.currentMilestone,
+            currentDay: originalProgress.currentDay,
+          },
+        })
+        console.log('Milestone progress rolled back successfully after error')
+      }
+    } catch (rollbackError) {
+      console.error('Milestone progress rollback failed:', rollbackError)
+    }
+
     // Handle specific PayloadCMS errors
     if (error && typeof error === 'object' && 'message' in error) {
       const errorMessage = error.message as string
@@ -492,7 +726,8 @@ export async function advanceToNextMilestone(): Promise<UpdateProgressResult> {
 
     return {
       success: false,
-      error: 'We encountered an issue advancing your progress. Please try again in a moment.',
+      error:
+        'We encountered an issue advancing your progress. Your previous progress has been restored.',
       errorType: 'system_error',
     }
   }
@@ -505,6 +740,8 @@ export async function updateUserProgress(
   currentMilestone: number,
   currentDay: number,
 ): Promise<UpdateProgressResult> {
+  const originalProgress = { currentMilestone: 0, currentDay: 0 }
+
   try {
     const validatedProgress = ProgressUpdateSchema.parse({ currentMilestone, currentDay })
 
@@ -529,7 +766,75 @@ export async function updateUserProgress(
 
     const payload = await getPayload({ config: configPromise })
 
-    // Update user progress
+    // Store original progress for rollback
+    originalProgress.currentMilestone = currentUser.currentMilestone ?? 0
+    originalProgress.currentDay = currentUser.currentDay ?? 0
+
+    // Get current program for validation
+    const program = await payload.findByID({
+      collection: 'programs',
+      id: currentUser.currentProgram as string,
+      depth: 2,
+    })
+
+    if (!program || !program.isPublished) {
+      return {
+        success: false,
+        error: 'Your current program is no longer available. Please select a new program.',
+        errorType: 'not_found',
+      }
+    }
+
+    const typedProgram = program as Program
+
+    // Comprehensive validation before updating
+    const userProgress = {
+      currentProgram: currentUser.currentProgram as string | null,
+      currentMilestone: validatedProgress.currentMilestone,
+      currentDay: validatedProgress.currentDay,
+    }
+
+    const validationResult = validateUserProgress(
+      typedProgram,
+      userProgress,
+      currentUser.currentProgram as string,
+    )
+
+    // Handle validation errors with repair mechanisms
+    if (!validationResult.isValid) {
+      const criticalError = validationResult.errors.find((e) =>
+        [
+          'corrupted_progress',
+          'program_structure_changed',
+          'milestone_index_invalid',
+          'day_index_invalid',
+        ].includes(e.type),
+      )
+
+      if (criticalError) {
+        // For direct progress updates, we're more strict - don't auto-repair, just inform user
+        const firstRepairAction = validationResult.repairActions[0]
+        return {
+          success: false,
+          error: `${getProgressErrorMessage(validationResult.errors)} ${getRepairInstructions(validationResult.repairActions)}`,
+          errorType: criticalError.type as 'corrupted_progress' | 'program_structure_changed',
+          repairAction: firstRepairAction
+            ? {
+                type: firstRepairAction.type,
+                ...(firstRepairAction.newMilestone !== undefined && {
+                  newMilestone: firstRepairAction.newMilestone,
+                }),
+                ...(firstRepairAction.newDay !== undefined && { newDay: firstRepairAction.newDay }),
+                ...(firstRepairAction.description !== undefined && {
+                  description: firstRepairAction.description,
+                }),
+              }
+            : undefined,
+        }
+      }
+    }
+
+    // Update user progress if validation passed
     await payload.update({
       collection: 'productUsers',
       id: currentUser.id,
@@ -546,6 +851,25 @@ export async function updateUserProgress(
     return { success: true }
   } catch (error) {
     console.error('Update user progress error:', error)
+
+    // Rollback mechanism - attempt to restore original progress
+    try {
+      const currentUser = await getCurrentProductUser()
+      if (currentUser) {
+        const payload = await getPayload({ config: configPromise })
+        await payload.update({
+          collection: 'productUsers',
+          id: currentUser.id,
+          data: {
+            currentMilestone: originalProgress.currentMilestone,
+            currentDay: originalProgress.currentDay,
+          },
+        })
+        console.log('User progress update rolled back successfully after error')
+      }
+    } catch (rollbackError) {
+      console.error('User progress update rollback failed:', rollbackError)
+    }
 
     if (error instanceof z.ZodError) {
       return {
@@ -569,7 +893,8 @@ export async function updateUserProgress(
 
     return {
       success: false,
-      error: 'We encountered an issue updating your progress. Please try again in a moment.',
+      error:
+        'We encountered an issue updating your progress. Your previous progress has been restored.',
       errorType: 'system_error',
     }
   }

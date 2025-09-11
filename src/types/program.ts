@@ -86,7 +86,22 @@ export interface AssignProgramResult {
 export interface UpdateProgressResult {
   success: boolean
   error?: string
-  errorType?: 'authentication' | 'validation' | 'no_active_program' | 'not_found' | 'system_error'
+  errorType?:
+    | 'authentication'
+    | 'validation'
+    | 'no_active_program'
+    | 'not_found'
+    | 'system_error'
+    | 'corrupted_progress'
+    | 'program_structure_changed'
+  repairAction?:
+    | {
+        type: 'reset_to_start' | 'adjust_to_valid_position' | 'assign_new_program'
+        newMilestone?: number
+        newDay?: number
+        description?: string
+      }
+    | undefined
 }
 
 export interface UserProgress {
