@@ -276,7 +276,7 @@ export async function verifyPasskeyRegistration(
     })
 
     // Generate JWT token for authentication
-    const token = generateJWTToken(updatedUser)
+    const token = await generateJWTToken(updatedUser)
 
     return {
       success: true,
@@ -476,7 +476,7 @@ export async function verifyPasskeyAuthentication(
     })
 
     // Generate JWT token for session management
-    const token = generateJWTToken(updatedUser)
+    const token = await generateJWTToken(updatedUser)
 
     return {
       success: true,

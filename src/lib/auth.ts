@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken'
+import { SignJWT, jwtVerify, decodeJwt } from 'jose'
 import type { AuthToken, ProductUser } from '@/types/auth'
 import { serverConfig } from '@/lib/config'
 const JWT_EXPIRES_IN = '7d' // 7 days
@@ -6,23 +6,34 @@ const JWT_EXPIRES_IN = '7d' // 7 days
 /**
  * Generate a JWT token for authenticated product user
  */
-export function generateJWTToken(productUser: ProductUser): string {
-  const payload: Omit<AuthToken, 'iat' | 'exp'> = {
-    productUserId: productUser.id,
-  }
+export async function generateJWTToken(productUser: ProductUser): Promise<string> {
+  const secret = new TextEncoder().encode(serverConfig().JWT_SECRET)
 
-  return jwt.sign(payload, serverConfig().JWT_SECRET, {
-    expiresIn: JWT_EXPIRES_IN,
-  })
+  const token = await new SignJWT({ productUserId: productUser.id })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime(JWT_EXPIRES_IN)
+    .sign(secret)
+
+  return token
 }
 
 /**
  * Verify and decode JWT token
  */
-export function verifyJWTToken(token: string): AuthToken | null {
+export async function verifyJWTToken(token: string): Promise<AuthToken | null> {
   try {
-    const decoded = jwt.verify(token, serverConfig().JWT_SECRET) as AuthToken
-    return decoded
+    const secret = new TextEncoder().encode(serverConfig().JWT_SECRET)
+    const { payload } = await jwtVerify(token, secret)
+
+    if (payload.productUserId && typeof payload.productUserId === 'string') {
+      return {
+        productUserId: payload.productUserId,
+        iat: payload.iat!,
+        exp: payload.exp!,
+      } as AuthToken
+    }
+    return null
   } catch (error) {
     console.error('JWT verification failed:', error)
     return null
@@ -34,7 +45,7 @@ export function verifyJWTToken(token: string): AuthToken | null {
  */
 export function isTokenExpired(token: string): boolean {
   try {
-    const decoded = jwt.decode(token) as AuthToken
+    const decoded = decodeJwt(token)
     if (!decoded || !decoded.exp) return true
 
     const currentTime = Math.floor(Date.now() / 1000)
@@ -53,25 +64,42 @@ export function getStoredToken(): string | null {
 }
 
 /**
- * Store JWT token in localStorage (client-side only)
+ * Store JWT token in localStorage and cookies (client-side only)
  */
 export function storeToken(token: string): void {
   if (typeof window === 'undefined') return
+
+  // Store in localStorage
   localStorage.setItem('workout-app-jwt-token', token)
+
+  // Store in cookie for middleware access
+  // Set cookie with 7 days expiration (same as JWT)
+  const expirationDate = new Date()
+  expirationDate.setDate(expirationDate.getDate() + 7)
+
+  document.cookie = `workout-app-jwt-token=${token}; path=/; expires=${expirationDate.toUTCString()}; SameSite=Lax; Secure=${window.location.protocol === 'https:'}`
 }
 
 /**
- * Remove JWT token from localStorage (client-side only)
+ * Remove JWT token from localStorage and cookies (client-side only)
  */
 export function removeStoredToken(): void {
   if (typeof window === 'undefined') return
+
+  // Remove from localStorage
   localStorage.removeItem('workout-app-jwt-token')
+
+  // Remove from cookies
+  document.cookie = 'workout-app-jwt-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
 }
 
 /**
  * Initialize auth state from stored token
  */
-export function initializeAuthFromToken(): { isValid: boolean; payload?: AuthToken } {
+export async function initializeAuthFromToken(): Promise<{
+  isValid: boolean
+  payload?: AuthToken
+}> {
   const token = getStoredToken()
   if (!token) return { isValid: false }
 
@@ -80,7 +108,7 @@ export function initializeAuthFromToken(): { isValid: boolean; payload?: AuthTok
     return { isValid: false }
   }
 
-  const payload = verifyJWTToken(token)
+  const payload = await verifyJWTToken(token)
   if (!payload) {
     removeStoredToken()
     return { isValid: false }

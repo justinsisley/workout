@@ -30,9 +30,13 @@ export const useAuthStore = create<AuthState>()(
           isLoading: false,
         })
 
-        // Clear JWT token from localStorage
+        // Clear JWT token from localStorage and cookies
         if (typeof window !== 'undefined') {
           localStorage.removeItem('workout-app-jwt-token')
+          // Clear the cookie by setting it to empty with past expiration
+          document.cookie = 'workout-app-jwt-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+          // Redirect to home page
+          window.location.href = '/'
         }
       },
     }),

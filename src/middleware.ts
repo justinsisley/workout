@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyJWTToken } from '@/lib/auth'
+import { jwtVerify } from 'jose'
 
 // Protected routes that require authentication
 const PROTECTED_ROUTES = ['/app', '/dashboard', '/workouts', '/programs', '/profile']
@@ -43,7 +43,25 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
   return response
 }
 
-export function middleware(request: NextRequest) {
+/**
+ * Verify JWT token using Edge Runtime compatible jose library
+ */
+async function verifyJWTTokenEdge(token: string): Promise<{ productUserId: string } | null> {
+  try {
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET)
+    const { payload } = await jwtVerify(token, secret)
+
+    if (payload.productUserId && typeof payload.productUserId === 'string') {
+      return { productUserId: payload.productUserId }
+    }
+    return null
+  } catch (error) {
+    console.error('JWT verification failed:', error)
+    return null
+  }
+}
+
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Allow all API routes except auth-protected ones to pass through
@@ -80,7 +98,7 @@ export function middleware(request: NextRequest) {
     }
 
     // Verify token
-    const payload = verifyJWTToken(token)
+    const payload = await verifyJWTTokenEdge(token)
     if (!payload) {
       // Redirect to login if invalid token
       const loginUrl = new URL('/login', request.url)
@@ -103,7 +121,7 @@ export function middleware(request: NextRequest) {
 
   // If accessing a public route while authenticated, allow but add user info
   if (isPublicRoute && token) {
-    const payload = verifyJWTToken(token)
+    const payload = await verifyJWTTokenEdge(token)
     if (payload) {
       const requestHeaders = new Headers(request.headers)
       requestHeaders.set('x-user-id', payload.productUserId)
@@ -126,11 +144,13 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
+     * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - public folder
+     * - *.png, *.jpg, *.jpeg, *.gif, *.svg, *.ico (static images)
+     * - *.css, *.js (static assets)
      */
-    '/((?!_next/static|_next/image|favicon.ico|public).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|svg|ico|css|js)$).*)',
   ],
 }
