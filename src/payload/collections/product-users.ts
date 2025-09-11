@@ -134,6 +134,13 @@ export const ProductUsers: CollectionConfig = {
       },
     },
     {
+      name: 'lastAuthenticationDate',
+      type: 'date',
+      admin: {
+        description: 'Date of the last successful authentication.',
+      },
+    },
+    {
       name: 'webauthnChallenge',
       type: 'text',
       admin: {

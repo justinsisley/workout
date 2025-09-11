@@ -79,3 +79,53 @@ export interface AuthenticationVerificationResult {
   productUser?: ProductUser
   token?: string
 }
+
+// New types for Story 2.2 user management server actions
+export interface CreateProductUserResult {
+  success: boolean
+  productUserId?: string
+  error?: string
+}
+
+export interface FindProductUserResult {
+  success: boolean
+  productUser?: ProductUser
+  error?: string
+}
+
+export interface UpdateUserStatusResult {
+  success: boolean
+  productUser?: ProductUser
+  error?: string
+}
+
+export interface TrackAuthenticationStatusResult {
+  success: boolean
+  error?: string
+}
+
+export interface AuthenticationErrorResult {
+  success: boolean
+  message: string
+  shouldRetry: boolean
+}
+
+export interface UserStatusUpdate {
+  currentProgram?: string
+  currentMilestone?: string
+  currentDay?: number
+  lastWorkoutDate?: string
+  totalWorkoutsCompleted?: number
+}
+
+export interface AuthenticationEvent {
+  eventType: 'login' | 'logout' | 'registration' | 'authentication_failure'
+  timestamp?: string
+  details?: string
+}
+
+export type AuthenticationErrorType =
+  | 'duplicate_user'
+  | 'authentication_failure'
+  | 'invalid_credentials'
+  | 'rate_limit_exceeded'

@@ -23,6 +23,14 @@ import type {
   AuthenticationVerificationResult,
   RegistrationResponseJSON,
   AuthenticationResponseJSON,
+  CreateProductUserResult,
+  FindProductUserResult,
+  UpdateUserStatusResult,
+  TrackAuthenticationStatusResult,
+  AuthenticationErrorResult,
+  UserStatusUpdate,
+  AuthenticationEvent,
+  AuthenticationErrorType,
 } from '@/types/auth'
 
 // Simple in-memory rate limiter
@@ -491,5 +499,226 @@ export async function verifyPasskeyAuthentication(
     }
 
     return { success: false, error: 'Authentication verification failed' }
+  }
+}
+
+/**
+ * Create a product user record during registration (Subtask 2.1)
+ * Note: This is already handled in generatePasskeyRegistrationOptions but exposed as dedicated function
+ */
+export async function createProductUser(username: string): Promise<CreateProductUserResult> {
+  try {
+    // Validate username
+    const validatedUsername = UsernameSchema.parse(username)
+
+    const payload = await getPayload({ config: configPromise })
+
+    // Check username availability
+    const usernameCheck = await checkUsernameAvailability(validatedUsername)
+    if (!usernameCheck.available) {
+      return { success: false, error: usernameCheck.error || 'Username not available' }
+    }
+
+    // Create product user record
+    const productUser = await payload.create({
+      collection: 'productUsers',
+      data: {
+        username: validatedUsername,
+      },
+    })
+
+    return { success: true, productUserId: productUser.id }
+  } catch (error) {
+    console.error('Product user creation error:', error)
+
+    if (error instanceof z.ZodError) {
+      return { success: false, error: error.issues[0]?.message || 'Invalid username format' }
+    }
+
+    return { success: false, error: 'Failed to create product user' }
+  }
+}
+
+/**
+ * Find product user by username (Subtask 2.2)
+ */
+export async function findProductUserByUsername(username: string): Promise<FindProductUserResult> {
+  try {
+    // Validate username
+    const validatedUsername = UsernameSchema.parse(username)
+
+    const payload = await getPayload({ config: configPromise })
+
+    // Find user by username
+    const existingUsers = await payload.find({
+      collection: 'productUsers',
+      where: {
+        username: {
+          equals: validatedUsername,
+        },
+      },
+      limit: 1,
+    })
+
+    if (existingUsers.docs.length === 0) {
+      return { success: false, error: 'User not found' }
+    }
+
+    const productUser = existingUsers.docs[0]
+
+    if (!productUser) {
+      return { success: false, error: 'User not found' }
+    }
+
+    return { success: true, productUser }
+  } catch (error) {
+    console.error('Product user lookup error:', error)
+
+    if (error instanceof z.ZodError) {
+      return { success: false, error: error.issues[0]?.message || 'Invalid username format' }
+    }
+
+    return { success: false, error: 'Failed to find product user' }
+  }
+}
+
+/**
+ * Update user status and session tracking (Subtask 2.3)
+ */
+export async function updateUserStatus(
+  productUserId: string,
+  statusUpdate: UserStatusUpdate,
+): Promise<UpdateUserStatusResult> {
+  try {
+    // Validate product user ID
+    const validatedProductUserId = ProductUserIdSchema.parse(productUserId)
+
+    const payload = await getPayload({ config: configPromise })
+
+    // Update user record
+    const updatedUser = await payload.update({
+      collection: 'productUsers',
+      id: validatedProductUserId,
+      data: statusUpdate,
+    })
+
+    return { success: true, productUser: updatedUser }
+  } catch (error) {
+    console.error('User status update error:', error)
+
+    if (error instanceof z.ZodError) {
+      return { success: false, error: error.issues[0]?.message || 'Invalid input' }
+    }
+
+    return { success: false, error: 'Failed to update user status' }
+  }
+}
+
+/**
+ * Handle authentication errors and duplicate user scenarios (Subtask 2.4)
+ */
+export async function handleAuthenticationError(
+  username: string,
+  errorType: AuthenticationErrorType,
+  errorDetails?: string,
+): Promise<AuthenticationErrorResult> {
+  try {
+    const timestamp = new Date().toISOString()
+
+    // Log the error for monitoring
+    console.error('Authentication error handled:', {
+      username,
+      errorType,
+      timestamp,
+      details: errorDetails,
+    })
+
+    switch (errorType) {
+      case 'duplicate_user':
+        return {
+          success: false,
+          message: 'Username is already taken. Please choose a different username.',
+          shouldRetry: true,
+        }
+
+      case 'authentication_failure':
+        return {
+          success: false,
+          message: 'Authentication failed. Please check your credentials and try again.',
+          shouldRetry: true,
+        }
+
+      case 'invalid_credentials':
+        return {
+          success: false,
+          message: 'Invalid username or passkey. Please verify your credentials.',
+          shouldRetry: true,
+        }
+
+      case 'rate_limit_exceeded':
+        return {
+          success: false,
+          message: 'Too many authentication attempts. Please wait before trying again.',
+          shouldRetry: false,
+        }
+
+      default:
+        return {
+          success: false,
+          message: 'An unexpected error occurred during authentication.',
+          shouldRetry: true,
+        }
+    }
+  } catch (error) {
+    console.error('Error in authentication error handler:', error)
+    return {
+      success: false,
+      message: 'A system error occurred. Please try again later.',
+      shouldRetry: false,
+    }
+  }
+}
+
+/**
+ * Track authentication status changes (Subtask 2.5)
+ */
+export async function trackAuthenticationStatus(
+  productUserId: string,
+  authEvent: AuthenticationEvent,
+): Promise<TrackAuthenticationStatusResult> {
+  try {
+    // Validate product user ID
+    const validatedProductUserId = ProductUserIdSchema.parse(productUserId)
+
+    // For now, we'll log the authentication event
+    // In a full implementation, you might store these in a separate collection
+    console.log('Authentication event tracked:', {
+      productUserId: validatedProductUserId,
+      eventType: authEvent.eventType,
+      timestamp: authEvent.timestamp || new Date().toISOString(),
+      details: authEvent.details,
+    })
+
+    // Update last authentication timestamp if login
+    if (authEvent.eventType === 'login') {
+      const payload = await getPayload({ config: configPromise })
+      await payload.update({
+        collection: 'productUsers',
+        id: validatedProductUserId,
+        data: {
+          lastAuthenticationDate: authEvent.timestamp || new Date().toISOString(),
+        },
+      })
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Authentication status tracking error:', error)
+
+    if (error instanceof z.ZodError) {
+      return { success: false, error: error.issues[0]?.message || 'Invalid input' }
+    }
+
+    return { success: false, error: 'Failed to track authentication status' }
   }
 }

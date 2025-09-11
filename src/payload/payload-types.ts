@@ -377,6 +377,10 @@ export interface ProductUser {
    */
   totalWorkoutsCompleted?: number | null;
   /**
+   * Date of the last successful authentication.
+   */
+  lastAuthenticationDate?: string | null;
+  /**
    * Temporary WebAuthN challenge for registration/authentication verification.
    */
   webauthnChallenge?: string | null;
@@ -773,6 +777,7 @@ export interface ProductUsersSelect<T extends boolean = true> {
   currentDay?: T;
   lastWorkoutDate?: T;
   totalWorkoutsCompleted?: T;
+  lastAuthenticationDate?: T;
   webauthnChallenge?: T;
   updatedAt?: T;
   createdAt?: T;
