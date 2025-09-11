@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken'
 import type { AuthToken, ProductUser } from '@/types/auth'
-import { JWT_SECRET } from '@/lib/config'
+import { serverConfig } from '@/lib/config'
 const JWT_EXPIRES_IN = '7d' // 7 days
 
 /**
@@ -11,7 +11,7 @@ export function generateJWTToken(productUser: ProductUser): string {
     productUserId: productUser.id,
   }
 
-  return jwt.sign(payload, JWT_SECRET, {
+  return jwt.sign(payload, serverConfig().JWT_SECRET, {
     expiresIn: JWT_EXPIRES_IN,
   })
 }
@@ -21,7 +21,7 @@ export function generateJWTToken(productUser: ProductUser): string {
  */
 export function verifyJWTToken(token: string): AuthToken | null {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as AuthToken
+    const decoded = jwt.verify(token, serverConfig().JWT_SECRET) as AuthToken
     return decoded
   } catch (error) {
     console.error('JWT verification failed:', error)

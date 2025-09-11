@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
-import { config } from '@/lib/config'
+import { serverConfig, NODE_ENV } from '@/lib/config'
 
 export async function GET() {
   try {
@@ -14,7 +14,7 @@ export async function GET() {
         environment: 'healthy',
       },
       version: process.env.npm_package_version || '1.0.0',
-      environment: config.NODE_ENV,
+      environment: NODE_ENV,
     }
 
     // Check database connection
@@ -37,6 +37,7 @@ export async function GET() {
     // Check environment configuration
     try {
       // This will throw if required environment variables are missing
+      const config = serverConfig()
       if (!config.DATABASE_URI || !config.PAYLOAD_SECRET) {
         throw new Error('Missing required environment variables')
       }

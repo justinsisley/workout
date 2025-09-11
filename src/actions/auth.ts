@@ -13,7 +13,7 @@ import { getPayload } from 'payload'
 import configPromise from '@/payload/payload.config'
 import { headers } from 'next/headers'
 
-import { WEBAUTHN_RP_ID, WEBAUTHN_RP_NAME, NEXT_PUBLIC_APP_URL } from '@/lib/config'
+import { serverConfig, NEXT_PUBLIC_APP_URL } from '@/lib/config'
 import { generateJWTToken } from '@/lib/auth'
 import type {
   PasskeyRegistrationResult,
@@ -160,8 +160,8 @@ export async function generatePasskeyRegistrationOptions(
 
     // Generate WebAuthN registration options
     const registrationOptions = await generateRegistrationOptions({
-      rpName: WEBAUTHN_RP_NAME,
-      rpID: WEBAUTHN_RP_ID,
+      rpName: serverConfig().WEBAUTHN_RP_NAME,
+      rpID: serverConfig().WEBAUTHN_RP_ID,
       userName: validatedUsername,
       userID: isoUint8Array.fromUTF8String(productUser.id),
       userDisplayName: validatedUsername,
@@ -239,7 +239,7 @@ export async function verifyPasskeyRegistration(
       response: registrationResponse,
       expectedChallenge: productUser.webauthnChallenge,
       expectedOrigin: NEXT_PUBLIC_APP_URL,
-      expectedRPID: WEBAUTHN_RP_ID,
+      expectedRPID: serverConfig().WEBAUTHN_RP_ID,
     })
 
     if (!verification.verified || !verification.registrationInfo) {
@@ -342,7 +342,7 @@ export async function generatePasskeyAuthenticationOptions(
 
     // Generate WebAuthN authentication options
     const authenticationOptions = await generateAuthenticationOptions({
-      rpID: WEBAUTHN_RP_ID,
+      rpID: serverConfig().WEBAUTHN_RP_ID,
       allowCredentials,
       userVerification: 'preferred',
     })
@@ -436,7 +436,7 @@ export async function verifyPasskeyAuthentication(
       response: authenticationResponse,
       expectedChallenge: productUser.webauthnChallenge,
       expectedOrigin: NEXT_PUBLIC_APP_URL,
-      expectedRPID: WEBAUTHN_RP_ID,
+      expectedRPID: serverConfig().WEBAUTHN_RP_ID,
       credential: {
         id: credential.credentialID,
         publicKey: isoBase64URL.toBuffer(credential.publicKey),
