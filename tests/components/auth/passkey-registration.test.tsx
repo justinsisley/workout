@@ -13,11 +13,26 @@ vi.mock('@/actions/auth', () => ({
 // Mock the WebAuthN browser API
 vi.mock('@simplewebauthn/browser', () => ({
   startRegistration: vi.fn(),
+  browserSupportsWebAuthn: vi.fn(() => true),
 }))
 
 describe('PasskeyRegistration', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+
+    // Mock browser environment to support passkeys
+    Object.defineProperty(window, 'isSecureContext', {
+      value: true,
+      writable: true,
+    })
+
+    Object.defineProperty(navigator, 'credentials', {
+      value: {
+        create: vi.fn(),
+        get: vi.fn(),
+      },
+      writable: true,
+    })
   })
 
   it('renders username input form', () => {

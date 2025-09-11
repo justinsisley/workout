@@ -13,6 +13,6 @@ test.describe('Frontend', () => {
 
     const heading = page.locator('h1').first()
 
-    await expect(heading).toHaveText('Welcome to your new project.')
+    await expect(heading).toHaveText('Welcome to Workout App')
   })
 })
