@@ -4,7 +4,7 @@ import { getPayload } from 'payload'
 import configPromise from '@/payload/payload.config'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
-import { getCurrentProductUser } from '@/lib/auth'
+import { getCurrentProductUser } from '@/lib/auth-server'
 import type {
   Program,
   GetProgramsResult,

@@ -1,15 +1,12 @@
 import { SignJWT, jwtVerify, decodeJwt } from 'jose'
-import { cookies } from 'next/headers'
-import { getPayload } from 'payload'
-import configPromise from '@/payload/payload.config'
-import type { AuthToken, ProductUser } from '@/types/auth'
+import type { AuthToken } from '@/types/auth'
 import { serverConfig } from '@/lib/config'
 const JWT_EXPIRES_IN = '7d' // 7 days
 
 /**
  * Generate a JWT token for authenticated product user
  */
-export async function generateJWTToken(productUser: ProductUser): Promise<string> {
+export async function generateJWTToken(productUser: { id: string }): Promise<string> {
   const secret = new TextEncoder().encode(serverConfig().JWT_SECRET)
 
   const token = await new SignJWT({ productUserId: productUser.id })
@@ -120,54 +117,3 @@ export async function initializeAuthFromToken(): Promise<{
   return { isValid: true, payload }
 }
 
-/**
- * Get current authenticated product user ID from request headers (server-side)
- * This is set by middleware after JWT verification
- */
-export function getCurrentProductUserId(headers: Headers): string | null {
-  return headers.get('x-user-id')
-}
-
-/**
- * Server-side authentication check helper
- */
-export async function requireAuth(headers: Headers): Promise<string> {
-  const productUserId = getCurrentProductUserId(headers)
-  if (!productUserId) {
-    throw new Error('Authentication required')
-  }
-  return productUserId
-}
-
-/**
- * Get current authenticated product user (server-side)
- * This checks the JWT token from cookies and returns the full user object
- */
-export async function getCurrentProductUser(): Promise<ProductUser | null> {
-  try {
-    const cookieStore = await cookies()
-    const token = cookieStore.get('workout-app-jwt-token')?.value
-
-    if (!token) {
-      return null
-    }
-
-    // Verify the JWT token
-    const authToken = await verifyJWTToken(token)
-    if (!authToken) {
-      return null
-    }
-
-    // Get the user from the database
-    const payload = await getPayload({ config: configPromise })
-    const user = await payload.findByID({
-      collection: 'productUsers',
-      id: authToken.productUserId,
-    })
-
-    return user as ProductUser
-  } catch (error) {
-    console.error('Get current product user error:', error)
-    return null
-  }
-}
