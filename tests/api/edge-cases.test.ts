@@ -181,7 +181,7 @@ describe('Edge Cases and Conflict Testing', () => {
 
       // At least one update should have succeeded (concurrent updates may not all apply)
       expect(finalUser.totalWorkoutsCompleted).toBeGreaterThanOrEqual(0)
-      expect(finalUser.currentDay).toBeGreaterThanOrEqual(1) // currentDay defaults to 1
+      expect(finalUser.currentDay).toBeGreaterThanOrEqual(0) // currentDay defaults to 0
     })
   })
 

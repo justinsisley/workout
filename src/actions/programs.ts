@@ -439,7 +439,11 @@ export async function advanceToNextDay(): Promise<UpdateProgressResult> {
           return {
             success: false,
             error: `${getProgressErrorMessage(validationResult.errors)} Your progress has been automatically corrected.`,
-            errorType: criticalError.type as 'corrupted_progress' | 'program_structure_changed',
+            errorType: criticalError.type as
+              | 'corrupted_progress'
+              | 'program_structure_changed'
+              | 'milestone_index_invalid'
+              | 'day_index_invalid',
             repairAction: {
               type: 'adjust_to_valid_position',
               newMilestone: repairResult.milestone,
@@ -451,7 +455,11 @@ export async function advanceToNextDay(): Promise<UpdateProgressResult> {
           return {
             success: false,
             error: getProgressErrorMessage(validationResult.errors),
-            errorType: criticalError.type as 'corrupted_progress' | 'program_structure_changed',
+            errorType: criticalError.type as
+              | 'corrupted_progress'
+              | 'program_structure_changed'
+              | 'milestone_index_invalid'
+              | 'day_index_invalid',
             repairAction: {
               type: 'assign_new_program',
               description: 'Please select a new program',
@@ -642,7 +650,11 @@ export async function advanceToNextMilestone(): Promise<UpdateProgressResult> {
           return {
             success: false,
             error: `${getProgressErrorMessage(validationResult.errors)} Your progress has been automatically corrected.`,
-            errorType: criticalError.type as 'corrupted_progress' | 'program_structure_changed',
+            errorType: criticalError.type as
+              | 'corrupted_progress'
+              | 'program_structure_changed'
+              | 'milestone_index_invalid'
+              | 'day_index_invalid',
             repairAction: {
               type: 'adjust_to_valid_position',
               newMilestone: repairResult.milestone,
@@ -654,7 +666,11 @@ export async function advanceToNextMilestone(): Promise<UpdateProgressResult> {
           return {
             success: false,
             error: getProgressErrorMessage(validationResult.errors),
-            errorType: criticalError.type as 'corrupted_progress' | 'program_structure_changed',
+            errorType: criticalError.type as
+              | 'corrupted_progress'
+              | 'program_structure_changed'
+              | 'milestone_index_invalid'
+              | 'day_index_invalid',
             repairAction: {
               type: 'assign_new_program',
               description: 'Please select a new program',
@@ -817,7 +833,11 @@ export async function updateUserProgress(
         return {
           success: false,
           error: `${getProgressErrorMessage(validationResult.errors)} ${getRepairInstructions(validationResult.repairActions)}`,
-          errorType: criticalError.type as 'corrupted_progress' | 'program_structure_changed',
+          errorType: criticalError.type as
+            | 'corrupted_progress'
+            | 'program_structure_changed'
+            | 'milestone_index_invalid'
+            | 'day_index_invalid',
           repairAction: firstRepairAction
             ? {
                 type: firstRepairAction.type,

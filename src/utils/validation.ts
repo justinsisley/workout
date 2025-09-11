@@ -164,7 +164,6 @@ export function validateUserProgress(
       if (error.includes('negative')) {
         suggestedAction = 'Your progress will be reset to the beginning.'
       } else if (error.includes('exceeds')) {
-        errorType = 'corrupted_progress'
         suggestedAction = 'Your progress appears to be corrupted and will be corrected.'
       }
     } else if (error.includes('day index')) {
@@ -172,7 +171,6 @@ export function validateUserProgress(
       if (error.includes('negative')) {
         suggestedAction = 'Your progress will be reset to the beginning.'
       } else if (error.includes('exceeds')) {
-        errorType = 'corrupted_progress'
         suggestedAction = 'Your progress appears to be corrupted and will be corrected.'
       }
     }

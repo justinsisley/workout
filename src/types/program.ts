@@ -94,6 +94,8 @@ export interface UpdateProgressResult {
     | 'system_error'
     | 'corrupted_progress'
     | 'program_structure_changed'
+    | 'milestone_index_invalid'
+    | 'day_index_invalid'
   repairAction?:
     | {
         type: 'reset_to_start' | 'adjust_to_valid_position' | 'assign_new_program'
