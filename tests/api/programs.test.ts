@@ -32,7 +32,7 @@ const mockPayload = {
   findByID: vi.fn(),
   update: vi.fn(),
   create: vi.fn(),
-}
+} as any
 
 const mockCurrentUser = {
   id: 'user123',
@@ -40,6 +40,8 @@ const mockCurrentUser = {
   currentProgram: null,
   currentMilestone: 0,
   currentDay: 0,
+  updatedAt: '2023-01-01T00:00:00.000Z',
+  createdAt: '2023-01-01T00:00:00.000Z',
 }
 
 const mockProgram: Program = {
@@ -54,7 +56,20 @@ const mockProgram: Program = {
       name: 'Test Milestone',
       theme: 'Test Theme',
       objective: 'Test milestone objective',
-      days: [],
+      days: [
+        {
+          id: 'day1',
+          dayType: 'workout',
+          exercises: [
+            {
+              id: 'ex1',
+              exercise: 'exercise123',
+              sets: 3,
+              reps: 10,
+            },
+          ],
+        },
+      ],
     },
   ],
   createdAt: '2023-01-01T00:00:00.000Z',

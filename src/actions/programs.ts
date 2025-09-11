@@ -88,6 +88,68 @@ export async function getProgramById(programId: string): Promise<GetProgramsResu
 }
 
 /**
+ * Validate program structure for assignment compatibility
+ */
+async function validateProgramStructure(
+  program: Program,
+): Promise<{ isValid: boolean; error?: string }> {
+  // Check basic structure
+  if (!program.milestones || !Array.isArray(program.milestones)) {
+    return { isValid: false, error: 'Program structure is invalid - missing milestones.' }
+  }
+
+  // Ensure program has at least one milestone
+  if (program.milestones.length === 0) {
+    return { isValid: false, error: 'Program must have at least one milestone.' }
+  }
+
+  // Validate each milestone has proper structure and at least one day
+  for (let i = 0; i < program.milestones.length; i++) {
+    const milestone = program.milestones[i]
+
+    if (!milestone || !milestone.days || !Array.isArray(milestone.days)) {
+      return {
+        isValid: false,
+        error: `Milestone ${i + 1} is missing days structure.`,
+      }
+    }
+
+    if (milestone.days.length === 0) {
+      return {
+        isValid: false,
+        error: `Milestone ${i + 1} must have at least one day.`,
+      }
+    }
+
+    // Validate day structure
+    for (let j = 0; j < milestone.days.length; j++) {
+      const day = milestone.days[j]
+
+      if (!day || !day.dayType || !['workout', 'rest'].includes(day.dayType)) {
+        return {
+          isValid: false,
+          error: `Day ${j + 1} in milestone ${i + 1} has invalid day type.`,
+        }
+      }
+
+      // Workout days should have exercises (unless it's AMRAP with duration only)
+      if (
+        day.dayType === 'workout' &&
+        !day.isAmrap &&
+        (!day.exercises || day.exercises.length === 0)
+      ) {
+        return {
+          isValid: false,
+          error: `Workout day ${j + 1} in milestone ${i + 1} must have at least one exercise.`,
+        }
+      }
+    }
+  }
+
+  return { isValid: true }
+}
+
+/**
  * Assign program to authenticated user
  */
 export async function assignProgramToUser(programId: string): Promise<AssignProgramResult> {
@@ -106,18 +168,38 @@ export async function assignProgramToUser(programId: string): Promise<AssignProg
 
     const payload = await getPayload({ config: configPromise })
 
-    // Verify program exists and is published
+    // Verify program exists, is published, and get full structure for validation
     const program = await payload.findByID({
       collection: 'programs',
       id: validatedProgramId,
-      depth: 0, // Just need basic info
+      depth: 2, // Need full structure for validation
     })
 
-    if (!program || !program.isPublished) {
+    if (!program) {
       return {
         success: false,
-        error: 'The selected program is no longer available. Please choose a different program.',
+        error: 'The selected program could not be found. Please choose a different program.',
         errorType: 'not_found',
+      }
+    }
+
+    // Validate program is published (publishedStatus check)
+    if (!program.isPublished) {
+      return {
+        success: false,
+        error:
+          'The selected program is not available for enrollment. Please choose a different program.',
+        errorType: 'not_found',
+      }
+    }
+
+    // Comprehensive program structure validation
+    const structureValidation = await validateProgramStructure(program as Program)
+    if (!structureValidation.isValid) {
+      return {
+        success: false,
+        error: `Program structure validation failed: ${structureValidation.error}`,
+        errorType: 'validation',
       }
     }
 
@@ -131,13 +213,14 @@ export async function assignProgramToUser(programId: string): Promise<AssignProg
     }
 
     // Update product user with new program assignment and initialize progress tracking
+    // Using proper 0-based indexing for milestone and day tracking
     await payload.update({
       collection: 'productUsers',
       id: currentUser.id,
       data: {
         currentProgram: validatedProgramId,
         currentMilestone: 0, // 0-based milestone index (first milestone)
-        currentDay: 0, // 0-based day index (first day)
+        currentDay: 0, // 0-based day index (first day of first milestone)
       },
     })
 
