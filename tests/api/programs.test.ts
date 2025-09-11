@@ -8,6 +8,8 @@ import {
   advanceToNextMilestone,
 } from '@/actions/programs'
 import type { Program } from '@/types/program'
+import { getPayload } from 'payload'
+import { getCurrentProductUser } from '@/lib/auth-server'
 
 // Mock PayloadCMS
 vi.mock('payload', () => ({
@@ -82,11 +84,8 @@ describe('Programs Server Actions', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
-    const { getPayload } = require('payload')
-    getPayload.mockResolvedValue(mockPayload)
-
-    const { getCurrentProductUser } = require('@/lib/auth-server')
-    getCurrentProductUser.mockResolvedValue(mockCurrentUser)
+    vi.mocked(getPayload).mockResolvedValue(mockPayload)
+    vi.mocked(getCurrentProductUser).mockResolvedValue(mockCurrentUser)
   })
 
   describe('getPrograms', () => {
@@ -182,8 +181,7 @@ describe('Programs Server Actions', () => {
     })
 
     it('returns authentication error when user not logged in', async () => {
-      const { getCurrentProductUser } = require('@/lib/auth-server')
-      getCurrentProductUser.mockResolvedValue(null)
+      vi.mocked(getCurrentProductUser).mockResolvedValue(null)
 
       const result = await assignProgramToUser('program123')
 
@@ -206,7 +204,7 @@ describe('Programs Server Actions', () => {
       const result = await assignProgramToUser('nonexistent')
 
       expect(result.success).toBe(false)
-      expect(result.error).toContain('no longer available')
+      expect(result.error).toContain('could not be found')
       expect(result.errorType).toBe('not_found')
     })
 
@@ -219,13 +217,12 @@ describe('Programs Server Actions', () => {
       const result = await assignProgramToUser('program123')
 
       expect(result.success).toBe(false)
-      expect(result.error).toContain('no longer available')
+      expect(result.error).toContain('not available')
       expect(result.errorType).toBe('not_found')
     })
 
     it('returns already_assigned error when user already has this program', async () => {
-      const { getCurrentProductUser } = require('@/lib/auth-server')
-      getCurrentProductUser.mockResolvedValue({
+      vi.mocked(getCurrentProductUser).mockResolvedValue({
         ...mockCurrentUser,
         currentProgram: 'program123',
       })
@@ -260,8 +257,7 @@ describe('Programs Server Actions', () => {
 
   describe('updateUserProgress', () => {
     beforeEach(() => {
-      const { getCurrentProductUser } = require('@/lib/auth-server')
-      getCurrentProductUser.mockResolvedValue({
+      vi.mocked(getCurrentProductUser).mockResolvedValue({
         ...mockCurrentUser,
         currentProgram: 'program123',
       })
@@ -283,8 +279,7 @@ describe('Programs Server Actions', () => {
     })
 
     it('returns authentication error when user not logged in', async () => {
-      const { getCurrentProductUser } = require('@/lib/auth-server')
-      getCurrentProductUser.mockResolvedValue(null)
+      vi.mocked(getCurrentProductUser).mockResolvedValue(null)
 
       const result = await updateUserProgress(1, 5)
 
@@ -294,8 +289,7 @@ describe('Programs Server Actions', () => {
     })
 
     it('returns no_active_program error when user has no current program', async () => {
-      const { getCurrentProductUser } = require('@/lib/auth-server')
-      getCurrentProductUser.mockResolvedValue({
+      vi.mocked(getCurrentProductUser).mockResolvedValue({
         ...mockCurrentUser,
         currentProgram: null,
       })
@@ -346,8 +340,7 @@ describe('Programs Server Actions', () => {
 
   describe('advanceToNextDay', () => {
     beforeEach(() => {
-      const { getCurrentProductUser } = require('@/lib/auth-server')
-      getCurrentProductUser.mockResolvedValue({
+      vi.mocked(getCurrentProductUser).mockResolvedValue({
         ...mockCurrentUser,
         currentProgram: 'program123',
         currentMilestone: 0,
@@ -358,6 +351,31 @@ describe('Programs Server Actions', () => {
     })
 
     it('successfully advances to next day within milestone', async () => {
+      // Mock program with multiple days in milestone
+      mockPayload.findByID.mockResolvedValue({
+        ...mockProgram,
+        milestones: [
+          {
+            ...mockProgram.milestones[0]!,
+            days: [
+              mockProgram.milestones[0]!.days[0]!, // Day 0
+              {
+                id: 'day2',
+                dayType: 'workout',
+                exercises: [
+                  {
+                    id: 'ex2',
+                    exercise: 'exercise456',
+                    sets: 3,
+                    reps: 12,
+                  },
+                ],
+              }, // Day 1
+            ],
+          },
+        ],
+      })
+
       const result = await advanceToNextDay()
 
       expect(result.success).toBe(true)
@@ -371,8 +389,7 @@ describe('Programs Server Actions', () => {
     })
 
     it('advances to next milestone when reaching end of milestone days', async () => {
-      const { getCurrentProductUser } = require('@/lib/auth-server')
-      getCurrentProductUser.mockResolvedValue({
+      vi.mocked(getCurrentProductUser).mockResolvedValue({
         ...mockCurrentUser,
         currentProgram: 'program123',
         currentMilestone: 0,
@@ -417,8 +434,7 @@ describe('Programs Server Actions', () => {
     })
 
     it('completes program when finishing last day of last milestone', async () => {
-      const { getCurrentProductUser } = require('@/lib/auth-server')
-      getCurrentProductUser.mockResolvedValue({
+      vi.mocked(getCurrentProductUser).mockResolvedValue({
         ...mockCurrentUser,
         currentProgram: 'program123',
         currentMilestone: 0,
@@ -450,8 +466,7 @@ describe('Programs Server Actions', () => {
     })
 
     it('returns authentication error when user not logged in', async () => {
-      const { getCurrentProductUser } = require('@/lib/auth-server')
-      getCurrentProductUser.mockResolvedValue(null)
+      vi.mocked(getCurrentProductUser).mockResolvedValue(null)
 
       const result = await advanceToNextDay()
 
@@ -461,8 +476,7 @@ describe('Programs Server Actions', () => {
     })
 
     it('returns no_active_program error when user has no current program', async () => {
-      const { getCurrentProductUser } = require('@/lib/auth-server')
-      getCurrentProductUser.mockResolvedValue({
+      vi.mocked(getCurrentProductUser).mockResolvedValue({
         ...mockCurrentUser,
         currentProgram: null,
       })
@@ -485,8 +499,7 @@ describe('Programs Server Actions', () => {
     })
 
     it('returns validation error when program already completed', async () => {
-      const { getCurrentProductUser } = require('@/lib/auth-server')
-      getCurrentProductUser.mockResolvedValue({
+      vi.mocked(getCurrentProductUser).mockResolvedValue({
         ...mockCurrentUser,
         currentProgram: 'program123',
         currentMilestone: 5, // Beyond program length
@@ -503,8 +516,7 @@ describe('Programs Server Actions', () => {
 
   describe('advanceToNextMilestone', () => {
     beforeEach(() => {
-      const { getCurrentProductUser } = require('@/lib/auth-server')
-      getCurrentProductUser.mockResolvedValue({
+      vi.mocked(getCurrentProductUser).mockResolvedValue({
         ...mockCurrentUser,
         currentProgram: 'program123',
         currentMilestone: 0,
@@ -549,8 +561,7 @@ describe('Programs Server Actions', () => {
     })
 
     it('returns authentication error when user not logged in', async () => {
-      const { getCurrentProductUser } = require('@/lib/auth-server')
-      getCurrentProductUser.mockResolvedValue(null)
+      vi.mocked(getCurrentProductUser).mockResolvedValue(null)
 
       const result = await advanceToNextMilestone()
 
@@ -560,8 +571,7 @@ describe('Programs Server Actions', () => {
     })
 
     it('returns no_active_program error when user has no current program', async () => {
-      const { getCurrentProductUser } = require('@/lib/auth-server')
-      getCurrentProductUser.mockResolvedValue({
+      vi.mocked(getCurrentProductUser).mockResolvedValue({
         ...mockCurrentUser,
         currentProgram: null,
       })
@@ -574,8 +584,7 @@ describe('Programs Server Actions', () => {
     })
 
     it('returns validation error when already on final milestone', async () => {
-      const { getCurrentProductUser } = require('@/lib/auth-server')
-      getCurrentProductUser.mockResolvedValue({
+      vi.mocked(getCurrentProductUser).mockResolvedValue({
         ...mockCurrentUser,
         currentProgram: 'program123',
         currentMilestone: 0, // Only one milestone in mock program
@@ -605,8 +614,7 @@ describe('Programs Server Actions', () => {
   describe('Error Response Consistency', () => {
     it('maintains consistent error response format across all functions', async () => {
       // Test authentication error format consistency
-      const { getCurrentProductUser } = require('@/lib/auth-server')
-      getCurrentProductUser.mockResolvedValue(null)
+      vi.mocked(getCurrentProductUser).mockResolvedValue(null)
 
       const assignResult = await assignProgramToUser('program123')
       const updateResult = await updateUserProgress(1, 5)
@@ -639,8 +647,7 @@ describe('Programs Server Actions', () => {
     })
 
     it('provides user-friendly error messages', async () => {
-      const { getCurrentProductUser } = require('@/lib/auth-server')
-      getCurrentProductUser.mockResolvedValue(null)
+      vi.mocked(getCurrentProductUser).mockResolvedValue(null)
 
       const result = await assignProgramToUser('program123')
 
