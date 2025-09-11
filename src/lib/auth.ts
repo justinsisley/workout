@@ -1,4 +1,7 @@
 import { SignJWT, jwtVerify, decodeJwt } from 'jose'
+import { cookies } from 'next/headers'
+import { getPayload } from 'payload'
+import configPromise from '@/payload/payload.config'
 import type { AuthToken, ProductUser } from '@/types/auth'
 import { serverConfig } from '@/lib/config'
 const JWT_EXPIRES_IN = '7d' // 7 days
@@ -134,4 +137,37 @@ export async function requireAuth(headers: Headers): Promise<string> {
     throw new Error('Authentication required')
   }
   return productUserId
+}
+
+/**
+ * Get current authenticated product user (server-side)
+ * This checks the JWT token from cookies and returns the full user object
+ */
+export async function getCurrentProductUser(): Promise<ProductUser | null> {
+  try {
+    const cookieStore = await cookies()
+    const token = cookieStore.get('workout-app-jwt-token')?.value
+
+    if (!token) {
+      return null
+    }
+
+    // Verify the JWT token
+    const authToken = await verifyJWTToken(token)
+    if (!authToken) {
+      return null
+    }
+
+    // Get the user from the database
+    const payload = await getPayload({ config: configPromise })
+    const user = await payload.findByID({
+      collection: 'productUsers',
+      id: authToken.productUserId,
+    })
+
+    return user as ProductUser
+  } catch (error) {
+    console.error('Get current product user error:', error)
+    return null
+  }
 }
