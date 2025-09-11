@@ -107,7 +107,7 @@ describe('Data Integrity Across Authentication Workflows', () => {
       expect(finalUser.username).toBe(username)
       expect(finalUser.passkeyCredentials).toEqual([])
       expect(finalUser.totalWorkoutsCompleted).toBe(0)
-      expect(finalUser.currentDay).toBe(1)
+      expect(finalUser.currentDay).toBe(0)
       expect(finalUser.lastAuthenticationDate).toBeDefined()
     })
   })

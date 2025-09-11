@@ -261,19 +261,20 @@ describe('Programs Server Actions', () => {
         ...mockCurrentUser,
         currentProgram: 'program123',
       })
+      mockPayload.findByID.mockResolvedValue(mockProgram)
       mockPayload.update.mockResolvedValue({ id: 'user123' })
     })
 
     it('successfully updates user progress', async () => {
-      const result = await updateUserProgress(1, 5)
+      const result = await updateUserProgress(0, 0)
 
       expect(result.success).toBe(true)
       expect(mockPayload.update).toHaveBeenCalledWith({
         collection: 'productUsers',
         id: 'user123',
         data: {
-          currentMilestone: 1,
-          currentDay: 5,
+          currentMilestone: 0,
+          currentDay: 0,
         },
       })
     })
@@ -320,7 +321,7 @@ describe('Programs Server Actions', () => {
     it('handles database update errors', async () => {
       mockPayload.update.mockRejectedValue(new Error('Update failed'))
 
-      const result = await updateUserProgress(1, 5)
+      const result = await updateUserProgress(0, 0)
 
       expect(result.success).toBe(false)
       expect(result.error).toContain('We encountered an issue updating your progress')
@@ -330,7 +331,7 @@ describe('Programs Server Actions', () => {
     it('handles unauthorized errors', async () => {
       mockPayload.update.mockRejectedValue(new Error('unauthorized access'))
 
-      const result = await updateUserProgress(1, 5)
+      const result = await updateUserProgress(0, 0)
 
       expect(result.success).toBe(false)
       expect(result.error).toContain('You must be logged in')
@@ -498,7 +499,7 @@ describe('Programs Server Actions', () => {
       expect(result.errorType).toBe('not_found')
     })
 
-    it('returns validation error when program already completed', async () => {
+    it('auto-repairs when user progress is beyond program length', async () => {
       vi.mocked(getCurrentProductUser).mockResolvedValue({
         ...mockCurrentUser,
         currentProgram: 'program123',
@@ -509,8 +510,8 @@ describe('Programs Server Actions', () => {
       const result = await advanceToNextDay()
 
       expect(result.success).toBe(false)
-      expect(result.error).toContain('Program completed')
-      expect(result.errorType).toBe('validation')
+      expect(result.error).toContain('automatically corrected')
+      expect(result.errorType).toBe('milestone_index_invalid')
     })
   })
 
@@ -520,7 +521,7 @@ describe('Programs Server Actions', () => {
         ...mockCurrentUser,
         currentProgram: 'program123',
         currentMilestone: 0,
-        currentDay: 2,
+        currentDay: 0,
       })
       mockPayload.update.mockResolvedValue({ id: 'user123' })
     })

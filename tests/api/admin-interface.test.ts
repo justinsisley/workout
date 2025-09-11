@@ -90,7 +90,7 @@ describe('Admin Interface Integration Tests', () => {
         username: 'admintest_user1',
         passkeyCredentials: [],
         currentProgram: testProgramId,
-        currentMilestone: testProgramId,
+        currentMilestone: 0,
         currentDay: 1,
         totalWorkoutsCompleted: 0,
         lastWorkoutDate: null,
@@ -109,11 +109,7 @@ describe('Admin Interface Integration Tests', () => {
           ? result.currentProgram.id
           : result.currentProgram,
       ).toBe(testProgramId)
-      expect(
-        typeof result.currentMilestone === 'object'
-          ? result.currentMilestone.id
-          : result.currentMilestone,
-      ).toBe(testProgramId)
+      expect(result.currentMilestone).toBe(0)
       expect(result.currentDay).toBe(1)
 
       testUserIds.push(result.id)
@@ -249,7 +245,7 @@ describe('Admin Interface Integration Tests', () => {
           username: 'admintest_columns',
           passkeyCredentials: [],
           currentProgram: testProgramId,
-          currentMilestone: testProgramId,
+          currentMilestone: 0,
           currentDay: 15,
           totalWorkoutsCompleted: 25,
         },
@@ -270,11 +266,7 @@ describe('Admin Interface Integration Tests', () => {
           ? retrievedUser.currentProgram.id
           : retrievedUser.currentProgram,
       ).toBe(testProgramId)
-      expect(
-        typeof retrievedUser.currentMilestone === 'object'
-          ? retrievedUser.currentMilestone.id
-          : retrievedUser.currentMilestone,
-      ).toBe(testProgramId)
+      expect(retrievedUser.currentMilestone).toBe(0)
       expect(retrievedUser.currentDay).toBe(15)
     })
 
