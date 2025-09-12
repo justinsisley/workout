@@ -7,9 +7,18 @@ import {
   usernameSchema,
   passkeyCredentialSchema,
   exerciseCompletionSchema,
+  workoutDataEntrySchema,
+  amrapDataEntrySchema,
+  validateWorkoutField,
+  validateAmrapField,
+  validateWorkoutDataEntry,
+  validateAmrapDataEntry,
+  sanitizeWorkoutInput,
   programAssignmentSchema,
   type ProgressValidationError,
   type ProgressRepairAction,
+  type WorkoutDataEntryData,
+  type AmrapDataEntryData,
 } from '@/utils/validation'
 import type { Program, UserProgress } from '@/types/program'
 
@@ -701,6 +710,530 @@ describe('Progress Validation Utilities', () => {
 
       const result = validateUserProgress(mockProgram, completionProgress, 'test-program')
       expect(result.isValid).toBe(true)
+    })
+  })
+
+  describe('Enhanced Workout Data Validation', () => {
+    describe('workoutDataEntrySchema', () => {
+      it('should validate correct workout data', () => {
+        const validData: WorkoutDataEntryData = {
+          sets: 3,
+          reps: 10,
+          notes: 'Great workout!',
+          weight: 135.5,
+          time: 300,
+          distance: 5.2,
+          distanceUnit: 'miles',
+          timeUnit: 'minutes',
+        }
+
+        expect(workoutDataEntrySchema.parse(validData)).toEqual(validData)
+      })
+
+      it('should validate minimal workout data', () => {
+        const minimalData: WorkoutDataEntryData = {
+          sets: 1,
+          reps: 1,
+          notes: '',
+        }
+
+        expect(workoutDataEntrySchema.parse(minimalData)).toEqual(minimalData)
+      })
+
+      it('should reject invalid sets values', () => {
+        expect(() => workoutDataEntrySchema.parse({ sets: 0, reps: 10, notes: '' })).toThrow(
+          'Sets must be at least 1',
+        )
+
+        expect(() => workoutDataEntrySchema.parse({ sets: 100, reps: 10, notes: '' })).toThrow(
+          'Sets cannot exceed 99',
+        )
+
+        expect(() => workoutDataEntrySchema.parse({ sets: 1.5, reps: 10, notes: '' })).toThrow(
+          'Sets must be a whole number',
+        )
+      })
+
+      it('should reject invalid reps values', () => {
+        expect(() => workoutDataEntrySchema.parse({ sets: 3, reps: 0, notes: '' })).toThrow(
+          'Reps must be at least 1',
+        )
+
+        expect(() => workoutDataEntrySchema.parse({ sets: 3, reps: 1000, notes: '' })).toThrow(
+          'Reps cannot exceed 999',
+        )
+
+        expect(() => workoutDataEntrySchema.parse({ sets: 3, reps: 10.5, notes: '' })).toThrow(
+          'Reps must be a whole number',
+        )
+      })
+
+      it('should reject invalid weight values', () => {
+        expect(() =>
+          workoutDataEntrySchema.parse({ sets: 3, reps: 10, notes: '', weight: -1 }),
+        ).toThrow('Weight cannot be negative')
+
+        expect(() =>
+          workoutDataEntrySchema.parse({ sets: 3, reps: 10, notes: '', weight: 1001 }),
+        ).toThrow('Weight cannot exceed 1000 lbs')
+      })
+
+      it('should reject invalid time values', () => {
+        expect(() =>
+          workoutDataEntrySchema.parse({ sets: 3, reps: 10, notes: '', time: -1 }),
+        ).toThrow('Time cannot be negative')
+
+        expect(() =>
+          workoutDataEntrySchema.parse({ sets: 3, reps: 10, notes: '', time: 1000 }),
+        ).toThrow('Time cannot exceed 999')
+      })
+
+      it('should reject invalid distance values', () => {
+        expect(() =>
+          workoutDataEntrySchema.parse({ sets: 3, reps: 10, notes: '', distance: -1 }),
+        ).toThrow('Distance cannot be negative')
+
+        expect(() =>
+          workoutDataEntrySchema.parse({ sets: 3, reps: 10, notes: '', distance: 1000 }),
+        ).toThrow('Distance cannot exceed 999')
+      })
+
+      it('should reject long notes', () => {
+        const longNotes = 'x'.repeat(501)
+        expect(() => workoutDataEntrySchema.parse({ sets: 3, reps: 10, notes: longNotes })).toThrow(
+          'Notes cannot exceed 500 characters',
+        )
+      })
+
+      it('should validate enum values for units', () => {
+        expect(() =>
+          workoutDataEntrySchema.parse({
+            sets: 3,
+            reps: 10,
+            notes: '',
+            distanceUnit: 'kilometers' as any,
+          }),
+        ).toThrow()
+
+        expect(() =>
+          workoutDataEntrySchema.parse({
+            sets: 3,
+            reps: 10,
+            notes: '',
+            timeUnit: 'days' as any,
+          }),
+        ).toThrow()
+      })
+    })
+
+    describe('amrapDataEntrySchema', () => {
+      it('should validate correct AMRAP data', () => {
+        const validData: AmrapDataEntryData = {
+          totalRounds: 5,
+          partialRoundExercises: [
+            { exerciseId: 'ex1', reps: 10 },
+            { exerciseId: 'ex2', reps: 15 },
+          ],
+          notes: 'Solid AMRAP session!',
+        }
+
+        expect(amrapDataEntrySchema.parse(validData)).toEqual(validData)
+      })
+
+      it('should validate minimal AMRAP data', () => {
+        const minimalData: AmrapDataEntryData = {
+          totalRounds: 0,
+        }
+
+        expect(amrapDataEntrySchema.parse(minimalData)).toEqual(minimalData)
+      })
+
+      it('should reject invalid total rounds', () => {
+        expect(() => amrapDataEntrySchema.parse({ totalRounds: -1 })).toThrow(
+          'Total rounds cannot be negative',
+        )
+
+        expect(() => amrapDataEntrySchema.parse({ totalRounds: 100 })).toThrow(
+          'Total rounds cannot exceed 99',
+        )
+
+        expect(() => amrapDataEntrySchema.parse({ totalRounds: 5.5 })).toThrow(
+          'Total rounds must be a whole number',
+        )
+      })
+
+      it('should validate partial round exercises', () => {
+        const validData = {
+          totalRounds: 3,
+          partialRoundExercises: [
+            { exerciseId: 'ex1', reps: 10 },
+            { exerciseId: 'ex2', reps: 0 },
+          ],
+        }
+
+        expect(amrapDataEntrySchema.parse(validData)).toEqual(validData)
+      })
+
+      it('should reject invalid partial round data', () => {
+        expect(() =>
+          amrapDataEntrySchema.parse({
+            totalRounds: 3,
+            partialRoundExercises: [{ exerciseId: '', reps: 10 }],
+          }),
+        ).toThrow('Exercise ID is required')
+
+        expect(() =>
+          amrapDataEntrySchema.parse({
+            totalRounds: 3,
+            partialRoundExercises: [{ exerciseId: 'ex1', reps: -1 }],
+          }),
+        ).toThrow('Partial round reps cannot be negative')
+
+        expect(() =>
+          amrapDataEntrySchema.parse({
+            totalRounds: 3,
+            partialRoundExercises: [{ exerciseId: 'ex1', reps: 1000 }],
+          }),
+        ).toThrow('Partial round reps cannot exceed 999')
+
+        expect(() =>
+          amrapDataEntrySchema.parse({
+            totalRounds: 3,
+            partialRoundExercises: [{ exerciseId: 'ex1', reps: 10.5 }],
+          }),
+        ).toThrow('Partial round reps must be a whole number')
+      })
+    })
+
+    describe('validateWorkoutField', () => {
+      it('should validate individual workout fields correctly', () => {
+        expect(validateWorkoutField('sets', 3)).toBeNull()
+        expect(validateWorkoutField('reps', 10)).toBeNull()
+        expect(validateWorkoutField('weight', 135.5)).toBeNull()
+        expect(validateWorkoutField('time', 300)).toBeNull()
+        expect(validateWorkoutField('distance', 5.2)).toBeNull()
+        expect(validateWorkoutField('notes', 'Good workout')).toBeNull()
+      })
+
+      it('should return errors for invalid field values', () => {
+        expect(validateWorkoutField('sets', 0)).toBe('Sets must be at least 1')
+        expect(validateWorkoutField('sets', 100)).toBe('Sets cannot exceed 99')
+        expect(validateWorkoutField('reps', 0)).toBe('Reps must be at least 1')
+        expect(validateWorkoutField('reps', 1000)).toBe('Reps cannot exceed 999')
+        expect(validateWorkoutField('weight', -1)).toBe('Weight cannot be negative')
+        expect(validateWorkoutField('weight', 1001)).toBe('Weight cannot exceed 1000 lbs')
+        expect(validateWorkoutField('time', -1)).toBe('Time cannot be negative')
+        expect(validateWorkoutField('distance', 1000)).toBe('Distance cannot exceed 999')
+        expect(validateWorkoutField('notes', 'x'.repeat(501))).toBe(
+          'Notes cannot exceed 500 characters',
+        )
+      })
+
+      it('should handle optional fields correctly', () => {
+        expect(validateWorkoutField('weight', undefined)).toBeNull()
+        expect(validateWorkoutField('weight', null)).toBeNull()
+        expect(validateWorkoutField('weight', '')).toBeNull()
+        expect(validateWorkoutField('time', undefined)).toBeNull()
+        expect(validateWorkoutField('distance', undefined)).toBeNull()
+      })
+
+      it('should handle unit fields correctly', () => {
+        expect(validateWorkoutField('distanceUnit', 'miles')).toBeNull()
+        expect(validateWorkoutField('timeUnit', 'minutes')).toBeNull()
+      })
+    })
+
+    describe('validateAmrapField', () => {
+      it('should validate AMRAP fields correctly', () => {
+        expect(validateAmrapField('totalRounds', 5)).toBeNull()
+        expect(validateAmrapField('notes', 'Great AMRAP session')).toBeNull()
+      })
+
+      it('should return errors for invalid AMRAP values', () => {
+        expect(validateAmrapField('totalRounds', -1)).toBe('Total rounds cannot be negative')
+        expect(validateAmrapField('totalRounds', 100)).toBe('Total rounds cannot exceed 99')
+        expect(validateAmrapField('notes', 'x'.repeat(501))).toBe(
+          'Notes cannot exceed 500 characters',
+        )
+      })
+
+      it('should handle optional fields correctly', () => {
+        expect(validateAmrapField('notes', undefined)).toBeNull()
+        expect(validateAmrapField('notes', null)).toBeNull()
+      })
+
+      it('should handle partial round exercises field', () => {
+        expect(validateAmrapField('partialRoundExercises', [])).toBeNull()
+      })
+    })
+
+    describe('validateWorkoutDataEntry', () => {
+      it('should validate complete workout forms', () => {
+        const validData: WorkoutDataEntryData = {
+          sets: 3,
+          reps: 10,
+          notes: 'Great workout!',
+          weight: 135,
+          time: 60,
+          distance: 5,
+          distanceUnit: 'miles',
+          timeUnit: 'minutes',
+        }
+
+        const result = validateWorkoutDataEntry(validData)
+        expect(result.isValid).toBe(true)
+        expect(result.errors).toEqual({})
+      })
+
+      it('should return validation errors for invalid data', () => {
+        const invalidData = {
+          sets: 0,
+          reps: 1000,
+          notes: 'x'.repeat(501),
+          weight: -1,
+          time: 1000,
+          distance: -5,
+        }
+
+        const result = validateWorkoutDataEntry(invalidData)
+        expect(result.isValid).toBe(false)
+        expect(result.errors).toMatchObject({
+          sets: 'Sets must be at least 1',
+          reps: 'Reps cannot exceed 999',
+          notes: 'Notes cannot exceed 500 characters',
+          weight: 'Weight cannot be negative',
+          time: 'Time cannot exceed 999',
+          distance: 'Distance cannot be negative',
+        })
+      })
+
+      it('should handle mixed valid and invalid data', () => {
+        const mixedData = {
+          sets: 3,
+          reps: 0,
+          notes: 'Valid note',
+          weight: 135,
+        }
+
+        const result = validateWorkoutDataEntry(mixedData)
+        expect(result.isValid).toBe(false)
+        expect(result.errors).toEqual({
+          reps: 'Reps must be at least 1',
+        })
+      })
+    })
+
+    describe('validateAmrapDataEntry', () => {
+      it('should validate complete AMRAP forms', () => {
+        const validData: AmrapDataEntryData = {
+          totalRounds: 5,
+          partialRoundExercises: [
+            { exerciseId: 'ex1', reps: 10 },
+            { exerciseId: 'ex2', reps: 15 },
+          ],
+          notes: 'Excellent AMRAP!',
+        }
+
+        const result = validateAmrapDataEntry(validData)
+        expect(result.isValid).toBe(true)
+        expect(result.errors).toEqual({})
+      })
+
+      it('should return validation errors for invalid AMRAP data', () => {
+        const invalidData = {
+          totalRounds: -1,
+          partialRoundExercises: [
+            { exerciseId: '', reps: 10 },
+            { exerciseId: 'ex2', reps: -5 },
+          ],
+          notes: 'x'.repeat(501),
+        }
+
+        const result = validateAmrapDataEntry(invalidData)
+        expect(result.isValid).toBe(false)
+        expect(Object.keys(result.errors).length).toBeGreaterThan(0)
+      })
+    })
+
+    describe('sanitizeWorkoutInput', () => {
+      it('should sanitize string inputs', () => {
+        expect(sanitizeWorkoutInput('  123  ')).toBe(123)
+        expect(sanitizeWorkoutInput('45.5')).toBe(45.5)
+        expect(sanitizeWorkoutInput('valid text')).toBe('valid text')
+        expect(sanitizeWorkoutInput('')).toBeUndefined()
+        expect(sanitizeWorkoutInput('   ')).toBeUndefined()
+      })
+
+      it('should remove potentially harmful characters', () => {
+        expect(sanitizeWorkoutInput('text<script>alert("xss")</script>')).toBe(
+          'textscriptalert("xss")/script',
+        )
+        expect(sanitizeWorkoutInput('text with "quotes" & ampersand')).toBe(
+          'text with quotes  ampersand',
+        )
+      })
+
+      it('should handle numeric inputs', () => {
+        expect(sanitizeWorkoutInput(123)).toBe(123)
+        expect(sanitizeWorkoutInput(45.5)).toBe(45.5)
+        expect(sanitizeWorkoutInput(0)).toBe(0)
+        expect(sanitizeWorkoutInput(NaN)).toBeUndefined()
+        expect(sanitizeWorkoutInput(Infinity)).toBeUndefined()
+        expect(sanitizeWorkoutInput(-Infinity)).toBeUndefined()
+      })
+
+      it('should handle edge cases', () => {
+        expect(sanitizeWorkoutInput(null as any)).toBeUndefined()
+        expect(sanitizeWorkoutInput(undefined as any)).toBeUndefined()
+        expect(sanitizeWorkoutInput({} as any)).toBeUndefined()
+        expect(sanitizeWorkoutInput([] as any)).toBeUndefined()
+      })
+    })
+
+    describe('Integration Tests', () => {
+      it('should work end-to-end with workout data entry', () => {
+        const userData = {
+          sets: '3',
+          reps: '10',
+          weight: '135.5',
+          notes: 'Good session',
+        }
+
+        // Simulate form processing
+        const processedData = {
+          sets: sanitizeWorkoutInput(userData.sets),
+          reps: sanitizeWorkoutInput(userData.reps),
+          weight: sanitizeWorkoutInput(userData.weight),
+          notes: sanitizeWorkoutInput(userData.notes),
+        }
+
+        // Validate individual fields
+        expect(validateWorkoutField('sets', processedData.sets)).toBeNull()
+        expect(validateWorkoutField('reps', processedData.reps)).toBeNull()
+        expect(validateWorkoutField('weight', processedData.weight)).toBeNull()
+        expect(validateWorkoutField('notes', processedData.notes)).toBeNull()
+
+        // Validate entire form
+        const validationResult = validateWorkoutDataEntry(processedData)
+        expect(validationResult.isValid).toBe(true)
+      })
+
+      it('should catch edge cases in real-world scenario', () => {
+        const maliciousUserData = {
+          sets: '<script>alert("xss")</script>',
+          reps: '999999',
+          weight: '-100',
+          notes: 'x'.repeat(600),
+        }
+
+        const processedData = {
+          sets: sanitizeWorkoutInput(maliciousUserData.sets),
+          reps: sanitizeWorkoutInput(maliciousUserData.reps),
+          weight: sanitizeWorkoutInput(maliciousUserData.weight),
+          notes: sanitizeWorkoutInput(maliciousUserData.notes),
+        }
+
+        // Check individual field validation
+        expect(validateWorkoutField('reps', processedData.reps)).toContain('exceed')
+        expect(validateWorkoutField('weight', processedData.weight)).toContain('negative')
+        expect(validateWorkoutField('notes', processedData.notes)).toContain('500 characters')
+
+        // Full form validation should catch all issues
+        const validationResult = validateWorkoutDataEntry(processedData)
+        expect(validationResult.isValid).toBe(false)
+        expect(Object.keys(validationResult.errors).length).toBeGreaterThan(2)
+      })
+
+      it('should handle AMRAP data processing end-to-end', () => {
+        const amrapUserData = {
+          totalRounds: '7',
+          notes: 'Pushed hard today!',
+          partialRoundExercises: [
+            { exerciseId: 'pushups', reps: 8 },
+            { exerciseId: 'squats', reps: 12 },
+          ],
+        }
+
+        const processedData = {
+          totalRounds: sanitizeWorkoutInput(amrapUserData.totalRounds),
+          notes: sanitizeWorkoutInput(amrapUserData.notes),
+          partialRoundExercises: amrapUserData.partialRoundExercises,
+        }
+
+        expect(validateAmrapField('totalRounds', processedData.totalRounds)).toBeNull()
+        expect(validateAmrapField('notes', processedData.notes)).toBeNull()
+
+        const validationResult = validateAmrapDataEntry(processedData)
+        expect(validationResult.isValid).toBe(true)
+      })
+    })
+
+    describe('Performance and Boundary Tests', () => {
+      it('should handle maximum valid values', () => {
+        const maxValidData: WorkoutDataEntryData = {
+          sets: 99,
+          reps: 999,
+          notes: 'x'.repeat(500),
+          weight: 1000,
+          time: 999,
+          distance: 999,
+          distanceUnit: 'miles',
+          timeUnit: 'hours',
+        }
+
+        const result = validateWorkoutDataEntry(maxValidData)
+        expect(result.isValid).toBe(true)
+      })
+
+      it('should handle minimum valid values', () => {
+        const minValidData: WorkoutDataEntryData = {
+          sets: 1,
+          reps: 1,
+          notes: '',
+        }
+
+        const result = validateWorkoutDataEntry(minValidData)
+        expect(result.isValid).toBe(true)
+      })
+
+      it('should reject boundary-exceeding values', () => {
+        const exceedingData = {
+          sets: 100,
+          reps: 1000,
+          weight: 1001,
+          time: 1000,
+          distance: 1000,
+          notes: 'x'.repeat(501),
+        }
+
+        const result = validateWorkoutDataEntry(exceedingData)
+        expect(result.isValid).toBe(false)
+        expect(Object.keys(result.errors)).toEqual(
+          expect.arrayContaining(['sets', 'reps', 'weight', 'time', 'distance', 'notes']),
+        )
+      })
+
+      it('should handle AMRAP boundary conditions', () => {
+        // Maximum valid AMRAP data
+        const maxAmrapData: AmrapDataEntryData = {
+          totalRounds: 99,
+          partialRoundExercises: [{ exerciseId: 'ex1', reps: 999 }],
+          notes: 'x'.repeat(500),
+        }
+
+        const maxResult = validateAmrapDataEntry(maxAmrapData)
+        expect(maxResult.isValid).toBe(true)
+
+        // Exceeding boundaries
+        const exceedingAmrapData = {
+          totalRounds: 100,
+          partialRoundExercises: [{ exerciseId: 'ex1', reps: 1000 }],
+          notes: 'x'.repeat(501),
+        }
+
+        const exceedingResult = validateAmrapDataEntry(exceedingAmrapData)
+        expect(exceedingResult.isValid).toBe(false)
+      })
     })
   })
 })

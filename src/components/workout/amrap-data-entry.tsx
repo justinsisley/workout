@@ -9,6 +9,13 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { RotateCw, CheckCircle2, Plus, Minus } from 'lucide-react'
 import { useWorkoutStore } from '@/stores/workout-store'
+import {
+  validateAmrapField,
+  validateAmrapDataEntry,
+  validateWorkoutField,
+  sanitizeWorkoutInput,
+  type AmrapDataEntryData as ValidationAmrapData,
+} from '@/utils/validation'
 import type { DayExercise, Exercise } from '@/types/program'
 
 export interface AmrapDataEntryData {
@@ -87,27 +94,37 @@ export function AmrapDataEntry({
     return `${minutes}m`
   }
 
-  const validateField = (field: string, value: number) => {
+  // Real-time field validation using Zod schemas
+  const validateField = (field: keyof ValidationAmrapData, value: unknown) => {
     const newErrors = { ...errors }
 
-    switch (field) {
-      case 'totalRounds':
-        if (value < 0 || value > 999) {
-          newErrors.totalRounds = 'Total rounds must be between 0 and 999'
-        } else {
-          delete newErrors.totalRounds
-        }
-        break
-      case 'partialRoundExercisesCompleted':
-        if (value < 0 || value >= exercises.length) {
-          newErrors.partialRoundExercisesCompleted = `Partial round exercises must be between 0 and ${exercises.length - 1}`
-        } else {
-          delete newErrors.partialRoundExercisesCompleted
-        }
-        break
+    // For special AMRAP validation - handle the custom field that doesn't match ValidationAmrapData
+    if ((field as any) === 'partialRoundExercisesCompleted') {
+      const numValue = typeof value === 'number' ? value : parseInt(value as string) || 0
+      if (numValue < 0 || numValue >= exercises.length) {
+        newErrors.partialRoundExercisesCompleted = `Partial round exercises must be between 0 and ${exercises.length - 1}`
+      } else {
+        delete newErrors.partialRoundExercisesCompleted
+      }
+    } else {
+      // Use standard AMRAP validation for other fields
+      const validationError = validateAmrapField(field, value)
+      if (validationError) {
+        newErrors[field] = validationError
+      } else {
+        delete newErrors[field]
+      }
     }
 
     setErrors(newErrors)
+    return typeof value === 'number' ? value : parseInt(value as string) || 0
+  }
+
+  // Validate individual exercise data fields
+  const validateExerciseField = (field: string, value: unknown) => {
+    const sanitizedValue = sanitizeWorkoutInput(value as string | number)
+    const validationError = validateWorkoutField(field as any, sanitizedValue)
+    return { value: sanitizedValue, error: validationError }
   }
 
   const updateTotalRounds = (increment: boolean) => {
@@ -123,25 +140,58 @@ export function AmrapDataEntry({
       : Math.max(0, data.partialRoundExercisesCompleted - 1)
 
     setData((prev) => ({ ...prev, partialRoundExercisesCompleted: newValue }))
-    validateField('partialRoundExercisesCompleted', newValue)
+    validateField('partialRoundExercisesCompleted' as any, newValue)
   }
 
   const updateExerciseData = (exerciseId: string, field: string, value: number | undefined) => {
+    // Validate the exercise data field
+    const validation = validateExerciseField(field, value)
+
     setData((prev) => ({
       ...prev,
       exerciseData: prev.exerciseData.map((item) =>
-        item.exerciseId === exerciseId ? { ...item, [field]: value } : item,
+        item.exerciseId === exerciseId ? { ...item, [field]: validation.value } : item,
       ),
     }))
+
+    // Store exercise-specific validation errors if needed
+    if (validation.error) {
+      setErrors((prev) => ({ ...prev, [`${exerciseId}-${field}`]: validation.error! }))
+    } else {
+      setErrors((prev) => {
+        const newErrors = { ...prev }
+        delete newErrors[`${exerciseId}-${field}`]
+        return newErrors
+      })
+    }
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Final validation
-    const hasErrors = Object.keys(errors).length > 0
-    if (hasErrors) return
+    // Prepare data for validation (convert to match validation schema)
+    const validationData = {
+      totalRounds: data.totalRounds,
+      partialRoundExercises: data.exerciseData
+        .slice(0, data.partialRoundExercisesCompleted)
+        .map((exercise) => ({
+          exerciseId: exercise.exerciseId,
+          reps: exercise.reps,
+        })),
+      notes: data.notes,
+    }
 
+    // Comprehensive form validation using Zod schema
+    const validationResult = validateAmrapDataEntry(validationData)
+
+    if (!validationResult.isValid) {
+      // Update errors with validation results
+      setErrors((prev) => ({ ...prev, ...validationResult.errors }))
+      return
+    }
+
+    // Clear any existing errors and submit
+    setErrors({})
     onSave(data)
   }
 
@@ -289,7 +339,7 @@ export function AmrapDataEntry({
                   onChange={(e) => {
                     const value = parseInt(e.target.value) || 0
                     setData((prev) => ({ ...prev, partialRoundExercisesCompleted: value }))
-                    validateField('partialRoundExercisesCompleted', value)
+                    validateField('partialRoundExercisesCompleted' as any, value)
                   }}
                   className="h-12 text-lg text-center font-semibold touch-manipulation flex-1"
                   style={{ fontSize: '18px', minHeight: '44px' }}
@@ -460,6 +510,30 @@ export function AmrapDataEntry({
                 </div>
               </div>
             )}
+
+            {/* Notes Input */}
+            <div className="space-y-2">
+              <Label htmlFor="notes" className="text-base font-medium">
+                Notes (Optional)
+              </Label>
+              <Input
+                id="notes"
+                type="text"
+                value={data.notes || ''}
+                onChange={(e) => {
+                  validateField('notes', e.target.value)
+                  setData((prev) => ({ ...prev, notes: e.target.value }))
+                }}
+                className="h-12 text-base touch-manipulation"
+                style={{ minHeight: '44px' }}
+                placeholder="Add any notes about this AMRAP workout..."
+                maxLength={500}
+              />
+              {errors.notes && <p className="text-sm text-destructive">{errors.notes}</p>}
+              {data.notes && (
+                <p className="text-xs text-muted-foreground">{data.notes.length}/500 characters</p>
+              )}
+            </div>
 
             {/* Action Buttons */}
             <div className="flex flex-col gap-3 pt-4">

@@ -21,14 +21,117 @@ export const passkeyCredentialSchema = z.object({
   transports: z.array(z.string()).optional(),
 })
 
-// Exercise completion validation
+// Enhanced exercise completion validation with comprehensive ranges and error messages
 export const exerciseCompletionSchema = z.object({
-  sets: z.number().min(1, 'Sets must be at least 1'),
-  reps: z.number().min(1, 'Reps must be at least 1'),
-  weight: z.number().min(0).optional(),
-  time: z.number().min(0).optional(),
-  notes: z.string().optional(),
+  sets: z
+    .number()
+    .min(1, 'Sets must be at least 1')
+    .max(99, 'Sets cannot exceed 99')
+    .int('Sets must be a whole number'),
+  reps: z
+    .number()
+    .min(1, 'Reps must be at least 1')
+    .max(999, 'Reps cannot exceed 999')
+    .int('Reps must be a whole number'),
+  weight: z
+    .number()
+    .min(0, 'Weight cannot be negative')
+    .max(1000, 'Weight cannot exceed 1000 lbs')
+    .optional(),
+  time: z.number().min(0, 'Time cannot be negative').max(999, 'Time cannot exceed 999').optional(),
+  distance: z
+    .number()
+    .min(0, 'Distance cannot be negative')
+    .max(999, 'Distance cannot exceed 999')
+    .optional(),
+  notes: z.string().max(500, 'Notes cannot exceed 500 characters').optional(),
 })
+
+// Workout data entry validation (used by workout-data-entry component)
+export const workoutDataEntrySchema = z.object({
+  sets: z
+    .number()
+    .min(1, 'Sets must be at least 1')
+    .max(99, 'Sets cannot exceed 99')
+    .int('Sets must be a whole number'),
+  reps: z
+    .number()
+    .min(1, 'Reps must be at least 1')
+    .max(999, 'Reps cannot exceed 999')
+    .int('Reps must be a whole number'),
+  notes: z.string().max(500, 'Notes cannot exceed 500 characters'),
+  weight: z
+    .number()
+    .min(0, 'Weight cannot be negative')
+    .max(1000, 'Weight cannot exceed 1000 lbs')
+    .optional(),
+  time: z.number().min(0, 'Time cannot be negative').max(999, 'Time cannot exceed 999').optional(),
+  distance: z
+    .number()
+    .min(0, 'Distance cannot be negative')
+    .max(999, 'Distance cannot exceed 999')
+    .optional(),
+  distanceUnit: z.enum(['meters', 'miles']).optional(),
+  timeUnit: z.enum(['seconds', 'minutes', 'hours']).optional(),
+})
+
+// AMRAP data validation
+export const amrapDataEntrySchema = z.object({
+  totalRounds: z
+    .number()
+    .min(0, 'Total rounds cannot be negative')
+    .max(99, 'Total rounds cannot exceed 99')
+    .int('Total rounds must be a whole number'),
+  partialRoundExercises: z
+    .array(
+      z.object({
+        exerciseId: z.string().min(1, 'Exercise ID is required'),
+        reps: z
+          .number()
+          .min(0, 'Partial round reps cannot be negative')
+          .max(999, 'Partial round reps cannot exceed 999')
+          .int('Partial round reps must be a whole number'),
+      }),
+    )
+    .optional(),
+  notes: z.string().max(500, 'Notes cannot exceed 500 characters').optional(),
+})
+
+// Individual field validation schemas for real-time validation
+export const setsValidationSchema = z
+  .number()
+  .min(1, 'Sets must be at least 1')
+  .max(99, 'Sets cannot exceed 99')
+  .int('Sets must be a whole number')
+
+export const repsValidationSchema = z
+  .number()
+  .min(1, 'Reps must be at least 1')
+  .max(999, 'Reps cannot exceed 999')
+  .int('Reps must be a whole number')
+
+export const weightValidationSchema = z
+  .number()
+  .min(0, 'Weight cannot be negative')
+  .max(1000, 'Weight cannot exceed 1000 lbs')
+
+export const timeValidationSchema = z
+  .number()
+  .min(0, 'Time cannot be negative')
+  .max(999, 'Time cannot exceed 999')
+
+export const distanceValidationSchema = z
+  .number()
+  .min(0, 'Distance cannot be negative')
+  .max(999, 'Distance cannot exceed 999')
+
+export const roundsValidationSchema = z
+  .number()
+  .min(0, 'Total rounds cannot be negative')
+  .max(99, 'Total rounds cannot exceed 99')
+  .int('Total rounds must be a whole number')
+
+export const notesValidationSchema = z.string().max(500, 'Notes cannot exceed 500 characters')
 
 // Program assignment validation
 export const programAssignmentSchema = z.object({
@@ -37,7 +140,153 @@ export const programAssignmentSchema = z.object({
 })
 
 export type ExerciseCompletionData = z.infer<typeof exerciseCompletionSchema>
+export type WorkoutDataEntryData = z.infer<typeof workoutDataEntrySchema>
+export type AmrapDataEntryData = z.infer<typeof amrapDataEntrySchema>
 export type ProgramAssignmentData = z.infer<typeof programAssignmentSchema>
+
+/**
+ * Validation utility functions for real-time form validation
+ */
+
+// Validate individual fields and return user-friendly error messages
+export function validateWorkoutField(
+  field: keyof WorkoutDataEntryData,
+  value: unknown,
+): string | null {
+  try {
+    switch (field) {
+      case 'sets':
+        setsValidationSchema.parse(value)
+        break
+      case 'reps':
+        repsValidationSchema.parse(value)
+        break
+      case 'weight':
+        if (value !== undefined && value !== null && value !== '') {
+          weightValidationSchema.parse(value)
+        }
+        break
+      case 'time':
+        if (value !== undefined && value !== null && value !== '') {
+          timeValidationSchema.parse(value)
+        }
+        break
+      case 'distance':
+        if (value !== undefined && value !== null && value !== '') {
+          distanceValidationSchema.parse(value)
+        }
+        break
+      case 'notes':
+        if (value !== undefined && value !== null) {
+          notesValidationSchema.parse(value)
+        }
+        break
+      case 'distanceUnit':
+      case 'timeUnit':
+        // Units are validated as part of the schema
+        return null
+    }
+    return null
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return error.issues[0]?.message || 'Invalid value'
+    }
+    return 'Invalid value'
+  }
+}
+
+// Validate AMRAP field data
+export function validateAmrapField(field: keyof AmrapDataEntryData, value: unknown): string | null {
+  try {
+    switch (field) {
+      case 'totalRounds':
+        roundsValidationSchema.parse(value)
+        break
+      case 'notes':
+        if (value !== undefined && value !== null) {
+          notesValidationSchema.parse(value)
+        }
+        break
+      case 'partialRoundExercises':
+        // Handled separately for complex array validation
+        return null
+    }
+    return null
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return error.issues[0]?.message || 'Invalid value'
+    }
+    return 'Invalid value'
+  }
+}
+
+// Validate complete workout data entry form
+export function validateWorkoutDataEntry(data: unknown): {
+  isValid: boolean
+  errors: Record<string, string>
+} {
+  const result = workoutDataEntrySchema.safeParse(data)
+
+  if (result.success) {
+    return { isValid: true, errors: {} }
+  }
+
+  const errors: Record<string, string> = {}
+  result.error.issues.forEach((error: any) => {
+    const field = error.path[0]?.toString()
+    if (field) {
+      errors[field] = error.message
+    }
+  })
+
+  return { isValid: false, errors }
+}
+
+// Validate complete AMRAP data entry form
+export function validateAmrapDataEntry(data: unknown): {
+  isValid: boolean
+  errors: Record<string, string>
+} {
+  const result = amrapDataEntrySchema.safeParse(data)
+
+  if (result.success) {
+    return { isValid: true, errors: {} }
+  }
+
+  const errors: Record<string, string> = {}
+  result.error.issues.forEach((error: any) => {
+    const field = error.path[0]?.toString()
+    if (field) {
+      errors[field] = error.message
+    }
+  })
+
+  return { isValid: false, errors }
+}
+
+// Sanitize input values to prevent injection and ensure data consistency
+export function sanitizeWorkoutInput(value: string | number): string | number | undefined {
+  if (typeof value === 'string') {
+    const trimmed = value.trim()
+    if (trimmed === '') return undefined
+
+    // Convert to number if it's a numeric string
+    const numeric = parseFloat(trimmed)
+    if (!isNaN(numeric) && isFinite(numeric)) {
+      return numeric
+    }
+
+    // Return sanitized string (remove potentially harmful characters)
+    return trimmed.replace(/[<>\"'&]/g, '')
+  }
+
+  if (typeof value === 'number') {
+    // Ensure number is finite and not NaN
+    return isFinite(value) ? value : undefined
+  }
+
+  return undefined
+}
 
 /**
  * Enhanced error types for detailed progress validation

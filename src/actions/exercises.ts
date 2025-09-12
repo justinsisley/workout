@@ -10,7 +10,6 @@ import type {
   SmartDefaults,
   GetPreviousExerciseDataResult,
 } from '@/types/program'
-import type { ExerciseCompletion as PayloadExerciseCompletion } from '@/payload/payload-types'
 
 // Validation schemas
 const ExerciseIdSchema = z.string().min(1, 'Exercise ID is required')
@@ -150,7 +149,7 @@ export async function getPreviousExerciseData(
     // Convert PayloadCMS docs to our type structure
     const completions: ExerciseCompletion[] = []
     for (const doc of completionResults.docs) {
-      completions.push({
+      const completion: ExerciseCompletion = {
         id: doc.id as string,
         productUser: doc.productUser as string,
         exercise: doc.exercise as string,
@@ -159,15 +158,29 @@ export async function getPreviousExerciseData(
         dayIndex: doc.dayIndex as number,
         sets: doc.sets as number,
         reps: doc.reps as number,
-        weight: doc.weight as number | undefined,
-        time: doc.time as number | undefined,
-        distance: doc.distance as number | undefined,
-        distanceUnit: doc.distanceUnit as 'meters' | 'miles' | undefined,
         completedAt: new Date(doc.completedAt as string),
-        notes: doc.notes as string | undefined,
         createdAt: new Date(doc.createdAt as string),
         updatedAt: new Date(doc.updatedAt as string),
-      })
+      }
+
+      // Handle optional fields properly for exactOptionalPropertyTypes
+      if (doc.weight != null) {
+        completion.weight = doc.weight as number
+      }
+      if (doc.time != null) {
+        completion.time = doc.time as number
+      }
+      if (doc.notes != null) {
+        completion.notes = doc.notes as string
+      }
+      if ((doc as any).distance != null) {
+        completion.distance = (doc as any).distance as number
+      }
+      if ((doc as any).distanceUnit != null) {
+        completion.distanceUnit = (doc as any).distanceUnit as 'meters' | 'miles'
+      }
+
+      completions.push(completion)
     }
 
     // If no previous data exists, return success with no data (fallback defaults will be handled in component)

@@ -8,6 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { formatDistance, formatDuration } from '@/utils/formatters'
 import { getPreviousExerciseData } from '@/actions/exercises'
+import {
+  validateWorkoutField,
+  validateWorkoutDataEntry,
+  sanitizeWorkoutInput,
+  type WorkoutDataEntryData as ValidationWorkoutData,
+} from '@/utils/validation'
 import type { DayExercise, Exercise, PreviousExerciseData, SmartDefaults } from '@/types/program'
 
 export interface WorkoutDataEntryData {
@@ -109,68 +115,46 @@ export function WorkoutDataEntry({
     loadPreviousData()
   }, [exercise.id])
 
-  const validateField = (field: string, value: number | undefined) => {
+  // Real-time field validation using Zod schemas
+  const validateField = (field: keyof ValidationWorkoutData, value: unknown) => {
     const newErrors = { ...errors }
 
-    if (value !== undefined && value !== null) {
-      switch (field) {
-        case 'sets':
-          if (value < 1 || value > 99) {
-            newErrors.sets = 'Sets must be between 1 and 99'
-          } else {
-            delete newErrors.sets
-          }
-          break
-        case 'reps':
-          if (value < 1 || value > 999) {
-            newErrors.reps = 'Reps must be between 1 and 999'
-          } else {
-            delete newErrors.reps
-          }
-          break
-        case 'weight':
-          if (value < 0 || value > 1000) {
-            newErrors.weight = 'Weight must be between 0 and 1000 lbs'
-          } else {
-            delete newErrors.weight
-          }
-          break
-        case 'time':
-          if (value < 0 || value > 999) {
-            newErrors.time = 'Time must be between 0 and 999'
-          } else {
-            delete newErrors.time
-          }
-          break
-        case 'distance':
-          if (value < 0 || value > 999) {
-            newErrors.distance = 'Distance must be between 0 and 999'
-          } else {
-            delete newErrors.distance
-          }
-          break
-      }
+    // Sanitize and validate the input
+    const sanitizedValue = sanitizeWorkoutInput(value as string | number)
+    const validationError = validateWorkoutField(field, sanitizedValue)
+
+    if (validationError) {
+      newErrors[field] = validationError
+    } else {
+      delete newErrors[field]
     }
 
     setErrors(newErrors)
+    return sanitizedValue
   }
 
   const updateField = (field: keyof WorkoutDataEntryData, value: string | number | undefined) => {
-    setData((prev) => ({ ...prev, [field]: value }))
+    // Validate and sanitize the value first
+    const sanitizedValue = validateField(field as keyof ValidationWorkoutData, value)
 
-    // Validate numeric fields
-    if (typeof value === 'number') {
-      validateField(field, value)
-    }
+    // Update the data with the sanitized value
+    setData((prev) => ({ ...prev, [field]: sanitizedValue }))
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Final validation
-    const hasErrors = Object.keys(errors).length > 0
-    if (hasErrors) return
+    // Comprehensive form validation using Zod schema
+    const validationResult = validateWorkoutDataEntry(data)
 
+    if (!validationResult.isValid) {
+      // Update errors with validation results
+      setErrors(validationResult.errors)
+      return
+    }
+
+    // Clear any existing errors and submit
+    setErrors({})
     onSave(data)
   }
 
@@ -375,6 +359,28 @@ export function WorkoutDataEntry({
               )}
             </div>
           )}
+
+          {/* Notes Input */}
+          <div className="space-y-2">
+            <Label htmlFor="notes" className="text-base font-medium">
+              Notes (Optional)
+            </Label>
+            <Input
+              id="notes"
+              type="text"
+              value={data.notes || ''}
+              onChange={(e) => updateField('notes', e.target.value)}
+              className="h-12 text-base touch-manipulation"
+              style={{ minHeight: '44px' }}
+              placeholder="Add any notes about this exercise..."
+              maxLength={500}
+              disabled={isLoadingData}
+            />
+            {errors.notes && <p className="text-sm text-destructive">{errors.notes}</p>}
+            {data.notes && (
+              <p className="text-xs text-muted-foreground">{data.notes.length}/500 characters</p>
+            )}
+          </div>
 
           {/* Action Buttons */}
           <div className="flex flex-col gap-3 pt-4">
