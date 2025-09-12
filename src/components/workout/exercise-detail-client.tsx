@@ -4,6 +4,7 @@ import React, { useEffect } from 'react'
 import { useWorkoutStore } from '@/stores/workout-store'
 import { ExerciseNavigation } from '@/components/workout/exercise-navigation'
 import { ExerciseBreadcrumb } from '@/components/workout/exercise-breadcrumb'
+import { ExerciseAmrapContext } from '@/components/workout/exercise-amrap-context'
 import type { Exercise } from '@/types/workout'
 
 interface ExerciseDetailClientProps {
@@ -39,6 +40,9 @@ export function ExerciseDetailClient({
     <>
       {/* Breadcrumb Navigation */}
       <ExerciseBreadcrumb currentExerciseTitle={exercise.title} className="mb-4" />
+
+      {/* AMRAP Context Display */}
+      {currentDay && <ExerciseAmrapContext day={currentDay} className="mb-6" />}
 
       {/* Main Content */}
       {children}
