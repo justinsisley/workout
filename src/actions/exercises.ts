@@ -10,6 +10,7 @@ import type {
   SmartDefaults,
   GetPreviousExerciseDataResult,
 } from '@/types/program'
+import type { ExerciseCompletion as PayloadExerciseCompletion } from '@/payload/payload-types'
 
 // Validation schemas
 const ExerciseIdSchema = z.string().min(1, 'Exercise ID is required')
@@ -41,13 +42,18 @@ function calculateSmartDefaults(completions: ExerciseCompletion[]): SmartDefault
   if (weightEntries.length > 0) {
     const lastWeight = weightEntries[0]?.weight
     if (lastWeight) {
-      const avgWeight = weightEntries.reduce((sum, c) => sum + (c.weight || 0), 0) / weightEntries.length
+      const avgWeight =
+        weightEntries.reduce((sum, c) => sum + (c.weight || 0), 0) / weightEntries.length
 
       // Suggest slight progression if recent performance is consistent
       if (weightEntries.length >= 3) {
         // Progressive overload: suggest 2.5-5% increase if last 3 sessions were consistent
-        const last3Weights = weightEntries.slice(0, 3).map((c) => c.weight!).filter(w => w !== undefined)
-        const isConsistent = Math.max(...last3Weights) - Math.min(...last3Weights) <= avgWeight * 0.1
+        const last3Weights = weightEntries
+          .slice(0, 3)
+          .map((c) => c.weight!)
+          .filter((w) => w !== undefined)
+        const isConsistent =
+          Math.max(...last3Weights) - Math.min(...last3Weights) <= avgWeight * 0.1
 
         if (isConsistent) {
           suggestedWeight = Math.round((lastWeight + avgWeight * 0.025) * 2) / 2 // Round to nearest 2.5lbs
@@ -74,10 +80,11 @@ function calculateSmartDefaults(completions: ExerciseCompletion[]): SmartDefault
   let suggestedDistanceUnit: 'meters' | 'miles' | undefined = undefined
   const distanceEntries = recentCompletions.filter((c) => c.distance && c.distance > 0)
   if (distanceEntries.length > 0) {
-    suggestedDistance = Math.round(
-      (distanceEntries.reduce((sum, c) => sum + (c.distance || 0), 0) / distanceEntries.length) *
-        100,
-    ) / 100 // Round to 2 decimal places
+    suggestedDistance =
+      Math.round(
+        (distanceEntries.reduce((sum, c) => sum + (c.distance || 0), 0) / distanceEntries.length) *
+          100,
+      ) / 100 // Round to 2 decimal places
     suggestedDistanceUnit = distanceEntries[0]?.distanceUnit || 'meters'
   }
 
@@ -141,24 +148,27 @@ export async function getPreviousExerciseData(
     })
 
     // Convert PayloadCMS docs to our type structure
-    const completions: ExerciseCompletion[] = completionResults.docs.map((doc: any) => ({
-      id: doc.id,
-      productUser: doc.productUser,
-      exercise: doc.exercise,
-      program: doc.program,
-      milestoneIndex: doc.milestoneIndex,
-      dayIndex: doc.dayIndex,
-      sets: doc.sets,
-      reps: doc.reps,
-      weight: doc.weight,
-      time: doc.time,
-      distance: doc.distance,
-      distanceUnit: doc.distanceUnit,
-      completedAt: new Date(doc.completedAt),
-      notes: doc.notes,
-      createdAt: new Date(doc.createdAt),
-      updatedAt: new Date(doc.updatedAt),
-    }))
+    const completions: ExerciseCompletion[] = []
+    for (const doc of completionResults.docs) {
+      completions.push({
+        id: doc.id as string,
+        productUser: doc.productUser as string,
+        exercise: doc.exercise as string,
+        program: doc.program as string,
+        milestoneIndex: doc.milestoneIndex as number,
+        dayIndex: doc.dayIndex as number,
+        sets: doc.sets as number,
+        reps: doc.reps as number,
+        weight: doc.weight as number | undefined,
+        time: doc.time as number | undefined,
+        distance: doc.distance as number | undefined,
+        distanceUnit: doc.distanceUnit as 'meters' | 'miles' | undefined,
+        completedAt: new Date(doc.completedAt as string),
+        notes: doc.notes as string | undefined,
+        createdAt: new Date(doc.createdAt as string),
+        updatedAt: new Date(doc.updatedAt as string),
+      })
+    }
 
     // If no previous data exists, return success with no data (fallback defaults will be handled in component)
     if (completions.length === 0) {

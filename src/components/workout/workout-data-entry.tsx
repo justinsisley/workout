@@ -62,17 +62,17 @@ export function WorkoutDataEntry({
   useEffect(() => {
     const loadPreviousData = async () => {
       setIsLoadingData(true)
-      
+
       try {
         const result = await getPreviousExerciseData(exercise.id)
-        
+
         if (result.success) {
           if (result.previousData) {
             setAutoPopulationData(result.previousData)
             setDataSource('previous')
-            
+
             // Pre-fill form with previous workout data
-            setData(prev => ({
+            setData((prev) => ({
               ...prev,
               sets: result.previousData!.sets,
               reps: result.previousData!.reps,
@@ -84,9 +84,9 @@ export function WorkoutDataEntry({
           } else if (result.smartDefaults) {
             setSmartDefaults(result.smartDefaults)
             setDataSource('smart')
-            
+
             // Apply smart defaults
-            setData(prev => ({
+            setData((prev) => ({
               ...prev,
               sets: result.smartDefaults!.suggestedSets,
               reps: result.smartDefaults!.suggestedReps,
@@ -201,7 +201,7 @@ export function WorkoutDataEntry({
             </div>
           )}
         </div>
-        
+
         <div className="text-sm text-muted-foreground space-y-1">
           {/* Show program target info */}
           {exerciseConfig.sets > 0 && (
@@ -225,15 +225,18 @@ export function WorkoutDataEntry({
           {!isLoadingData && dataSource === 'previous' && autoPopulationData && (
             <div className="pt-2 border-t">
               <p className="text-green-600 font-medium">
-                Previous session: {new Date(autoPopulationData.lastCompletedAt).toLocaleDateString()}
+                Previous session:{' '}
+                {new Date(autoPopulationData.lastCompletedAt).toLocaleDateString()}
               </p>
             </div>
           )}
-          
+
           {!isLoadingData && dataSource === 'smart' && smartDefaults && (
             <div className="pt-2 border-t">
               <p className="text-blue-600 font-medium">
-                Based on {smartDefaults.basedOnSessions} previous session{smartDefaults.basedOnSessions > 1 ? 's' : ''} ({smartDefaults.confidence} confidence)
+                Based on {smartDefaults.basedOnSessions} previous session
+                {smartDefaults.basedOnSessions > 1 ? 's' : ''} ({smartDefaults.confidence}{' '}
+                confidence)
               </p>
             </div>
           )}
