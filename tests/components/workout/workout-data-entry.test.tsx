@@ -29,6 +29,7 @@ const mockExerciseConfig: DayExercise = {
 const mockPreviousData: WorkoutDataEntryData = {
   sets: 4,
   reps: 15,
+  notes: 'Previous workout notes',
   weight: 30,
   time: 45,
   distance: 1.5,

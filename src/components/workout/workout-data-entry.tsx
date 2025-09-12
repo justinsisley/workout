@@ -11,12 +11,12 @@ import type { DayExercise, Exercise } from '@/types/program'
 export interface WorkoutDataEntryData {
   sets: number
   reps: number
-  weight?: number | undefined
-  time?: number | undefined
-  distance?: number | undefined
-  distanceUnit?: 'meters' | 'miles' | undefined
-  timeUnit?: 'seconds' | 'minutes' | 'hours' | undefined
-  notes?: string | undefined
+  notes: string
+  weight?: number
+  time?: number
+  distance?: number
+  distanceUnit?: 'meters' | 'miles'
+  timeUnit?: 'seconds' | 'minutes' | 'hours'
 }
 
 export interface WorkoutDataEntryProps {
@@ -36,15 +36,44 @@ export function WorkoutDataEntry({
   onCancel,
   isLoading = false,
 }: WorkoutDataEntryProps) {
-  const [data, setData] = useState<WorkoutDataEntryData>({
-    sets: previousData?.sets ?? exerciseConfig.sets,
-    reps: previousData?.reps ?? exerciseConfig.reps,
-    weight: previousData?.weight ?? exerciseConfig.weight ?? undefined,
-    time: previousData?.time ?? exerciseConfig.durationValue ?? undefined,
-    distance: previousData?.distance ?? exerciseConfig.distanceValue ?? undefined,
-    distanceUnit: previousData?.distanceUnit ?? exerciseConfig.distanceUnit ?? undefined,
-    timeUnit: previousData?.timeUnit ?? exerciseConfig.durationUnit ?? undefined,
-    notes: previousData?.notes ?? '',
+  const [data, setData] = useState<WorkoutDataEntryData>(() => {
+    const initialData: WorkoutDataEntryData = {
+      sets: previousData?.sets ?? exerciseConfig.sets,
+      reps: previousData?.reps ?? exerciseConfig.reps,
+      notes: previousData?.notes ?? '',
+    }
+
+    if (previousData?.weight !== undefined) {
+      initialData.weight = previousData.weight
+    } else if (exerciseConfig.weight !== undefined) {
+      initialData.weight = exerciseConfig.weight
+    }
+
+    if (previousData?.time !== undefined) {
+      initialData.time = previousData.time
+    } else if (exerciseConfig.durationValue !== undefined) {
+      initialData.time = exerciseConfig.durationValue
+    }
+
+    if (previousData?.distance !== undefined) {
+      initialData.distance = previousData.distance
+    } else if (exerciseConfig.distanceValue !== undefined) {
+      initialData.distance = exerciseConfig.distanceValue
+    }
+
+    if (previousData?.distanceUnit !== undefined) {
+      initialData.distanceUnit = previousData.distanceUnit
+    } else if (exerciseConfig.distanceUnit !== undefined) {
+      initialData.distanceUnit = exerciseConfig.distanceUnit
+    }
+
+    if (previousData?.timeUnit !== undefined) {
+      initialData.timeUnit = previousData.timeUnit
+    } else if (exerciseConfig.durationUnit !== undefined) {
+      initialData.timeUnit = exerciseConfig.durationUnit
+    }
+
+    return initialData
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
