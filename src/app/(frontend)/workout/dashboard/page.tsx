@@ -1,16 +1,8 @@
 import React from 'react'
-import { redirect } from 'next/navigation'
-import { getCurrentProductUser } from '@/lib/auth-server'
-import { WorkoutDashboardClient } from '@/components/workout/workout-dashboard-client'
+import { WorkoutDashboardServer } from '@/components/workout/workout-dashboard-server'
 
 export default async function WorkoutDashboardPage() {
-  // Check authentication
-  const currentUser = await getCurrentProductUser()
-  if (!currentUser) {
-    redirect('/login')
-  }
-
-  return <WorkoutDashboardClient />
+  return <WorkoutDashboardServer />
 }
 
 // Static metadata for the page

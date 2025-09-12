@@ -1,115 +1,125 @@
 'use client'
 
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useWorkoutStore } from '@/stores/workout-store'
 import { DayOverview } from '@/components/workout/day-overview'
 import { ExerciseList } from '@/components/workout/exercise-list'
 import { ProgressIndicators } from '@/components/workout/progress-indicators'
 import { DayNavigation } from '@/components/workout/day-navigation'
 import { TimeEstimates } from '@/components/workout/time-estimates'
+import type { Program } from '@/types/program'
 
-// TODO: This is a placeholder - will be replaced with actual data fetching from PayloadCMS
-const mockProgram = {
-  id: '1',
-  name: 'Beginner Bodyweight Program',
-  description: 'A comprehensive bodyweight training program for beginners',
-  objective: 'Build foundational strength and endurance',
-  isPublished: true,
-  createdAt: '2025-01-01',
-  updatedAt: '2025-01-01',
-  milestones: [
-    {
-      id: 'milestone1',
-      name: 'Week 1',
-      theme: 'Foundation Building',
-      objective: 'Establish basic movement patterns',
-      days: [
-        {
-          id: 'day1',
-          dayType: 'workout' as const,
-          isAmrap: false,
-          exercises: [
-            {
-              id: 'ex1',
-              exercise: {
-                id: 'exercise1',
-                title: 'Push-ups',
-                description: 'Standard push-ups',
-                category: 'Bodyweight',
-              },
-              sets: 3,
-              reps: 15,
-              restPeriod: 60,
-            },
-            {
-              id: 'ex2',
-              exercise: {
-                id: 'exercise2',
-                title: 'Squats',
-                description: 'Bodyweight squats',
-                category: 'Bodyweight',
-              },
-              sets: 3,
-              reps: 20,
-              restPeriod: 90,
-            },
-          ],
-        },
-        {
-          id: 'day2',
-          dayType: 'rest' as const,
-          restNotes: 'Active recovery - light walking or stretching',
-        },
-        {
-          id: 'day3',
-          dayType: 'workout' as const,
-          isAmrap: true,
-          amrapDuration: 12,
-          exercises: [
-            {
-              id: 'ex3',
-              exercise: {
-                id: 'exercise3',
-                title: 'Burpees',
-                description: 'Full body burpees',
-                category: 'Cardio',
-              },
-              sets: 1,
-              reps: 5,
-              restPeriod: 0,
-            },
-            {
-              id: 'ex4',
-              exercise: {
-                id: 'exercise4',
-                title: 'Mountain Climbers',
-                description: 'Alternate leg mountain climbers',
-                category: 'Cardio',
-              },
-              sets: 1,
-              reps: 10,
-              restPeriod: 0,
-            },
-          ],
-        },
-      ],
-    },
-  ],
+interface WorkoutDashboardClientProps {
+  initialProgram: Program | null
+  initialMilestoneIndex: number
+  initialDayIndex: number
+  initialError: string | null
+  initialErrorType: string | null
+  className?: string
 }
 
-export function WorkoutDashboardClient() {
-  const { currentProgram, currentDayIndex, getCurrentMilestone, getCurrentDay, setCurrentProgram } =
-    useWorkoutStore()
+export function WorkoutDashboardClient({
+  initialProgram,
+  initialMilestoneIndex,
+  initialDayIndex,
+  initialError,
+  initialErrorType: _initialErrorType,
+  className: _className = '',
+}: WorkoutDashboardClientProps) {
+  const router = useRouter()
+  const [error, setError] = useState<string | null>(initialError)
 
-  // Initialize with mock program if no current program
+  const {
+    currentProgram,
+    currentDayIndex,
+    getCurrentMilestone,
+    getCurrentDay,
+    setCurrentProgram,
+    startSession,
+  } = useWorkoutStore()
+
+  // Initialize program data from server-side props
   useEffect(() => {
-    if (!currentProgram) {
-      setCurrentProgram(mockProgram, 0, 0)
+    if (initialProgram) {
+      // Set the real program data in the workout store
+      setCurrentProgram(initialProgram, initialMilestoneIndex, initialDayIndex)
+    } else if (initialError) {
+      // Handle error cases from server-side
+      setError(initialError)
     }
-  }, [currentProgram, setCurrentProgram])
+  }, [initialProgram, initialMilestoneIndex, initialDayIndex, initialError, setCurrentProgram])
 
   const currentMilestone = getCurrentMilestone()
   const currentDay = getCurrentDay()
+
+  // Handle starting a workout session
+  const handleStartWorkout = () => {
+    if (!currentDay || !currentDay.exercises || currentDay.exercises.length === 0) {
+      return
+    }
+
+    startSession(currentDay)
+
+    // Navigate to first exercise
+    const firstExercise = currentDay.exercises[0]
+    if (firstExercise?.exercise) {
+      const exerciseId =
+        typeof firstExercise.exercise === 'string'
+          ? firstExercise.exercise
+          : firstExercise.exercise.id
+
+      // Build search params for exercise configuration
+      const params = new URLSearchParams()
+      if (firstExercise.sets > 0) params.set('sets', firstExercise.sets.toString())
+      if (firstExercise.reps > 0) params.set('reps', firstExercise.reps.toString())
+      if (firstExercise.weight) params.set('weight', firstExercise.weight.toString())
+      if (firstExercise.durationValue && firstExercise.durationUnit) {
+        params.set('durationValue', firstExercise.durationValue.toString())
+        params.set('durationUnit', firstExercise.durationUnit)
+      }
+      if (firstExercise.distanceValue && firstExercise.distanceUnit) {
+        params.set('distanceValue', firstExercise.distanceValue.toString())
+        params.set('distanceUnit', firstExercise.distanceUnit)
+      }
+      if (firstExercise.restPeriod) params.set('restPeriod', firstExercise.restPeriod.toString())
+      if (firstExercise.notes) params.set('notes', firstExercise.notes)
+
+      const searchString = params.toString()
+      const url = searchString
+        ? `/workout/exercise/${exerciseId}?${searchString}`
+        : `/workout/exercise/${exerciseId}`
+      router.push(url)
+    }
+  }
+
+  // Handle error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="container flex h-14 items-center px-4 sm:px-6">
+            <h1 className="text-lg font-semibold sm:text-xl">Workout Dashboard</h1>
+          </div>
+        </div>
+        <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+          <div className="flex items-center justify-center min-h-64">
+            <div className="text-center space-y-4 max-w-md">
+              <div className="text-red-600 text-4xl">⚠️</div>
+              <h2 className="text-lg font-semibold">Unable to Load Program</h2>
+              <p className="text-muted-foreground">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   // Handle case where data isn't loaded yet
   if (!currentProgram || !currentMilestone || !currentDay) {
@@ -122,7 +132,7 @@ export function WorkoutDashboardClient() {
         </div>
         <div className="container mx-auto p-4 sm:p-6 lg:p-8">
           <div className="flex items-center justify-center min-h-64">
-            <p className="text-muted-foreground">Loading workout data...</p>
+            <p className="text-muted-foreground">No workout program available.</p>
           </div>
         </div>
       </div>
@@ -149,10 +159,7 @@ export function WorkoutDashboardClient() {
                 day={currentDay}
                 dayNumber={currentDayIndex + 1}
                 milestoneName={currentMilestone.name}
-                onStartWorkout={() => {
-                  // Start workout functionality is handled by DayNavigation component
-                  console.log('Starting workout...')
-                }}
+                onStartWorkout={handleStartWorkout}
               />
             </div>
           </div>

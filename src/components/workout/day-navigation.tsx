@@ -58,8 +58,36 @@ export function DayNavigation({ day, className = '' }: DayNavigationProps) {
   const handleStartWorkout = () => {
     startSession(day)
     // Navigate to first exercise
-    if (exercises.length > 0 && exercises[0]?.id) {
-      router.push(`/workout/exercise/${exercises[0].id}`)
+    if (exercises.length > 0) {
+      const firstExercise = exercises[0]
+      if (firstExercise?.exercise) {
+        const exerciseId =
+          typeof firstExercise.exercise === 'string'
+            ? firstExercise.exercise
+            : firstExercise.exercise.id
+
+        // Build search params for exercise configuration
+        const params = new URLSearchParams()
+        if (firstExercise.sets > 0) params.set('sets', firstExercise.sets.toString())
+        if (firstExercise.reps > 0) params.set('reps', firstExercise.reps.toString())
+        if (firstExercise.weight) params.set('weight', firstExercise.weight.toString())
+        if (firstExercise.durationValue && firstExercise.durationUnit) {
+          params.set('durationValue', firstExercise.durationValue.toString())
+          params.set('durationUnit', firstExercise.durationUnit)
+        }
+        if (firstExercise.distanceValue && firstExercise.distanceUnit) {
+          params.set('distanceValue', firstExercise.distanceValue.toString())
+          params.set('distanceUnit', firstExercise.distanceUnit)
+        }
+        if (firstExercise.restPeriod) params.set('restPeriod', firstExercise.restPeriod.toString())
+        if (firstExercise.notes) params.set('notes', firstExercise.notes)
+
+        const searchString = params.toString()
+        const url = searchString
+          ? `/workout/exercise/${exerciseId}?${searchString}`
+          : `/workout/exercise/${exerciseId}`
+        router.push(url)
+      }
     }
   }
 
@@ -70,9 +98,35 @@ export function DayNavigation({ day, className = '' }: DayNavigationProps) {
   }
 
   const handleNavigateToExercise = (index: number) => {
-    if (index >= 0 && index < exercises.length && exercises[index]?.id) {
-      setCurrentExercise(index)
-      router.push(`/workout/exercise/${exercises[index].id}`)
+    if (index >= 0 && index < exercises.length) {
+      const exercise = exercises[index]
+      if (exercise?.exercise) {
+        setCurrentExercise(index)
+        const exerciseId =
+          typeof exercise.exercise === 'string' ? exercise.exercise : exercise.exercise.id
+
+        // Build search params for exercise configuration
+        const params = new URLSearchParams()
+        if (exercise.sets > 0) params.set('sets', exercise.sets.toString())
+        if (exercise.reps > 0) params.set('reps', exercise.reps.toString())
+        if (exercise.weight) params.set('weight', exercise.weight.toString())
+        if (exercise.durationValue && exercise.durationUnit) {
+          params.set('durationValue', exercise.durationValue.toString())
+          params.set('durationUnit', exercise.durationUnit)
+        }
+        if (exercise.distanceValue && exercise.distanceUnit) {
+          params.set('distanceValue', exercise.distanceValue.toString())
+          params.set('distanceUnit', exercise.distanceUnit)
+        }
+        if (exercise.restPeriod) params.set('restPeriod', exercise.restPeriod.toString())
+        if (exercise.notes) params.set('notes', exercise.notes)
+
+        const searchString = params.toString()
+        const url = searchString
+          ? `/workout/exercise/${exerciseId}?${searchString}`
+          : `/workout/exercise/${exerciseId}`
+        router.push(url)
+      }
     }
   }
 
@@ -114,8 +168,10 @@ export function DayNavigation({ day, className = '' }: DayNavigationProps) {
     if (isAmrap) {
       completeRound()
       // Optionally navigate to start of next round (first exercise)
-      if (exercises.length > 0 && exercises[0]?.id) {
+      if (exercises.length > 0) {
         setCurrentExercise(0)
+        // Could navigate to first exercise here if desired
+        // handleNavigateToExercise(0)
       }
     }
   }
