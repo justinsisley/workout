@@ -750,6 +750,114 @@ export async function advanceToNextMilestone(): Promise<UpdateProgressResult> {
 }
 
 /**
+ * Complete the entire program when final milestone is finished
+ */
+export async function completeProgramAndReset(): Promise<UpdateProgressResult> {
+  try {
+    // Get current authenticated user
+    const currentUser = await getCurrentProductUser()
+    if (!currentUser) {
+      return {
+        success: false,
+        error: 'You must be logged in to complete your program. Please sign in and try again.',
+        errorType: 'authentication',
+      }
+    }
+
+    if (!currentUser.currentProgram) {
+      return {
+        success: false,
+        error: 'You need to have an active program to complete. Please select a program first.',
+        errorType: 'no_active_program',
+      }
+    }
+
+    const payload = await getPayload({ config: configPromise })
+
+    // Get current program to validate completion
+    const program = await payload.findByID({
+      collection: 'programs',
+      id: currentUser.currentProgram as string,
+      depth: 2,
+    })
+
+    if (!program || !program.isPublished) {
+      return {
+        success: false,
+        error: 'Your current program is no longer available.',
+        errorType: 'not_found',
+      }
+    }
+
+    const typedProgram = program as Program
+    const currentMilestone = currentUser.currentMilestone ?? 0
+
+    // Verify the program is actually complete
+    const isProgramComplete = currentMilestone >= typedProgram.milestones.length
+
+    if (!isProgramComplete) {
+      return {
+        success: false,
+        error: 'Your program is not yet complete. Finish all milestones first.',
+        errorType: 'validation',
+      }
+    }
+
+    // Record program completion and reset progress
+    const completionDate = new Date()
+    await payload.update({
+      collection: 'productUsers',
+      id: currentUser.id,
+      data: {
+        // Clear current program to indicate completion
+        currentProgram: null,
+        currentMilestone: 0,
+        currentDay: 0,
+        lastWorkoutDate: completionDate.toISOString(),
+        totalWorkoutsCompleted: (currentUser.totalWorkoutsCompleted || 0) + 1,
+        // TODO: When program completion history is implemented:
+        // programCompletionHistory: [
+        //   ...existingHistory,
+        //   {
+        //     programId: currentUser.currentProgram,
+        //     completedAt: completionDate.toISOString(),
+        //     totalDays: totalProgramDays,
+        //     totalMilestones: typedProgram.milestones.length
+        //   }
+        // ]
+      },
+    })
+
+    // Revalidate relevant paths
+    revalidatePath('/programs')
+    revalidatePath('/dashboard')
+    revalidatePath('/workout')
+
+    return { success: true }
+  } catch (error) {
+    console.error('Complete program error:', error)
+
+    // Handle specific PayloadCMS errors
+    if (error && typeof error === 'object' && 'message' in error) {
+      const errorMessage = error.message as string
+      if (errorMessage.includes('unauthorized')) {
+        return {
+          success: false,
+          error: 'You must be logged in to complete your program. Please sign in and try again.',
+          errorType: 'authentication',
+        }
+      }
+    }
+
+    return {
+      success: false,
+      error: 'We encountered an issue completing your program. Please try again.',
+      errorType: 'system_error',
+    }
+  }
+}
+
+/**
  * Update user progress tracking for current program
  */
 export async function updateUserProgress(

@@ -110,6 +110,18 @@ export interface WorkoutState {
   getNextExercise: () => DayExercise | null
   getPreviousExercise: () => DayExercise | null
   getCurrentExercise: () => DayExercise | null
+
+  // Milestone progression methods
+  isMilestoneComplete: (milestoneIndex?: number) => boolean
+  isCurrentMilestoneComplete: () => boolean
+  shouldTriggerMilestoneCompletion: () => boolean
+  isProgramComplete: () => boolean
+  getMilestoneCompletionStats: () => {
+    totalDays: number
+    completedDays: number
+    completionPercentage: number
+    isLastMilestone: boolean
+  }
 }
 
 export const useWorkoutStore = create<WorkoutState>()(
@@ -677,6 +689,95 @@ export const useWorkoutStore = create<WorkoutState>()(
       isAmrapTimeExpired: () => {
         const { amrapTimeRemaining } = get()
         return amrapTimeRemaining !== null && amrapTimeRemaining <= 0
+      },
+
+      // Milestone progression methods
+      isMilestoneComplete: (milestoneIndex?: number) => {
+        const { currentProgram, currentMilestoneIndex } = get()
+        if (!currentProgram) return false
+
+        const targetIndex = milestoneIndex ?? currentMilestoneIndex
+        const milestone = currentProgram.milestones[targetIndex]
+        if (!milestone?.days) return false
+
+        // A milestone is complete when we've advanced past its last day
+        // This means we're either on the next milestone or the program is complete
+        const totalDaysInMilestone = milestone.days.length
+
+        if (milestoneIndex !== undefined && milestoneIndex < currentMilestoneIndex) {
+          // Checking a previous milestone - it's complete
+          return true
+        } else if (milestoneIndex !== undefined && milestoneIndex > currentMilestoneIndex) {
+          // Checking a future milestone - it's not complete
+          return false
+        } else {
+          // Checking current milestone - it's complete if we've finished all its days
+          // This would be indicated by being on day >= totalDaysInMilestone
+          const { currentDayIndex } = get()
+          return currentDayIndex >= totalDaysInMilestone
+        }
+      },
+
+      isCurrentMilestoneComplete: () => {
+        return get().isMilestoneComplete()
+      },
+
+      shouldTriggerMilestoneCompletion: () => {
+        const { currentProgram, currentMilestoneIndex, currentDayIndex } = get()
+        if (!currentProgram) return false
+
+        const currentMilestone = currentProgram.milestones[currentMilestoneIndex]
+        if (!currentMilestone?.days) return false
+
+        // We should trigger milestone completion when we've just completed the last day
+        // and are about to advance to the next milestone
+        const isLastDayOfMilestone = currentDayIndex >= currentMilestone.days.length - 1
+        const hasNextMilestone = currentMilestoneIndex < currentProgram.milestones.length - 1
+
+        return isLastDayOfMilestone && hasNextMilestone
+      },
+
+      isProgramComplete: () => {
+        const { currentProgram, currentMilestoneIndex } = get()
+        if (!currentProgram) return false
+
+        // Program is complete when current milestone index is beyond the last milestone
+        return currentMilestoneIndex >= currentProgram.milestones.length
+      },
+
+      getMilestoneCompletionStats: () => {
+        const { currentProgram, currentMilestoneIndex, currentDayIndex } = get()
+
+        if (!currentProgram) {
+          return {
+            totalDays: 0,
+            completedDays: 0,
+            completionPercentage: 0,
+            isLastMilestone: false,
+          }
+        }
+
+        const currentMilestone = currentProgram.milestones[currentMilestoneIndex]
+        if (!currentMilestone?.days) {
+          return {
+            totalDays: 0,
+            completedDays: 0,
+            completionPercentage: 0,
+            isLastMilestone: false,
+          }
+        }
+
+        const totalDays = currentMilestone.days.length
+        const completedDays = Math.min(currentDayIndex + 1, totalDays)
+        const completionPercentage = totalDays > 0 ? (completedDays / totalDays) * 100 : 0
+        const isLastMilestone = currentMilestoneIndex >= currentProgram.milestones.length - 1
+
+        return {
+          totalDays,
+          completedDays,
+          completionPercentage,
+          isLastMilestone,
+        }
       },
     }),
     {
