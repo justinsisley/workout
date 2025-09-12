@@ -1,28 +1,30 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { formatDistance, formatDuration } from '@/utils/formatters'
-import type { DayExercise, Exercise } from '@/types/program'
+import { getPreviousExerciseData } from '@/actions/exercises'
+import type { DayExercise, Exercise, PreviousExerciseData, SmartDefaults } from '@/types/program'
 
 export interface WorkoutDataEntryData {
   sets: number
   reps: number
   notes: string
-  weight?: number
-  time?: number
-  distance?: number
-  distanceUnit?: 'meters' | 'miles'
-  timeUnit?: 'seconds' | 'minutes' | 'hours'
+  weight?: number | undefined
+  time?: number | undefined
+  distance?: number | undefined
+  distanceUnit?: 'meters' | 'miles' | undefined
+  timeUnit?: 'seconds' | 'minutes' | 'hours' | undefined
 }
 
 export interface WorkoutDataEntryProps {
   exercise: Exercise
   exerciseConfig: DayExercise
-  previousData?: WorkoutDataEntryData
+  previousData?: WorkoutDataEntryData // Legacy support - will be overridden by auto-population
   onSave: (data: WorkoutDataEntryData) => void
   onCancel?: () => void
   isLoading?: boolean
@@ -31,52 +33,81 @@ export interface WorkoutDataEntryProps {
 export function WorkoutDataEntry({
   exercise,
   exerciseConfig,
-  previousData,
+  previousData: _previousData, // Legacy support - overridden by auto-population
   onSave,
   onCancel,
   isLoading = false,
 }: WorkoutDataEntryProps) {
   const [data, setData] = useState<WorkoutDataEntryData>(() => {
-    const initialData: WorkoutDataEntryData = {
-      sets: previousData?.sets ?? exerciseConfig.sets,
-      reps: previousData?.reps ?? exerciseConfig.reps,
-      notes: previousData?.notes ?? '',
+    // Initialize with fallback defaults based on exercise config
+    return {
+      sets: exerciseConfig.sets,
+      reps: exerciseConfig.reps,
+      notes: '',
+      weight: exerciseConfig.weight,
+      time: exerciseConfig.durationValue,
+      distance: exerciseConfig.distanceValue,
+      distanceUnit: exerciseConfig.distanceUnit,
+      timeUnit: exerciseConfig.durationUnit,
     }
-
-    if (previousData?.weight !== undefined) {
-      initialData.weight = previousData.weight
-    } else if (exerciseConfig.weight !== undefined) {
-      initialData.weight = exerciseConfig.weight
-    }
-
-    if (previousData?.time !== undefined) {
-      initialData.time = previousData.time
-    } else if (exerciseConfig.durationValue !== undefined) {
-      initialData.time = exerciseConfig.durationValue
-    }
-
-    if (previousData?.distance !== undefined) {
-      initialData.distance = previousData.distance
-    } else if (exerciseConfig.distanceValue !== undefined) {
-      initialData.distance = exerciseConfig.distanceValue
-    }
-
-    if (previousData?.distanceUnit !== undefined) {
-      initialData.distanceUnit = previousData.distanceUnit
-    } else if (exerciseConfig.distanceUnit !== undefined) {
-      initialData.distanceUnit = exerciseConfig.distanceUnit
-    }
-
-    if (previousData?.timeUnit !== undefined) {
-      initialData.timeUnit = previousData.timeUnit
-    } else if (exerciseConfig.durationUnit !== undefined) {
-      initialData.timeUnit = exerciseConfig.durationUnit
-    }
-
-    return initialData
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [autoPopulationData, setAutoPopulationData] = useState<PreviousExerciseData | null>(null)
+  const [smartDefaults, setSmartDefaults] = useState<SmartDefaults | null>(null)
+  const [isLoadingData, setIsLoadingData] = useState(true)
+  const [dataSource, setDataSource] = useState<'config' | 'previous' | 'smart'>('config')
+
+  // Auto-population: Load previous exercise data on component mount
+  useEffect(() => {
+    const loadPreviousData = async () => {
+      setIsLoadingData(true)
+      
+      try {
+        const result = await getPreviousExerciseData(exercise.id)
+        
+        if (result.success) {
+          if (result.previousData) {
+            setAutoPopulationData(result.previousData)
+            setDataSource('previous')
+            
+            // Pre-fill form with previous workout data
+            setData(prev => ({
+              ...prev,
+              sets: result.previousData!.sets,
+              reps: result.previousData!.reps,
+              weight: result.previousData!.weight ?? prev.weight,
+              time: result.previousData!.time ?? prev.time,
+              distance: result.previousData!.distance ?? prev.distance,
+              distanceUnit: result.previousData!.distanceUnit ?? prev.distanceUnit,
+            }))
+          } else if (result.smartDefaults) {
+            setSmartDefaults(result.smartDefaults)
+            setDataSource('smart')
+            
+            // Apply smart defaults
+            setData(prev => ({
+              ...prev,
+              sets: result.smartDefaults!.suggestedSets,
+              reps: result.smartDefaults!.suggestedReps,
+              weight: result.smartDefaults!.suggestedWeight ?? prev.weight,
+              time: result.smartDefaults!.suggestedTime ?? prev.time,
+              distance: result.smartDefaults!.suggestedDistance ?? prev.distance,
+              distanceUnit: result.smartDefaults!.suggestedDistanceUnit ?? prev.distanceUnit,
+            }))
+          }
+          // If no previous data or smart defaults, keep initial fallback defaults
+        }
+      } catch (error) {
+        console.error('Failed to load previous exercise data:', error)
+        // Continue with fallback defaults
+      } finally {
+        setIsLoadingData(false)
+      }
+    }
+
+    loadPreviousData()
+  }, [exercise.id])
 
   const validateField = (field: string, value: number | undefined) => {
     const newErrors = { ...errors }
@@ -148,8 +179,31 @@ export function WorkoutDataEntry({
   return (
     <Card className="w-full max-w-lg mx-auto">
       <CardHeader>
-        <CardTitle className="text-lg sm:text-xl font-semibold">{exercise.title}</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg sm:text-xl font-semibold">{exercise.title}</CardTitle>
+          {!isLoadingData && (
+            <div className="flex gap-2">
+              {dataSource === 'previous' && autoPopulationData && (
+                <Badge variant="secondary" className="text-xs">
+                  Previous Data
+                </Badge>
+              )}
+              {dataSource === 'smart' && smartDefaults && (
+                <Badge variant="outline" className="text-xs">
+                  Smart Defaults
+                </Badge>
+              )}
+              {dataSource === 'config' && (
+                <Badge variant="outline" className="text-xs">
+                  Program Default
+                </Badge>
+              )}
+            </div>
+          )}
+        </div>
+        
         <div className="text-sm text-muted-foreground space-y-1">
+          {/* Show program target info */}
           {exerciseConfig.sets > 0 && (
             <div>
               Target: {exerciseConfig.sets} sets × {exerciseConfig.reps} reps
@@ -166,11 +220,35 @@ export function WorkoutDataEntry({
               Distance: {formatDistance(exerciseConfig.distanceValue, exerciseConfig.distanceUnit)}
             </div>
           )}
+
+          {/* Show auto-population info */}
+          {!isLoadingData && dataSource === 'previous' && autoPopulationData && (
+            <div className="pt-2 border-t">
+              <p className="text-green-600 font-medium">
+                Previous session: {new Date(autoPopulationData.lastCompletedAt).toLocaleDateString()}
+              </p>
+            </div>
+          )}
+          
+          {!isLoadingData && dataSource === 'smart' && smartDefaults && (
+            <div className="pt-2 border-t">
+              <p className="text-blue-600 font-medium">
+                Based on {smartDefaults.basedOnSessions} previous session{smartDefaults.basedOnSessions > 1 ? 's' : ''} ({smartDefaults.confidence} confidence)
+              </p>
+            </div>
+          )}
         </div>
       </CardHeader>
 
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Loading State */}
+          {isLoadingData && (
+            <div className="text-center py-4">
+              <p className="text-sm text-muted-foreground">Loading previous workout data...</p>
+            </div>
+          )}
+
           {/* Sets Input */}
           <div className="space-y-2">
             <Label htmlFor="sets" className="text-base font-medium">
@@ -187,6 +265,7 @@ export function WorkoutDataEntry({
               style={{ fontSize: '18px', minHeight: '44px' }}
               min="1"
               max="99"
+              disabled={isLoadingData}
             />
             {errors.sets && <p className="text-sm text-destructive">{errors.sets}</p>}
           </div>
@@ -207,6 +286,7 @@ export function WorkoutDataEntry({
               style={{ fontSize: '18px', minHeight: '44px' }}
               min="1"
               max="999"
+              disabled={isLoadingData}
             />
             {errors.reps && <p className="text-sm text-destructive">{errors.reps}</p>}
           </div>
@@ -229,6 +309,7 @@ export function WorkoutDataEntry({
                 min="0"
                 max="1000"
                 placeholder="Optional"
+                disabled={isLoadingData}
               />
               {errors.weight && <p className="text-sm text-destructive">{errors.weight}</p>}
             </div>
@@ -252,6 +333,7 @@ export function WorkoutDataEntry({
                 min="0"
                 max="999"
                 placeholder="Optional"
+                disabled={isLoadingData}
               />
               {errors.time && <p className="text-sm text-destructive">{errors.time}</p>}
               {data.time && data.timeUnit && (
@@ -280,6 +362,7 @@ export function WorkoutDataEntry({
                 min="0"
                 max="999"
                 placeholder="Optional"
+                disabled={isLoadingData}
               />
               {errors.distance && <p className="text-sm text-destructive">{errors.distance}</p>}
               {data.distance && data.distanceUnit && (
@@ -294,11 +377,11 @@ export function WorkoutDataEntry({
           <div className="flex flex-col gap-3 pt-4">
             <Button
               type="submit"
-              disabled={!isFormValid || isLoading}
+              disabled={!isFormValid || isLoading || isLoadingData}
               className="h-12 text-lg font-semibold touch-manipulation"
               style={{ minHeight: '44px' }}
             >
-              {isLoading ? 'Saving...' : 'Save Exercise Data'}
+              {isLoading ? 'Saving...' : isLoadingData ? 'Loading...' : 'Save Exercise Data'}
             </Button>
 
             {onCancel && (

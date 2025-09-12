@@ -111,3 +111,54 @@ export interface UserProgress {
   currentMilestone: number
   currentDay: number
 }
+
+// Exercise completion types
+export interface ExerciseCompletion {
+  id: string
+  productUser: string // Reference to ProductUser ID
+  exercise: string // Reference to Exercise ID
+  program: string // Reference to Program ID
+  milestoneIndex: number // Index of milestone within program
+  dayIndex: number // Index of day within milestone
+  sets: number
+  reps: number
+  weight?: number // Optional for bodyweight exercises
+  time?: number // Optional - not relevant for all exercises
+  distance?: number // Optional - for distance-based exercises
+  distanceUnit?: 'meters' | 'miles'
+  completedAt: Date
+  notes?: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+// Previous exercise data for auto-population
+export interface PreviousExerciseData {
+  sets: number
+  reps: number
+  weight?: number | undefined
+  time?: number | undefined
+  distance?: number | undefined
+  distanceUnit?: 'meters' | 'miles' | undefined
+  lastCompletedAt: Date
+}
+
+// Smart defaults for exercise suggestions
+export interface SmartDefaults {
+  suggestedSets: number
+  suggestedReps: number
+  suggestedWeight?: number | undefined
+  suggestedTime?: number | undefined
+  suggestedDistance?: number | undefined
+  suggestedDistanceUnit?: 'meters' | 'miles' | undefined
+  confidence: 'high' | 'medium' | 'low'
+  basedOnSessions: number
+}
+
+// Server action result for getting previous exercise data
+export interface GetPreviousExerciseDataResult {
+  success: boolean
+  previousData?: PreviousExerciseData | undefined
+  smartDefaults?: SmartDefaults | undefined
+  error?: string
+}
