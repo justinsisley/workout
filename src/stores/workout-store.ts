@@ -1,8 +1,13 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { MilestoneDay, DayExercise } from '@/types/program'
+import type { MilestoneDay, DayExercise, Program, ProgramMilestone } from '@/types/program'
 
 export interface WorkoutState {
+  // Program and position tracking
+  currentProgram: Program | null
+  currentMilestoneIndex: number
+  currentDayIndex: number
+
   // Session state
   isSessionActive: boolean
   sessionStartTime: number | null
@@ -15,6 +20,8 @@ export interface WorkoutState {
   totalExercisesCompleted: number
 
   // Actions
+  setCurrentProgram: (program: Program, milestoneIndex?: number, dayIndex?: number) => void
+  setCurrentDay: (milestoneIndex: number, dayIndex: number) => void
   startSession: (day: MilestoneDay) => void
   endSession: () => void
   setCurrentExercise: (index: number) => void
@@ -22,7 +29,25 @@ export interface WorkoutState {
   completeRound: () => void
   resetSession: () => void
 
-  // Navigation helpers
+  // Program navigation helpers
+  getCurrentMilestone: () => ProgramMilestone | null
+  getCurrentDay: () => MilestoneDay | null
+  canNavigateToNextDay: () => boolean
+  canNavigateToPreviousDay: () => boolean
+  getNextDay: () => {
+    milestone: ProgramMilestone
+    day: MilestoneDay
+    milestoneIndex: number
+    dayIndex: number
+  } | null
+  getPreviousDay: () => {
+    milestone: ProgramMilestone
+    day: MilestoneDay
+    milestoneIndex: number
+    dayIndex: number
+  } | null
+
+  // Exercise navigation helpers
   canNavigateNext: () => boolean
   canNavigatePrevious: () => boolean
   getNextExercise: () => DayExercise | null
@@ -34,6 +59,9 @@ export const useWorkoutStore = create<WorkoutState>()(
   persist(
     (set, get) => ({
       // Initial state
+      currentProgram: null,
+      currentMilestoneIndex: 0,
+      currentDayIndex: 0,
       isSessionActive: false,
       sessionStartTime: null,
       currentDay: null,
@@ -41,6 +69,48 @@ export const useWorkoutStore = create<WorkoutState>()(
       completedExercises: [],
       currentRound: 1,
       totalExercisesCompleted: 0,
+
+      setCurrentProgram: (program: Program, milestoneIndex = 0, dayIndex = 0) => {
+        const milestone = program.milestones[milestoneIndex]
+        const day = milestone?.days[dayIndex]
+
+        set({
+          currentProgram: program,
+          currentMilestoneIndex: milestoneIndex,
+          currentDayIndex: dayIndex,
+          currentDay: day || null,
+          // Reset session state when changing program
+          isSessionActive: false,
+          sessionStartTime: null,
+          currentExerciseIndex: 0,
+          completedExercises: [],
+          currentRound: 1,
+          totalExercisesCompleted: 0,
+        })
+      },
+
+      setCurrentDay: (milestoneIndex: number, dayIndex: number) => {
+        const { currentProgram } = get()
+        if (!currentProgram) return
+
+        const milestone = currentProgram.milestones[milestoneIndex]
+        const day = milestone?.days[dayIndex]
+
+        if (day) {
+          set({
+            currentMilestoneIndex: milestoneIndex,
+            currentDayIndex: dayIndex,
+            currentDay: day,
+            // Reset session state when changing day
+            isSessionActive: false,
+            sessionStartTime: null,
+            currentExerciseIndex: 0,
+            completedExercises: [],
+            currentRound: 1,
+            totalExercisesCompleted: 0,
+          })
+        }
+      },
 
       startSession: (day: MilestoneDay) => {
         set({
@@ -102,7 +172,115 @@ export const useWorkoutStore = create<WorkoutState>()(
         })
       },
 
-      // Navigation helpers
+      // Program navigation helpers
+      getCurrentMilestone: () => {
+        const { currentProgram, currentMilestoneIndex } = get()
+        if (!currentProgram) return null
+        return currentProgram.milestones[currentMilestoneIndex] || null
+      },
+
+      getCurrentDay: () => {
+        const { currentProgram, currentMilestoneIndex, currentDayIndex } = get()
+        if (!currentProgram) return null
+        const milestone = currentProgram.milestones[currentMilestoneIndex]
+        return milestone?.days[currentDayIndex] || null
+      },
+
+      canNavigateToNextDay: () => {
+        const { currentProgram, currentMilestoneIndex, currentDayIndex } = get()
+        if (!currentProgram) return false
+
+        const milestone = currentProgram.milestones[currentMilestoneIndex]
+        if (!milestone) return false
+
+        // Check if there's a next day in current milestone
+        if (currentDayIndex < milestone.days.length - 1) return true
+
+        // Check if there's a next milestone
+        return currentMilestoneIndex < currentProgram.milestones.length - 1
+      },
+
+      canNavigateToPreviousDay: () => {
+        const { currentMilestoneIndex, currentDayIndex } = get()
+        return currentMilestoneIndex > 0 || currentDayIndex > 0
+      },
+
+      getNextDay: () => {
+        const { currentProgram, currentMilestoneIndex, currentDayIndex } = get()
+        if (!currentProgram || !get().canNavigateToNextDay()) return null
+
+        const milestone = currentProgram.milestones[currentMilestoneIndex]
+        if (!milestone) return null
+
+        // Try next day in current milestone first
+        if (currentDayIndex < milestone.days.length - 1) {
+          const nextDay = milestone.days[currentDayIndex + 1]
+          if (nextDay) {
+            return {
+              milestone,
+              day: nextDay,
+              milestoneIndex: currentMilestoneIndex,
+              dayIndex: currentDayIndex + 1,
+            }
+          }
+        }
+
+        // Move to first day of next milestone
+        const nextMilestone = currentProgram.milestones[currentMilestoneIndex + 1]
+        if (nextMilestone && nextMilestone.days.length > 0) {
+          const firstDay = nextMilestone.days[0]
+          if (firstDay) {
+            return {
+              milestone: nextMilestone,
+              day: firstDay,
+              milestoneIndex: currentMilestoneIndex + 1,
+              dayIndex: 0,
+            }
+          }
+        }
+
+        return null
+      },
+
+      getPreviousDay: () => {
+        const { currentProgram, currentMilestoneIndex, currentDayIndex } = get()
+        if (!currentProgram || !get().canNavigateToPreviousDay()) return null
+
+        // Try previous day in current milestone first
+        if (currentDayIndex > 0) {
+          const milestone = currentProgram.milestones[currentMilestoneIndex]
+          if (!milestone) return null
+
+          const prevDay = milestone.days[currentDayIndex - 1]
+          if (prevDay) {
+            return {
+              milestone,
+              day: prevDay,
+              milestoneIndex: currentMilestoneIndex,
+              dayIndex: currentDayIndex - 1,
+            }
+          }
+        }
+
+        // Move to last day of previous milestone
+        const prevMilestone = currentProgram.milestones[currentMilestoneIndex - 1]
+        if (prevMilestone && prevMilestone.days.length > 0) {
+          const lastDayIndex = prevMilestone.days.length - 1
+          const lastDay = prevMilestone.days[lastDayIndex]
+          if (lastDay) {
+            return {
+              milestone: prevMilestone,
+              day: lastDay,
+              milestoneIndex: currentMilestoneIndex - 1,
+              dayIndex: lastDayIndex,
+            }
+          }
+        }
+
+        return null
+      },
+
+      // Exercise navigation helpers
       canNavigateNext: () => {
         const { currentDay, currentExerciseIndex } = get()
         if (!currentDay?.exercises) return false
@@ -135,6 +313,9 @@ export const useWorkoutStore = create<WorkoutState>()(
     {
       name: 'workout-session',
       partialize: (state) => ({
+        currentProgram: state.currentProgram,
+        currentMilestoneIndex: state.currentMilestoneIndex,
+        currentDayIndex: state.currentDayIndex,
         isSessionActive: state.isSessionActive,
         sessionStartTime: state.sessionStartTime,
         currentDay: state.currentDay,

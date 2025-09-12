@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
+import { useWorkoutStore } from '@/stores/workout-store'
 import type { MilestoneDay, Exercise } from '@/types/program'
 import { isAmrapDay } from '@/utils/type-guards'
 import { formatDuration } from '@/utils/formatters'
@@ -15,18 +16,10 @@ interface DayOverviewProps {
   dayNumber: number
   milestoneName: string
   onStartWorkout: () => void
-  completedExercises?: string[]
-  currentRound?: number
 }
 
-export function DayOverview({
-  day,
-  dayNumber,
-  milestoneName,
-  onStartWorkout,
-  completedExercises = [],
-  currentRound = 1,
-}: DayOverviewProps) {
+export function DayOverview({ day, dayNumber, milestoneName, onStartWorkout }: DayOverviewProps) {
+  const { completedExercises, currentRound } = useWorkoutStore()
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null)
   const [isTimerActive, setIsTimerActive] = useState(false)
 

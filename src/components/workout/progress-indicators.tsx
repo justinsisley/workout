@@ -4,28 +4,23 @@ import { CheckCircle2, Clock, Target, Dumbbell, RotateCw } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
+import { useWorkoutStore } from '@/stores/workout-store'
 import type { MilestoneDay } from '@/types/program'
 import { isAmrapDay } from '@/utils/type-guards'
 
 interface ProgressIndicatorsProps {
   day: MilestoneDay
-  completedExercises?: string[]
-  currentRound?: number
-  currentExerciseIndex?: number
-  totalExercisesCompleted?: number
-  sessionStartTime?: number
   className?: string
 }
 
-export function ProgressIndicators({
-  day,
-  completedExercises = [],
-  currentRound = 1,
-  currentExerciseIndex = 0,
-  totalExercisesCompleted = 0,
-  sessionStartTime,
-  className = '',
-}: ProgressIndicatorsProps) {
+export function ProgressIndicators({ day, className = '' }: ProgressIndicatorsProps) {
+  const {
+    completedExercises,
+    currentRound,
+    currentExerciseIndex,
+    totalExercisesCompleted,
+    sessionStartTime,
+  } = useWorkoutStore()
   const exercises = day.exercises || []
   const totalExercises = exercises.length
   const isAmrap = isAmrapDay(day)

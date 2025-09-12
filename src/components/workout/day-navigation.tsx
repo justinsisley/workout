@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Play, Square, SkipForward, SkipBack, RotateCcw } from 'lucide-react'
+import { Play, Square, SkipForward, SkipBack, RotateCcw, RotateCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -38,10 +38,16 @@ export function DayNavigation({ day, className = '' }: DayNavigationProps) {
     startSession,
     endSession,
     setCurrentExercise,
+    setCurrentDay,
     resetSession,
+    completeRound,
     canNavigateNext,
     canNavigatePrevious,
     getCurrentExercise,
+    canNavigateToNextDay,
+    canNavigateToPreviousDay,
+    getNextDay,
+    getPreviousDay,
   } = useWorkoutStore()
 
   const exercises = day.exercises || []
@@ -86,6 +92,32 @@ export function DayNavigation({ day, className = '' }: DayNavigationProps) {
 
   const handleResetSession = () => {
     resetSession()
+  }
+
+  const handlePreviousDay = () => {
+    const prevDay = getPreviousDay()
+    if (prevDay) {
+      setCurrentDay(prevDay.milestoneIndex, prevDay.dayIndex)
+      router.push('/workout/dashboard')
+    }
+  }
+
+  const handleNextDay = () => {
+    const nextDay = getNextDay()
+    if (nextDay) {
+      setCurrentDay(nextDay.milestoneIndex, nextDay.dayIndex)
+      router.push('/workout/dashboard')
+    }
+  }
+
+  const handleCompleteRound = () => {
+    if (isAmrap) {
+      completeRound()
+      // Optionally navigate to start of next round (first exercise)
+      if (exercises.length > 0 && exercises[0]?.id) {
+        setCurrentExercise(0)
+      }
+    }
   }
 
   // Calculate progress for display
@@ -165,6 +197,17 @@ export function DayNavigation({ day, className = '' }: DayNavigationProps) {
                 <RotateCcw className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                 Reset Progress
               </Button>
+
+              {/* AMRAP Round Completion Button */}
+              {isAmrap && (
+                <Button
+                  onClick={handleCompleteRound}
+                  className="h-12 sm:h-14 text-base sm:text-lg font-semibold touch-manipulation bg-orange-600 hover:bg-orange-700"
+                >
+                  <RotateCw className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                  Complete Round {currentRound}
+                </Button>
+              )}
             </div>
           )}
         </div>
@@ -286,6 +329,33 @@ export function DayNavigation({ day, className = '' }: DayNavigationProps) {
             </div>
           </div>
         )}
+
+        {/* Day Navigation */}
+        <div className="space-y-3 pt-4 border-t">
+          <h3 className="font-medium text-sm sm:text-base">Day Navigation</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              onClick={handlePreviousDay}
+              disabled={!canNavigateToPreviousDay()}
+              variant="outline"
+              size="sm"
+              className="h-10 sm:h-12 text-sm font-medium touch-manipulation"
+            >
+              <SkipBack className="mr-2 h-4 w-4" />
+              Previous Day
+            </Button>
+            <Button
+              onClick={handleNextDay}
+              disabled={!canNavigateToNextDay()}
+              variant="outline"
+              size="sm"
+              className="h-10 sm:h-12 text-sm font-medium touch-manipulation"
+            >
+              Next Day
+              <SkipForward className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+        </div>
 
         {/* Day Information */}
         <div className="space-y-3 pt-4 border-t">

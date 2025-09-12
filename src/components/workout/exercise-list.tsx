@@ -3,21 +3,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Clock, Dumbbell, Route, Timer } from 'lucide-react'
+import { useWorkoutStore } from '@/stores/workout-store'
 import type { DayExercise, Exercise } from '@/types/program'
 import { formatDistance, formatDuration } from '@/utils/formatters'
 import { hasDistance, hasDuration } from '@/utils/type-guards'
 
 interface ExerciseListProps {
   exercises: DayExercise[]
-  completedExercises?: string[]
-  onExerciseSelect?: (exerciseId: string) => void
 }
 
-export function ExerciseList({
-  exercises,
-  completedExercises = [],
-  onExerciseSelect,
-}: ExerciseListProps) {
+export function ExerciseList({ exercises }: ExerciseListProps) {
+  const { completedExercises } = useWorkoutStore()
   if (!exercises?.length) {
     return (
       <Card className="w-full">
@@ -31,7 +27,8 @@ export function ExerciseList({
   }
 
   const handleExerciseClick = (exerciseId: string) => {
-    onExerciseSelect?.(exerciseId)
+    console.log('Exercise clicked:', exerciseId)
+    // TODO: Navigate to exercise detail page when implemented
   }
 
   return (
@@ -43,11 +40,7 @@ export function ExerciseList({
         return (
           <Card
             key={exercise.id}
-            className={`w-full transition-all duration-200 ${
-              onExerciseSelect
-                ? 'hover:shadow-md cursor-pointer active:scale-[0.98] touch-manipulation'
-                : ''
-            } ${
+            className={`w-full transition-all duration-200 hover:shadow-md cursor-pointer active:scale-[0.98] touch-manipulation ${
               isCompleted
                 ? 'border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-950/20'
                 : ''
