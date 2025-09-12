@@ -8,11 +8,13 @@ export interface ExerciseProgress {
   hasData: boolean
   completionPercentage: number
   lastUpdatedAt: number
-  amrapData?: {
-    totalRoundsCompleted: number
-    currentRoundProgress: number
-    totalExercisesInRound: number
-  } | undefined
+  amrapData?:
+    | {
+        totalRoundsCompleted: number
+        currentRoundProgress: number
+        totalExercisesInRound: number
+      }
+    | undefined
 }
 
 export interface WorkoutState {
@@ -242,9 +244,14 @@ export const useWorkoutStore = create<WorkoutState>()(
           lastUpdatedAt: Date.now(),
           // Update completion status based on AMRAP progress
           hasData: Boolean(amrapData?.totalRoundsCompleted),
-          completionPercentage: amrapData ? Math.min(100, (amrapData.currentRoundProgress / amrapData.totalExercisesInRound) * 100) : 0,
+          completionPercentage: amrapData
+            ? Math.min(
+                100,
+                (amrapData.currentRoundProgress / amrapData.totalExercisesInRound) * 100,
+              )
+            : 0,
         }
-        
+
         // Conditionally set amrapData only if it's provided
         if (amrapData !== undefined) {
           updatedProgress.amrapData = amrapData

@@ -109,35 +109,34 @@ export function ExerciseNavigation({
         <div className="text-sm text-gray-500 font-medium">
           Exercise {currentExerciseIndex + 1} of {currentDay.exercises.length}
         </div>
-        {currentDay.exercises && currentDay.exercises[currentExerciseIndex] && (() => {
-          const currentExercise = currentDay.exercises[currentExerciseIndex]
-          const exerciseId = typeof currentExercise.exercise === 'string' 
-            ? currentExercise.exercise 
-            : currentExercise.exercise.id
-          const progress = exerciseProgress[exerciseId]
-          
-          if (progress?.isCompleted) {
-            return (
-              <div className="flex items-center gap-1 text-green-600 text-xs">
-                <CheckCircle2 className="w-3 h-3" />
-                <span>Complete</span>
-              </div>
-            )
-          } else if (progress?.hasData) {
-            return (
-              <div className="flex items-center gap-1 text-blue-600 text-xs">
-                <Clock className="w-3 h-3" />
-                <span>{progress.completionPercentage}%</span>
-              </div>
-            )
-          } else {
-            return (
-              <div className="text-xs text-gray-400">
-                Not started
-              </div>
-            )
-          }
-        })()}
+        {currentDay.exercises &&
+          currentDay.exercises[currentExerciseIndex] &&
+          (() => {
+            const currentExercise = currentDay.exercises[currentExerciseIndex]
+            const exerciseId =
+              typeof currentExercise.exercise === 'string'
+                ? currentExercise.exercise
+                : currentExercise.exercise.id
+            const progress = exerciseProgress[exerciseId]
+
+            if (progress?.isCompleted) {
+              return (
+                <div className="flex items-center gap-1 text-green-600 text-xs">
+                  <CheckCircle2 className="w-3 h-3" />
+                  <span>Complete</span>
+                </div>
+              )
+            } else if (progress?.hasData) {
+              return (
+                <div className="flex items-center gap-1 text-blue-600 text-xs">
+                  <Clock className="w-3 h-3" />
+                  <span>{progress.completionPercentage}%</span>
+                </div>
+              )
+            } else {
+              return <div className="text-xs text-gray-400">Not started</div>
+            }
+          })()}
       </div>
 
       {/* Previous/Next Navigation */}
@@ -151,19 +150,19 @@ export function ExerciseNavigation({
         >
           <ArrowLeft className="w-4 h-4" />
           <span className="hidden sm:inline">Previous</span>
-          {prevExercise && (() => {
-            const exerciseId = typeof prevExercise.exercise === 'string' 
-              ? prevExercise.exercise 
-              : prevExercise.exercise.id
-            const progress = exerciseProgress[exerciseId]
-            
-            if (progress?.isCompleted) {
-              return (
-                <CheckCircle2 className="w-3 h-3 text-green-600 absolute -top-1 -right-1" />
-              )
-            }
-            return null
-          })()}
+          {prevExercise &&
+            (() => {
+              const exerciseId =
+                typeof prevExercise.exercise === 'string'
+                  ? prevExercise.exercise
+                  : prevExercise.exercise.id
+              const progress = exerciseProgress[exerciseId]
+
+              if (progress?.isCompleted) {
+                return <CheckCircle2 className="w-3 h-3 text-green-600 absolute -top-1 -right-1" />
+              }
+              return null
+            })()}
         </Button>
 
         <Button
@@ -175,19 +174,19 @@ export function ExerciseNavigation({
         >
           <span className="hidden sm:inline">Next</span>
           <ArrowRight className="w-4 h-4" />
-          {nextExercise && (() => {
-            const exerciseId = typeof nextExercise.exercise === 'string' 
-              ? nextExercise.exercise 
-              : nextExercise.exercise.id
-            const progress = exerciseProgress[exerciseId]
-            
-            if (progress?.isCompleted) {
-              return (
-                <CheckCircle2 className="w-3 h-3 text-green-600 absolute -top-1 -right-1" />
-              )
-            }
-            return null
-          })()}
+          {nextExercise &&
+            (() => {
+              const exerciseId =
+                typeof nextExercise.exercise === 'string'
+                  ? nextExercise.exercise
+                  : nextExercise.exercise.id
+              const progress = exerciseProgress[exerciseId]
+
+              if (progress?.isCompleted) {
+                return <CheckCircle2 className="w-3 h-3 text-green-600 absolute -top-1 -right-1" />
+              }
+              return null
+            })()}
         </Button>
       </div>
     </div>

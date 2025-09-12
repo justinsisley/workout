@@ -35,7 +35,8 @@ export function ExerciseList({ exercises }: ExerciseListProps) {
     <div className="space-y-3 sm:space-y-4">
       {exercises.map((exercise, index) => {
         const exerciseData = exercise.exercise as Exercise
-        const exerciseId = typeof exercise.exercise === 'string' ? exercise.exercise : exercise.exercise.id
+        const exerciseId =
+          typeof exercise.exercise === 'string' ? exercise.exercise : exercise.exercise.id
         const progress = exerciseProgress[exerciseId]
         const isCompleted = progress?.isCompleted || completedExercises.includes(exercise.id)
         const hasData = progress?.hasData || false
@@ -48,8 +49,8 @@ export function ExerciseList({ exercises }: ExerciseListProps) {
               isCompleted
                 ? 'border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-950/20'
                 : hasData
-                ? 'border-blue-200 bg-blue-50/30 dark:border-blue-800 dark:bg-blue-950/20'
-                : ''
+                  ? 'border-blue-200 bg-blue-50/30 dark:border-blue-800 dark:bg-blue-950/20'
+                  : ''
             }`}
             onClick={() => handleExerciseClick(exercise.id)}
           >

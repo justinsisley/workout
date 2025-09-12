@@ -51,12 +51,8 @@ export function AmrapDataEntry({
   onCancel,
   isLoading = false,
 }: AmrapDataEntryProps) {
-  const { 
-    currentRound, 
-    totalExercisesCompleted, 
-    sessionStartTime,
-    updateAmrapProgress
-  } = useWorkoutStore()
+  const { currentRound, totalExercisesCompleted, sessionStartTime, updateAmrapProgress } =
+    useWorkoutStore()
 
   const [data, setData] = useState<AmrapDataEntryData>(() => {
     // Calculate initial values from store or previous data
@@ -93,7 +89,7 @@ export function AmrapDataEntry({
         currentRoundProgress: data.partialRoundExercisesCompleted,
         totalExercisesInRound: exercises.length,
       }
-      
+
       updateAmrapProgress(exercise.id, amrapData)
     })
   }, [data.totalRounds, data.partialRoundExercisesCompleted, exercises, updateAmrapProgress])

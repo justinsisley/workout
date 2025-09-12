@@ -48,12 +48,12 @@ export function WorkoutDataEntry({
   isLoading = false,
 }: WorkoutDataEntryProps) {
   // Get workout store for program context and progress tracking
-  const { 
-    currentProgram, 
-    currentMilestoneIndex, 
-    currentDayIndex, 
+  const {
+    currentProgram,
+    currentMilestoneIndex,
+    currentDayIndex,
     completeExercise,
-    updateExerciseProgress
+    updateExerciseProgress,
   } = useWorkoutStore()
 
   const [data, setData] = useState<WorkoutDataEntryData>(() => {
@@ -236,17 +236,17 @@ export function WorkoutDataEntry({
   // Calculate completion percentage based on current data
   const calculateCompletionPercentage = useCallback(() => {
     const requiredFields = ['sets', 'reps']
-    
+
     // Add optional fields based on exercise requirements
     if (exerciseConfig.weight) requiredFields.push('weight')
     if (exerciseConfig.durationValue) requiredFields.push('time')
     if (exerciseConfig.distanceValue) requiredFields.push('distance')
-    
-    const completedFields = requiredFields.filter(field => {
+
+    const completedFields = requiredFields.filter((field) => {
       const value = data[field as keyof WorkoutDataEntryData]
       return value !== undefined && value !== null && value !== 0 && value !== ''
     })
-    
+
     return Math.round((completedFields.length / requiredFields.length) * 100)
   }, [data, exerciseConfig])
 
@@ -256,7 +256,7 @@ export function WorkoutDataEntry({
       const completionPercentage = calculateCompletionPercentage()
       const hasData = data.sets > 0 && data.reps > 0
       const isCompleted = completionPercentage === 100 && hasData
-      
+
       updateExerciseProgress(exercise.id, {
         hasData,
         isCompleted,
@@ -343,7 +343,7 @@ export function WorkoutDataEntry({
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <span>Progress:</span>
                   <div className="flex-1 bg-gray-200 rounded-full h-2 max-w-20">
-                    <div 
+                    <div
                       className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${calculateCompletionPercentage()}%` }}
                     />
