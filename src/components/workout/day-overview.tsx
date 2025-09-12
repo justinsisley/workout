@@ -101,79 +101,107 @@ export function DayOverview({
 
   return (
     <Card className="w-full">
-      <CardHeader>
+      <CardHeader className="pb-4 sm:pb-6">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-2xl">Day {dayNumber}</CardTitle>
-            <CardDescription className="mt-1">{milestoneName}</CardDescription>
+            <CardTitle className="text-2xl sm:text-3xl lg:text-4xl font-bold">
+              Day {dayNumber}
+            </CardTitle>
+            <CardDescription className="mt-1 sm:mt-2 text-base sm:text-lg">
+              {milestoneName}
+            </CardDescription>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 sm:gap-3">
             {isAmrap && (
-              <Badge variant="secondary" className="flex items-center gap-1">
-                <RotateCw className="h-3 w-3" />
+              <Badge
+                variant="secondary"
+                className="flex items-center gap-2 px-3 py-2 text-sm sm:text-base font-semibold"
+              >
+                <RotateCw className="h-4 w-4 sm:h-5 sm:w-5" />
                 AMRAP
               </Badge>
             )}
-            {day.dayType === 'rest' && <Badge variant="outline">Rest Day</Badge>}
+            {day.dayType === 'rest' && (
+              <Badge variant="outline" className="px-3 py-2 text-sm sm:text-base font-semibold">
+                Rest Day
+              </Badge>
+            )}
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 sm:space-y-8">
         {day.dayType === 'rest' ? (
-          <div className="text-center py-8">
-            <p className="text-lg text-muted-foreground mb-2">Rest and Recovery</p>
-            {day.restNotes && <p className="text-sm text-muted-foreground">{day.restNotes}</p>}
+          <div className="text-center py-8 sm:py-12">
+            <p className="text-lg sm:text-xl text-muted-foreground mb-2 sm:mb-4 font-medium">
+              Rest and Recovery
+            </p>
+            {day.restNotes && (
+              <p className="text-sm sm:text-base text-muted-foreground bg-secondary/50 p-4 rounded-lg max-w-md mx-auto">
+                {day.restNotes}
+              </p>
+            )}
           </div>
         ) : (
           <>
             {isAmrap && (
-              <div className="bg-secondary/50 rounded-lg p-4 space-y-3">
+              <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 sm:p-6 space-y-4 sm:space-y-5">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">AMRAP Duration</span>
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                    <span className="text-base sm:text-lg font-semibold">AMRAP Duration</span>
                   </div>
-                  <span className="font-bold text-lg">{day.amrapDuration} minutes</span>
+                  <span className="font-bold text-xl sm:text-2xl text-primary">
+                    {day.amrapDuration} minutes
+                  </span>
                 </div>
 
                 {isTimerActive && timeRemaining !== null && (
-                  <div className="space-y-2">
+                  <div className="space-y-3 sm:space-y-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Time Remaining</span>
-                      <span className="font-mono text-xl font-bold text-primary">
+                      <span className="text-base sm:text-lg text-muted-foreground font-medium">
+                        Time Remaining
+                      </span>
+                      <span className="font-mono text-2xl sm:text-3xl font-bold text-primary bg-primary/10 px-3 py-1 rounded-lg">
                         {formatRemainingTime(timeRemaining)}
                       </span>
                     </div>
-                    <Progress value={(1 - timeRemaining / (day.amrapDuration! * 60)) * 100} />
+                    <Progress
+                      value={(1 - timeRemaining / (day.amrapDuration! * 60)) * 100}
+                      className="h-4 sm:h-6"
+                    />
                   </div>
                 )}
 
-                <div className="flex items-center justify-between pt-2 border-t">
-                  <span className="text-sm text-muted-foreground">Current Round</span>
-                  <Badge variant="default">Round {currentRound}</Badge>
+                <div className="flex items-center justify-between pt-3 border-t border-primary/20">
+                  <span className="text-base sm:text-lg text-muted-foreground font-medium">
+                    Current Round
+                  </span>
+                  <Badge variant="default" className="px-4 py-2 text-base sm:text-lg font-bold">
+                    Round {currentRound}
+                  </Badge>
                 </div>
 
-                <p className="text-xs text-muted-foreground italic">
+                <p className="text-sm sm:text-base text-muted-foreground bg-secondary/30 p-3 rounded-md font-medium">
                   Complete all exercises then repeat for as many rounds as possible
                 </p>
               </div>
             )}
 
-            <div className="space-y-3">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold flex items-center gap-2">
-                  <Dumbbell className="h-4 w-4" />
+            <div className="space-y-4 sm:space-y-5">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg sm:text-xl font-bold flex items-center gap-2 sm:gap-3">
+                  <Dumbbell className="h-5 w-5 sm:h-6 sm:w-6" />
                   Exercises ({completedCount}/{totalExercises})
                 </h3>
-                <span className="text-sm text-muted-foreground">
+                <span className="text-sm sm:text-base text-muted-foreground font-semibold bg-secondary/50 px-3 py-1 rounded-md">
                   Est. {estimateTotalDuration()}
                 </span>
               </div>
 
-              {totalExercises > 0 && <Progress value={progressPercentage} className="h-2" />}
+              {totalExercises > 0 && <Progress value={progressPercentage} className="h-3 sm:h-4" />}
 
-              <div className="space-y-2">
+              <div className="space-y-3 sm:space-y-4">
                 {exercises.map((exercise, index) => {
                   const isCompleted = completedExercises.includes(exercise.id)
                   const exerciseData =
@@ -182,32 +210,37 @@ export function DayOverview({
                   return (
                     <div
                       key={exercise.id}
-                      className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${
-                        isCompleted ? 'bg-primary/5 border-primary/20' : 'hover:bg-secondary/50'
+                      className={`flex items-center justify-between p-4 sm:p-5 rounded-lg border-2 transition-colors ${
+                        isCompleted
+                          ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800'
+                          : 'hover:bg-secondary/50 border-secondary/30'
                       }`}
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 sm:gap-4">
                         <div
-                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                          className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full border-3 flex items-center justify-center text-base sm:text-lg font-bold ${
                             isCompleted
-                              ? 'bg-primary border-primary text-primary-foreground'
-                              : 'border-muted-foreground'
+                              ? 'bg-green-500 border-green-500 text-white'
+                              : 'border-muted-foreground text-muted-foreground'
                           }`}
                         >
                           {isCompleted ? '✓' : index + 1}
                         </div>
-                        <div>
-                          <p className="font-medium">
+                        <div className="flex-1">
+                          <p className="font-semibold text-base sm:text-lg">
                             {exerciseData?.title || `Exercise ${index + 1}`}
                           </p>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-sm sm:text-base text-muted-foreground font-medium">
                             {exercise.sets} sets × {exercise.reps} reps
                             {exercise.weight && ` @ ${exercise.weight} lbs`}
                           </p>
                         </div>
                       </div>
                       {isCompleted && (
-                        <Badge variant="outline" className="text-xs">
+                        <Badge
+                          variant="outline"
+                          className="text-sm sm:text-base px-3 py-1 bg-green-100 text-green-800 border-green-300 font-semibold"
+                        >
                           Complete
                         </Badge>
                       )}
@@ -219,11 +252,11 @@ export function DayOverview({
 
             <Button
               onClick={handleStartWorkout}
-              className="w-full"
+              className="w-full h-14 sm:h-16 text-lg sm:text-xl font-bold touch-manipulation"
               size="lg"
               disabled={isTimerActive && !isAmrap}
             >
-              <Play className="mr-2 h-4 w-4" />
+              <Play className="mr-3 h-6 w-6 sm:h-7 sm:w-7" />
               {isTimerActive ? 'Workout in Progress' : 'Start Workout'}
             </Button>
           </>

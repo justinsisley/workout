@@ -118,18 +118,22 @@ export function DayNavigation({ day, className = '' }: DayNavigationProps) {
           {!isSessionActive ? (
             <Button
               onClick={handleStartWorkout}
-              className="w-full h-12 text-lg"
+              className="w-full h-14 sm:h-16 text-lg sm:text-xl font-semibold touch-manipulation"
               disabled={totalExercises === 0}
+              size="lg"
             >
-              <Play className="mr-2 h-5 w-5" />
+              <Play className="mr-2 h-6 w-6 sm:h-7 sm:w-7" />
               Start Workout
             </Button>
           ) : (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <AlertDialog open={showEndDialog} onOpenChange={setShowEndDialog}>
                 <AlertDialogTrigger asChild>
-                  <Button variant="destructive" className="h-12">
-                    <Square className="mr-2 h-4 w-4" />
+                  <Button
+                    variant="destructive"
+                    className="h-12 sm:h-14 text-base sm:text-lg touch-manipulation"
+                  >
+                    <Square className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                     End Session
                   </Button>
                 </AlertDialogTrigger>
@@ -153,8 +157,12 @@ export function DayNavigation({ day, className = '' }: DayNavigationProps) {
                 </AlertDialogContent>
               </AlertDialog>
 
-              <Button variant="outline" onClick={handleResetSession} className="h-12">
-                <RotateCcw className="mr-2 h-4 w-4" />
+              <Button
+                variant="outline"
+                onClick={handleResetSession}
+                className="h-12 sm:h-14 text-base sm:text-lg touch-manipulation"
+              >
+                <RotateCcw className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                 Reset Progress
               </Button>
             </div>
@@ -163,21 +171,21 @@ export function DayNavigation({ day, className = '' }: DayNavigationProps) {
 
         {/* Session Progress */}
         {isSessionActive && (
-          <div className="space-y-3 p-4 bg-secondary/20 rounded-lg">
+          <div className="space-y-3 sm:space-y-4 p-4 sm:p-6 bg-secondary/20 rounded-lg">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Session Progress</span>
-              <Badge variant="outline">
+              <span className="text-sm sm:text-base font-medium">Session Progress</span>
+              <Badge variant="outline" className="text-xs sm:text-sm px-2 sm:px-3 py-1">
                 {progressStats.completedCount}/{progressStats.totalCount} exercises
                 {isAmrap && ` (Round ${currentRound})`}
               </Badge>
             </div>
 
             <div className="text-center">
-              <p className="text-lg font-semibold">
+              <p className="text-lg sm:text-xl font-semibold">
                 Exercise {progressStats.currentPosition} of {progressStats.totalCount}
               </p>
               {currentExercise && (
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
                   {typeof currentExercise.exercise === 'object'
                     ? currentExercise.exercise.title
                     : `Exercise ${progressStats.currentPosition}`}
@@ -198,15 +206,16 @@ export function DayNavigation({ day, className = '' }: DayNavigationProps) {
             </div>
 
             {/* Previous/Next Controls */}
-            <div className="flex gap-2">
+            <div className="flex gap-3 sm:gap-4">
               <Button
                 variant="outline"
                 onClick={handlePreviousExercise}
                 disabled={!canNavigatePrevious()}
-                className="flex-1"
+                className="flex-1 h-12 sm:h-14 text-base sm:text-lg touch-manipulation"
               >
-                <SkipBack className="mr-2 h-4 w-4" />
-                Previous
+                <SkipBack className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="hidden sm:inline">Previous</span>
+                <span className="sm:hidden">Prev</span>
                 {canNavigatePrevious() && (
                   <span className="ml-2 text-xs text-muted-foreground">
                     #{currentExerciseIndex}
@@ -218,10 +227,11 @@ export function DayNavigation({ day, className = '' }: DayNavigationProps) {
                 variant="outline"
                 onClick={handleNextExercise}
                 disabled={!canNavigateNext()}
-                className="flex-1"
+                className="flex-1 h-12 sm:h-14 text-base sm:text-lg touch-manipulation"
               >
-                Next
-                <SkipForward className="ml-2 h-4 w-4" />
+                <span className="hidden sm:inline">Next</span>
+                <span className="sm:hidden">Next</span>
+                <SkipForward className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
                 {canNavigateNext() && (
                   <span className="ml-2 text-xs text-muted-foreground">
                     #{currentExerciseIndex + 2}
@@ -232,14 +242,14 @@ export function DayNavigation({ day, className = '' }: DayNavigationProps) {
 
             {/* Current Exercise Info */}
             {currentExercise && (
-              <div className="p-3 bg-primary/5 rounded-md border border-primary/20">
-                <p className="font-medium text-sm">Current Exercise</p>
-                <p className="text-lg">
+              <div className="p-3 sm:p-4 bg-primary/5 rounded-md border border-primary/20">
+                <p className="font-medium text-sm sm:text-base">Current Exercise</p>
+                <p className="text-lg sm:text-xl font-semibold">
                   {typeof currentExercise.exercise === 'object'
                     ? currentExercise.exercise.title
                     : `Exercise ${progressStats.currentPosition}`}
                 </p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm sm:text-base text-muted-foreground mt-1">
                   {currentExercise.sets} sets × {currentExercise.reps} reps
                   {currentExercise.restPeriod && ` • ${currentExercise.restPeriod}s rest`}
                 </p>
@@ -247,10 +257,10 @@ export function DayNavigation({ day, className = '' }: DayNavigationProps) {
             )}
 
             {/* Quick Exercise Jump (for advanced users) */}
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium">Quick Jump</h4>
-              <div className="grid grid-cols-5 gap-1">
-                {exercises.slice(0, 10).map((exercise, index) => {
+            <div className="space-y-3">
+              <h4 className="text-sm sm:text-base font-medium">Quick Jump</h4>
+              <div className="grid grid-cols-4 sm:grid-cols-5 lg:grid-cols-6 gap-2">
+                {exercises.slice(0, 12).map((exercise, index) => {
                   const isCompleted = completedExercises.includes(exercise.id)
                   const isCurrent = index === currentExerciseIndex
 
@@ -259,18 +269,18 @@ export function DayNavigation({ day, className = '' }: DayNavigationProps) {
                       key={exercise.id}
                       variant={isCurrent ? 'default' : isCompleted ? 'secondary' : 'outline'}
                       size="sm"
-                      className="h-8 w-full text-xs"
+                      className="h-10 sm:h-12 w-full text-sm font-medium touch-manipulation"
                       onClick={() => handleNavigateToExercise(index)}
                     >
                       {index + 1}
-                      {isCompleted && '✓'}
+                      {isCompleted && ' ✓'}
                     </Button>
                   )
                 })}
-                {exercises.length > 10 && (
-                  <span className="text-xs text-muted-foreground flex items-center justify-center">
-                    +{exercises.length - 10}
-                  </span>
+                {exercises.length > 12 && (
+                  <div className="flex items-center justify-center text-xs text-muted-foreground bg-secondary/50 rounded-md h-10 sm:h-12">
+                    +{exercises.length - 12}
+                  </div>
                 )}
               </div>
             </div>
@@ -278,16 +288,38 @@ export function DayNavigation({ day, className = '' }: DayNavigationProps) {
         )}
 
         {/* Day Information */}
-        <div className="space-y-2 pt-4 border-t">
-          <h3 className="font-medium text-sm">Day Information</h3>
-          <div className="space-y-1 text-sm text-muted-foreground">
-            <p>Total Exercises: {totalExercises}</p>
-            <p>Day Type: {day.dayType}</p>
-            {isAmrap && day.amrapDuration && <p>AMRAP Duration: {day.amrapDuration} minutes</p>}
+        <div className="space-y-3 pt-4 border-t">
+          <h3 className="font-medium text-sm sm:text-base">Day Information</h3>
+          <div className="space-y-2 text-sm sm:text-base text-muted-foreground">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col">
+                <span className="font-medium">Total Exercises:</span>
+                <span className="text-lg font-semibold text-foreground">{totalExercises}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="font-medium">Day Type:</span>
+                <span className="text-lg font-semibold text-foreground capitalize">
+                  {day.dayType}
+                </span>
+              </div>
+            </div>
+            {isAmrap && day.amrapDuration && (
+              <div className="mt-3 p-3 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-800">
+                <span className="font-medium text-orange-800 dark:text-orange-200">
+                  AMRAP Duration:{' '}
+                </span>
+                <span className="text-lg font-bold text-orange-900 dark:text-orange-100">
+                  {day.amrapDuration} minutes
+                </span>
+              </div>
+            )}
             {day.restNotes && (
-              <p className="text-xs mt-2 p-2 bg-blue-50 dark:bg-blue-950/20 rounded">
-                <strong>Rest Notes:</strong> {day.restNotes}
-              </p>
+              <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <p className="text-sm sm:text-base">
+                  <strong className="text-blue-800 dark:text-blue-200">Rest Notes:</strong>
+                  <span className="ml-2 text-blue-700 dark:text-blue-300">{day.restNotes}</span>
+                </p>
+              </div>
             )}
           </div>
         </div>

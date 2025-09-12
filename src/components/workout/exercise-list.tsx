@@ -21,8 +21,10 @@ export function ExerciseList({
   if (!exercises?.length) {
     return (
       <Card className="w-full">
-        <CardContent className="flex items-center justify-center py-12">
-          <p className="text-muted-foreground">No exercises found for this day</p>
+        <CardContent className="flex items-center justify-center py-12 sm:py-16">
+          <p className="text-muted-foreground text-base sm:text-lg text-center">
+            No exercises found for this day
+          </p>
         </CardContent>
       </Card>
     )
@@ -33,7 +35,7 @@ export function ExerciseList({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 sm:space-y-4">
       {exercises.map((exercise, index) => {
         const exerciseData = exercise.exercise as Exercise
         const isCompleted = completedExercises.includes(exercise.id)
@@ -42,7 +44,9 @@ export function ExerciseList({
           <Card
             key={exercise.id}
             className={`w-full transition-all duration-200 ${
-              onExerciseSelect ? 'hover:shadow-md cursor-pointer active:scale-[0.98]' : ''
+              onExerciseSelect
+                ? 'hover:shadow-md cursor-pointer active:scale-[0.98] touch-manipulation'
+                : ''
             } ${
               isCompleted
                 ? 'border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-950/20'
@@ -50,18 +54,18 @@ export function ExerciseList({
             }`}
             onClick={() => handleExerciseClick(exercise.id)}
           >
-            <CardHeader className="pb-3">
+            <CardHeader className="pb-3 sm:pb-4">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-base font-medium flex items-center gap-2">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-sm font-medium flex items-center justify-center">
+                <CardTitle className="text-base sm:text-lg font-medium flex items-center gap-2 sm:gap-3">
+                  <span className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/10 text-primary text-sm sm:text-base font-medium flex items-center justify-center">
                     {index + 1}
                   </span>
-                  {exerciseData?.title || 'Unknown Exercise'}
+                  <span className="truncate">{exerciseData?.title || 'Unknown Exercise'}</span>
                 </CardTitle>
                 {isCompleted && (
                   <Badge
                     variant="secondary"
-                    className="text-green-700 bg-green-100 dark:text-green-300 dark:bg-green-900/30"
+                    className="text-green-700 bg-green-100 dark:text-green-300 dark:bg-green-900/30 px-3 py-1 text-xs sm:text-sm"
                   >
                     Completed
                   </Badge>
@@ -71,40 +75,44 @@ export function ExerciseList({
 
             <CardContent className="pt-0">
               {/* Exercise specifications */}
-              <div className="mb-3">
-                <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+              <div className="mb-3 sm:mb-4">
+                <div className="flex flex-wrap gap-2 sm:gap-3 text-sm sm:text-base text-muted-foreground">
                   {exercise.sets > 0 && (
-                    <div className="flex items-center gap-1">
-                      <Dumbbell className="w-3 h-3" />
-                      <span>{exercise.sets} sets</span>
+                    <div className="flex items-center gap-1 sm:gap-2 px-2 py-1 bg-secondary/50 rounded-md">
+                      <Dumbbell className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span className="font-medium">{exercise.sets} sets</span>
                     </div>
                   )}
 
                   {exercise.reps > 0 && (
-                    <div className="flex items-center gap-1">
-                      <span>×</span>
-                      <span>{exercise.reps} reps</span>
+                    <div className="flex items-center gap-1 sm:gap-2 px-2 py-1 bg-secondary/50 rounded-md">
+                      <span className="font-bold">×</span>
+                      <span className="font-medium">{exercise.reps} reps</span>
                     </div>
                   )}
 
                   {exercise.weight && (
-                    <div className="flex items-center gap-1">
-                      <span>@</span>
-                      <span>{exercise.weight} lbs</span>
+                    <div className="flex items-center gap-1 sm:gap-2 px-2 py-1 bg-secondary/50 rounded-md">
+                      <span className="font-bold">@</span>
+                      <span className="font-medium">{exercise.weight} lbs</span>
                     </div>
                   )}
 
                   {hasDuration(exercise) && (
-                    <div className="flex items-center gap-1">
-                      <Timer className="w-3 h-3" />
-                      <span>{formatDuration(exercise.durationValue!, exercise.durationUnit!)}</span>
+                    <div className="flex items-center gap-1 sm:gap-2 px-2 py-1 bg-secondary/50 rounded-md">
+                      <Timer className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span className="font-medium">
+                        {formatDuration(exercise.durationValue!, exercise.durationUnit!)}
+                      </span>
                     </div>
                   )}
 
                   {hasDistance(exercise) && (
-                    <div className="flex items-center gap-1">
-                      <Route className="w-3 h-3" />
-                      <span>{formatDistance(exercise.distanceValue!, exercise.distanceUnit!)}</span>
+                    <div className="flex items-center gap-1 sm:gap-2 px-2 py-1 bg-secondary/50 rounded-md">
+                      <Route className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span className="font-medium">
+                        {formatDistance(exercise.distanceValue!, exercise.distanceUnit!)}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -112,22 +120,22 @@ export function ExerciseList({
 
               {/* Rest period */}
               {exercise.restPeriod && exercise.restPeriod > 0 && (
-                <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
-                  <Clock className="w-3 h-3" />
-                  <span>Rest: {exercise.restPeriod}s</span>
+                <div className="flex items-center gap-2 text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4 p-2 bg-blue-50 dark:bg-blue-950/20 rounded-md">
+                  <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400" />
+                  <span className="font-medium">Rest: {exercise.restPeriod}s between sets</span>
                 </div>
               )}
 
               {/* Exercise notes */}
               {exercise.notes && (
-                <div className="text-sm text-muted-foreground border-l-2 border-muted pl-3">
-                  {exercise.notes}
+                <div className="text-sm sm:text-base text-muted-foreground border-l-4 border-orange-300 dark:border-orange-600 pl-3 sm:pl-4 py-2 bg-orange-50/50 dark:bg-orange-950/20 rounded-r-md">
+                  <span className="font-medium">Note:</span> {exercise.notes}
                 </div>
               )}
 
               {/* Exercise description */}
               {exerciseData?.description && (
-                <div className="text-sm text-muted-foreground mt-2 line-clamp-2">
+                <div className="text-sm sm:text-base text-muted-foreground mt-2 sm:mt-3 p-2 bg-secondary/30 rounded-md">
                   {exerciseData.description}
                 </div>
               )}

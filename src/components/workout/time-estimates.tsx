@@ -148,36 +148,38 @@ export function TimeEstimates({ day, sessionActive = false }: TimeEstimatesProps
 
   return (
     <Card className="w-full">
-      <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Clock className="h-5 w-5" />
+      <CardHeader className="pb-4 sm:pb-6">
+        <CardTitle className="flex items-center gap-2 sm:gap-3 text-lg sm:text-xl">
+          <Clock className="h-5 w-5 sm:h-6 sm:w-6" />
           Time Estimates
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 sm:space-y-5">
         {/* Estimated Total Duration */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Target className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">
+        <div className="flex items-center justify-between p-3 sm:p-4 bg-primary/5 rounded-lg">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Target className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+            <span className="text-sm sm:text-base font-semibold">
               {isAmrap ? 'AMRAP Duration' : 'Estimated Duration'}
             </span>
           </div>
-          <Badge variant="outline" className="font-mono">
+          <Badge variant="outline" className="font-mono text-base sm:text-lg px-3 py-2 font-bold">
             {formatTimeNatural(timeCalc.estimatedTotalSeconds)}
           </Badge>
         </div>
 
         {/* Exercise vs Rest Time Breakdown */}
         {!isAmrap && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Exercise Time</span>
-              <span className="font-mono">{formatTimeNatural(timeCalc.exerciseSeconds)}</span>
+          <div className="space-y-3 p-3 sm:p-4 bg-secondary/30 rounded-lg">
+            <div className="flex items-center justify-between text-sm sm:text-base">
+              <span className="text-muted-foreground font-medium">Exercise Time</span>
+              <span className="font-mono font-bold">
+                {formatTimeNatural(timeCalc.exerciseSeconds)}
+              </span>
             </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Rest Time</span>
-              <span className="font-mono">{formatTimeNatural(timeCalc.restSeconds)}</span>
+            <div className="flex items-center justify-between text-sm sm:text-base">
+              <span className="text-muted-foreground font-medium">Rest Time</span>
+              <span className="font-mono font-bold">{formatTimeNatural(timeCalc.restSeconds)}</span>
             </div>
           </div>
         )}
@@ -185,33 +187,40 @@ export function TimeEstimates({ day, sessionActive = false }: TimeEstimatesProps
         {/* Session Progress */}
         {sessionActive && (
           <>
-            <div className="space-y-2">
+            <div className="space-y-3 p-3 sm:p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Session Progress</span>
-                <span className="text-sm font-mono">{Math.round(progressPercentage)}%</span>
+                <span className="text-sm sm:text-base font-semibold text-blue-800 dark:text-blue-200">
+                  Session Progress
+                </span>
+                <span className="text-lg sm:text-xl font-mono font-bold text-blue-900 dark:text-blue-100">
+                  {Math.round(progressPercentage)}%
+                </span>
               </div>
-              <Progress value={progressPercentage} className="h-2" />
+              <Progress value={progressPercentage} className="h-3 sm:h-4" />
             </div>
 
             {/* Session Elapsed Time */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Timer className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Elapsed</span>
+            <div className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <Timer className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground" />
+                <span className="text-sm sm:text-base font-semibold">Elapsed</span>
               </div>
-              <Badge variant="secondary" className="font-mono">
+              <Badge
+                variant="secondary"
+                className="font-mono text-base sm:text-lg px-3 py-2 font-bold"
+              >
                 {formatTime(sessionElapsed)}
               </Badge>
             </div>
 
             {/* Time Remaining */}
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">
+            <div className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-800">
+              <span className="text-sm sm:text-base font-semibold text-orange-800 dark:text-orange-200">
                 {isAmrap ? 'AMRAP Time Left' : 'Estimated Remaining'}
               </span>
               <Badge
                 variant={timeRemaining < 60 && isAmrap ? 'destructive' : 'default'}
-                className="font-mono"
+                className="font-mono text-lg sm:text-xl px-4 py-2 font-bold"
               >
                 {formatTime(timeRemaining)}
               </Badge>
@@ -219,9 +228,14 @@ export function TimeEstimates({ day, sessionActive = false }: TimeEstimatesProps
 
             {/* AMRAP Round Information */}
             {isAmrap && (
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Current Round</span>
-                <Badge variant="outline" className="font-mono">
+              <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
+                <span className="text-sm sm:text-base font-semibold text-green-800 dark:text-green-200">
+                  Current Round
+                </span>
+                <Badge
+                  variant="outline"
+                  className="font-mono text-base sm:text-lg px-3 py-2 font-bold"
+                >
                   Round {currentRound}
                 </Badge>
               </div>
@@ -231,12 +245,12 @@ export function TimeEstimates({ day, sessionActive = false }: TimeEstimatesProps
 
         {/* Completion Stats */}
         {sessionActive && exercises.length > 0 && (
-          <div className="pt-2 border-t">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">
+          <div className="pt-3 border-t">
+            <div className="flex items-center justify-between text-sm sm:text-base p-3 bg-purple-50 dark:bg-purple-950/20 rounded-lg border border-purple-200 dark:border-purple-800">
+              <span className="text-purple-800 dark:text-purple-200 font-semibold">
                 {isAmrap ? 'Exercises Completed' : 'Exercise Progress'}
               </span>
-              <span className="font-mono">
+              <span className="font-mono text-base sm:text-lg font-bold text-purple-900 dark:text-purple-100">
                 {isAmrap
                   ? `${totalExercisesCompleted} completed`
                   : `${currentExerciseIndex + 1} of ${exercises.length}`}
