@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -8,6 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { formatDistance, formatDuration } from '@/utils/formatters'
 import { getPreviousExerciseData } from '@/actions/exercises'
+import { saveExerciseCompletion } from '@/actions/workouts'
+import { useAutoSave } from '@/hooks/use-auto-save'
+import { useWorkoutStore } from '@/stores/workout-store'
 import {
   validateWorkoutField,
   validateWorkoutDataEntry,
@@ -31,7 +34,7 @@ export interface WorkoutDataEntryProps {
   exercise: Exercise
   exerciseConfig: DayExercise
   previousData?: WorkoutDataEntryData // Legacy support - will be overridden by auto-population
-  onSave: (data: WorkoutDataEntryData) => void
+  onSave?: (data: WorkoutDataEntryData) => void // Made optional since we handle saving internally
   onCancel?: () => void
   isLoading?: boolean
 }
@@ -44,6 +47,10 @@ export function WorkoutDataEntry({
   onCancel,
   isLoading = false,
 }: WorkoutDataEntryProps) {
+  // Get workout store for program context
+  const { currentProgram, currentMilestoneIndex, currentDayIndex, completeExercise } =
+    useWorkoutStore()
+
   const [data, setData] = useState<WorkoutDataEntryData>(() => {
     // Initialize with fallback defaults based on exercise config
     return {
@@ -63,6 +70,65 @@ export function WorkoutDataEntry({
   const [smartDefaults, setSmartDefaults] = useState<SmartDefaults | null>(null)
   const [isLoadingData, setIsLoadingData] = useState(true)
   const [dataSource, setDataSource] = useState<'config' | 'previous' | 'smart'>('config')
+
+  // New state for save operations
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveSuccess, setSaveSuccess] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null)
+  const [isOnline, setIsOnline] = useState(navigator.onLine)
+
+  // Auto-save configuration with retry logic
+  const { autoSave, clearAutoSave, hasPendingData } = useAutoSave({
+    delay: 2000, // 2 second delay for auto-save
+    maxRetries: 3, // 3 retry attempts
+    retryDelay: 5000, // 5 second delay between retries
+    onSuccess: () => {
+      setLastSavedAt(new Date())
+      setSaveError(null)
+    },
+    onError: (error) => {
+      console.warn('Auto-save failed after retries:', error)
+      // Don't set saveError for auto-save failures to avoid disrupting user experience
+    },
+    onRetry: (attempt) => {
+      console.log(`Auto-save retry attempt ${attempt}`)
+    },
+  })
+
+  // Auto-save data when form data changes
+  const triggerAutoSave = useCallback(() => {
+    if (!currentProgram) return
+
+    const autoSaveData = {
+      exerciseId: exercise.id,
+      programId: currentProgram.id,
+      milestoneIndex: currentMilestoneIndex,
+      dayIndex: currentDayIndex,
+      sets: data.sets > 0 ? data.sets : undefined,
+      reps: data.reps > 0 ? data.reps : undefined,
+      weight: data.weight && data.weight > 0 ? data.weight : undefined,
+      time: data.time && data.time > 0 ? data.time : undefined,
+      distance: data.distance && data.distance > 0 ? data.distance : undefined,
+      distanceUnit: data.distanceUnit,
+      notes: data.notes?.trim() || undefined,
+    }
+
+    autoSave(autoSaveData)
+  }, [
+    autoSave,
+    currentProgram,
+    currentMilestoneIndex,
+    currentDayIndex,
+    exercise.id,
+    data.sets,
+    data.reps,
+    data.weight,
+    data.time,
+    data.distance,
+    data.distanceUnit,
+    data.notes,
+  ])
 
   // Auto-population: Load previous exercise data on component mount
   useEffect(() => {
@@ -115,6 +181,27 @@ export function WorkoutDataEntry({
     loadPreviousData()
   }, [exercise.id])
 
+  // Trigger auto-save when data changes (after initial loading)
+  useEffect(() => {
+    if (!isLoadingData) {
+      triggerAutoSave()
+    }
+  }, [triggerAutoSave, isLoadingData])
+
+  // Monitor online/offline status
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true)
+    const handleOffline = () => setIsOnline(false)
+
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [])
+
   // Real-time field validation using Zod schemas
   const validateField = (field: keyof ValidationWorkoutData, value: unknown) => {
     const newErrors = { ...errors }
@@ -141,8 +228,11 @@ export function WorkoutDataEntry({
     setData((prev) => ({ ...prev, [field]: sanitizedValue }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Clear auto-save to prevent conflicts
+    clearAutoSave()
 
     // Comprehensive form validation using Zod schema
     const validationResult = validateWorkoutDataEntry(data)
@@ -153,9 +243,54 @@ export function WorkoutDataEntry({
       return
     }
 
-    // Clear any existing errors and submit
-    setErrors({})
-    onSave(data)
+    if (!currentProgram) {
+      setSaveError('Program context is required. Please try again.')
+      return
+    }
+
+    setIsSaving(true)
+    setSaveSuccess(false)
+    setSaveError(null)
+
+    try {
+      // Save to database using server action
+      const result = await saveExerciseCompletion({
+        exerciseId: exercise.id,
+        programId: currentProgram.id,
+        milestoneIndex: currentMilestoneIndex,
+        dayIndex: currentDayIndex,
+        sets: data.sets,
+        reps: data.reps,
+        weight: data.weight && data.weight > 0 ? data.weight : undefined,
+        time: data.time && data.time > 0 ? data.time : undefined,
+        distance: data.distance && data.distance > 0 ? data.distance : undefined,
+        distanceUnit: data.distanceUnit,
+        notes: data.notes?.trim() || undefined,
+      })
+
+      if (result.success) {
+        // Clear any existing errors
+        setErrors({})
+        setSaveSuccess(true)
+        setLastSavedAt(new Date())
+
+        // Mark exercise as completed in workout store
+        completeExercise(exercise.id)
+
+        // Call optional onSave callback for legacy support
+        onSave?.(data)
+
+        // Show success feedback for a few seconds
+        setTimeout(() => setSaveSuccess(false), 3000)
+      } else {
+        setSaveError(result.error || 'Failed to save workout data. Please try again.')
+      }
+    } catch (error) {
+      console.error('Save exercise completion error:', error)
+      setSaveError('Network error. Please check your connection and try again.')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   const isFormValid = Object.keys(errors).length === 0
@@ -166,7 +301,7 @@ export function WorkoutDataEntry({
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg sm:text-xl font-semibold">{exercise.title}</CardTitle>
           {!isLoadingData && (
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               {dataSource === 'previous' && autoPopulationData && (
                 <Badge variant="secondary" className="text-xs">
                   Previous Data
@@ -180,6 +315,27 @@ export function WorkoutDataEntry({
               {dataSource === 'config' && (
                 <Badge variant="outline" className="text-xs">
                   Program Default
+                </Badge>
+              )}
+              {saveSuccess && (
+                <Badge variant="default" className="text-xs bg-green-600 hover:bg-green-700">
+                  ✓ Saved
+                </Badge>
+              )}
+              {lastSavedAt && !saveSuccess && (
+                <Badge variant="outline" className="text-xs text-green-600">
+                  Auto-saved{' '}
+                  {new Date().getTime() - lastSavedAt.getTime() < 60000 ? 'now' : 'recently'}
+                </Badge>
+              )}
+              {!isOnline && (
+                <Badge variant="destructive" className="text-xs">
+                  ⚠️ Offline
+                </Badge>
+              )}
+              {!isOnline && hasPendingData() && (
+                <Badge variant="outline" className="text-xs text-yellow-600">
+                  📝 Pending Save
                 </Badge>
               )}
             </div>
@@ -382,15 +538,39 @@ export function WorkoutDataEntry({
             )}
           </div>
 
+          {/* Save Error Display */}
+          {saveError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <p className="text-sm text-red-600 font-medium">❌ Save Failed</p>
+              <p className="text-sm text-red-600">{saveError}</p>
+            </div>
+          )}
+
+          {/* Success Display */}
+          {saveSuccess && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+              <p className="text-sm text-green-600 font-medium">✅ Exercise Data Saved!</p>
+              <p className="text-xs text-green-600">Your workout progress has been recorded.</p>
+            </div>
+          )}
+
           {/* Action Buttons */}
           <div className="flex flex-col gap-3 pt-4">
             <Button
               type="submit"
-              disabled={!isFormValid || isLoading || isLoadingData}
+              disabled={!isFormValid || isLoading || isLoadingData || isSaving}
               className="h-12 text-lg font-semibold touch-manipulation"
               style={{ minHeight: '44px' }}
             >
-              {isLoading ? 'Saving...' : isLoadingData ? 'Loading...' : 'Save Exercise Data'}
+              {isSaving
+                ? 'Saving...'
+                : isLoading
+                  ? 'Loading...'
+                  : isLoadingData
+                    ? 'Loading...'
+                    : saveSuccess
+                      ? '✓ Saved - Save Again'
+                      : 'Save Exercise Data'}
             </Button>
 
             {onCancel && (
@@ -400,6 +580,7 @@ export function WorkoutDataEntry({
                 onClick={onCancel}
                 className="h-12 text-lg touch-manipulation"
                 style={{ minHeight: '44px' }}
+                disabled={isSaving}
               >
                 Cancel
               </Button>
