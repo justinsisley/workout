@@ -318,3 +318,217 @@ export async function autoSaveExerciseData(
     }
   }
 }
+
+// Validation schema for exercise completion and advancement
+const CompleteExerciseAndAdvanceSchema = z.object({
+  exerciseId: z.string().min(1, 'Exercise ID is required'),
+  programId: z.string().min(1, 'Program ID is required'),
+  milestoneIndex: z.number().int().min(0, 'Milestone index must be 0 or greater'),
+  dayIndex: z.number().int().min(0, 'Day index must be 0 or greater'),
+  currentExerciseIndex: z.number().int().min(0, 'Exercise index must be 0 or greater'),
+  sets: z.number().int().min(1, 'Sets must be at least 1').max(99, 'Sets cannot exceed 99'),
+  reps: z.number().int().min(1, 'Reps must be at least 1').max(999, 'Reps cannot exceed 999'),
+  weight: z.number().min(0).max(1000).optional(),
+  time: z.number().min(0).max(999).optional(),
+  distance: z.number().min(0).max(999).optional(),
+  distanceUnit: z.enum(['meters', 'miles']).optional(),
+  notes: z.string().max(500, 'Notes cannot exceed 500 characters').optional(),
+  isAmrapDay: z.boolean().default(false),
+  amrapTimeRemaining: z.number().min(0).optional(), // seconds remaining for AMRAP
+})
+
+export type CompleteExerciseAndAdvanceInput = z.infer<typeof CompleteExerciseAndAdvanceSchema>
+
+export interface ExerciseAdvancement {
+  exerciseCompleted: boolean
+  nextExerciseIndex: number | null // null means no more exercises
+  roundCompleted: boolean // for AMRAP workouts
+  dayCompleted: boolean
+  amrapTimeExpired: boolean
+}
+
+export interface CompleteExerciseAndAdvanceResult {
+  success: boolean
+  error?: string
+  errorType?: 'authentication' | 'validation' | 'not_found' | 'system_error' | 'program_mismatch'
+  exerciseCompletionId?: string | undefined
+  advancement?: ExerciseAdvancement
+}
+
+/**
+ * Complete an exercise and advance to the next exercise in the day sequence
+ * Handles both regular workouts and AMRAP round cycling logic
+ */
+export async function completeExerciseAndAdvance(
+  input: CompleteExerciseAndAdvanceInput,
+): Promise<CompleteExerciseAndAdvanceResult> {
+  try {
+    // Validate input data
+    const validatedInput = CompleteExerciseAndAdvanceSchema.parse(input)
+
+    // Get current authenticated user
+    const currentUser = await getCurrentProductUser()
+    if (!currentUser) {
+      return {
+        success: false,
+        error: 'You must be logged in to complete exercises. Please sign in and try again.',
+        errorType: 'authentication',
+      }
+    }
+
+    const payload = await getPayload({ config: configPromise })
+
+    // First, save the exercise completion using existing logic
+    const completionResult = await saveExerciseCompletion({
+      exerciseId: validatedInput.exerciseId,
+      programId: validatedInput.programId,
+      milestoneIndex: validatedInput.milestoneIndex,
+      dayIndex: validatedInput.dayIndex,
+      sets: validatedInput.sets,
+      reps: validatedInput.reps,
+      weight: validatedInput.weight,
+      time: validatedInput.time,
+      distance: validatedInput.distance,
+      distanceUnit: validatedInput.distanceUnit,
+      notes: validatedInput.notes,
+    })
+
+    if (!completionResult.success) {
+      return {
+        success: false,
+        error: completionResult.error || 'Failed to save exercise completion',
+        errorType: 'system_error',
+      }
+    }
+
+    // Get the program to understand the day structure
+    const program = await payload.findByID({
+      collection: 'programs',
+      id: validatedInput.programId,
+    })
+
+    if (!program) {
+      return {
+        success: false,
+        error: 'Program not found',
+        errorType: 'not_found',
+      }
+    }
+
+    // Validate milestone and day indices
+    if (!program.milestones || !Array.isArray(program.milestones)) {
+      return {
+        success: false,
+        error: 'Program has no milestones',
+        errorType: 'program_mismatch',
+      }
+    }
+
+    const milestone = program.milestones[validatedInput.milestoneIndex]
+    if (!milestone) {
+      return {
+        success: false,
+        error: 'Invalid milestone index',
+        errorType: 'program_mismatch',
+      }
+    }
+
+    if (!milestone.days || !Array.isArray(milestone.days)) {
+      return {
+        success: false,
+        error: 'Milestone has no days',
+        errorType: 'program_mismatch',
+      }
+    }
+
+    const day = milestone.days[validatedInput.dayIndex]
+    if (!day || day.dayType !== 'workout') {
+      return {
+        success: false,
+        error: 'Invalid day index or day is not a workout day',
+        errorType: 'program_mismatch',
+      }
+    }
+
+    // Calculate exercise advancement
+    const totalExercises = day.exercises?.length || 0
+    const currentIndex = validatedInput.currentExerciseIndex
+    let nextExerciseIndex: number | null = null
+    let roundCompleted = false
+    let dayCompleted = false
+    let amrapTimeExpired = false
+
+    if (validatedInput.isAmrapDay) {
+      // AMRAP logic: cycle through exercises until time expires
+      amrapTimeExpired = (validatedInput.amrapTimeRemaining || 0) <= 0
+
+      if (amrapTimeExpired) {
+        // Time expired - day is complete
+        dayCompleted = true
+        nextExerciseIndex = null
+      } else {
+        // Check if we've completed the last exercise in the round
+        if (currentIndex >= totalExercises - 1) {
+          // Round completed - restart at first exercise
+          roundCompleted = true
+          nextExerciseIndex = 0
+        } else {
+          // Move to next exercise in current round
+          nextExerciseIndex = currentIndex + 1
+        }
+      }
+    } else {
+      // Regular workout logic: linear progression through exercises
+      if (currentIndex >= totalExercises - 1) {
+        // Last exercise completed - day is complete
+        dayCompleted = true
+        nextExerciseIndex = null
+      } else {
+        // Move to next exercise
+        nextExerciseIndex = currentIndex + 1
+      }
+    }
+
+    const advancement: ExerciseAdvancement = {
+      exerciseCompleted: true,
+      nextExerciseIndex,
+      roundCompleted,
+      dayCompleted,
+      amrapTimeExpired,
+    }
+
+    return {
+      success: true,
+      exerciseCompletionId: completionResult.exerciseCompletionId,
+      advancement,
+    }
+  } catch (error) {
+    console.error('Complete exercise and advance error:', error)
+
+    if (error instanceof z.ZodError) {
+      return {
+        success: false,
+        error: `Invalid input data: ${error.issues.map((e) => e.message).join(', ')}`,
+        errorType: 'validation',
+      }
+    }
+
+    // Handle specific PayloadCMS errors
+    if (error && typeof error === 'object' && 'message' in error) {
+      const errorMessage = error.message as string
+      if (errorMessage.includes('unauthorized')) {
+        return {
+          success: false,
+          error: 'You must be logged in to complete exercises. Please sign in and try again.',
+          errorType: 'authentication',
+        }
+      }
+    }
+
+    return {
+      success: false,
+      error: 'Failed to complete exercise and advance. Please try again.',
+      errorType: 'system_error',
+    }
+  }
+}

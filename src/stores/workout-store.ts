@@ -47,6 +47,16 @@ export interface WorkoutState {
   completeRound: () => void
   resetSession: () => void
 
+  // Day progression actions
+  advanceToNextExercise: () => boolean // Returns true if advancement successful
+  advanceToNextExerciseAmrap: (
+    timeRemaining: number,
+  ) => 'next_exercise' | 'round_complete' | 'day_complete'
+  completeDayWorkout: () => void
+  isCurrentDayComplete: () => boolean
+  isAmrapDay: () => boolean
+  getRemainingExercises: () => number
+
   // Program navigation helpers
   getCurrentMilestone: () => ProgramMilestone | null
   getCurrentDay: () => MilestoneDay | null
@@ -401,6 +411,90 @@ export const useWorkoutStore = create<WorkoutState>()(
         const { currentDay, currentExerciseIndex } = get()
         if (!currentDay?.exercises) return null
         return currentDay.exercises[currentExerciseIndex] || null
+      },
+
+      // Day progression methods
+      advanceToNextExercise: () => {
+        const { currentDay, currentExerciseIndex } = get()
+        if (!currentDay?.exercises) return false
+
+        const totalExercises = currentDay.exercises.length
+        const nextIndex = currentExerciseIndex + 1
+
+        // Check if we can advance to next exercise
+        if (nextIndex < totalExercises) {
+          set({ currentExerciseIndex: nextIndex })
+          return true
+        }
+
+        // No more exercises - day is complete
+        return false
+      },
+
+      advanceToNextExerciseAmrap: (timeRemaining: number) => {
+        const { currentDay, currentExerciseIndex, currentRound } = get()
+        if (!currentDay?.exercises) return 'day_complete'
+
+        const totalExercises = currentDay.exercises.length
+
+        // Check if time has expired
+        if (timeRemaining <= 0) {
+          return 'day_complete'
+        }
+
+        // Check if we've completed the last exercise in the round
+        if (currentExerciseIndex >= totalExercises - 1) {
+          // Round completed - restart at first exercise
+          set({
+            currentExerciseIndex: 0,
+            currentRound: currentRound + 1,
+          })
+          return 'round_complete'
+        } else {
+          // Move to next exercise in current round
+          set({ currentExerciseIndex: currentExerciseIndex + 1 })
+          return 'next_exercise'
+        }
+      },
+
+      completeDayWorkout: () => {
+        const { currentDay } = get()
+        if (!currentDay?.exercises) return
+
+        const allExerciseIds = currentDay.exercises.map((ex) => ex.id)
+
+        // Mark all exercises as completed
+        set({
+          completedExercises: allExerciseIds,
+          totalExercisesCompleted: allExerciseIds.length,
+        })
+      },
+
+      isCurrentDayComplete: () => {
+        const { currentDay, completedExercises } = get()
+        if (!currentDay?.exercises) return true
+
+        const totalExercises = currentDay.exercises.length
+
+        if (currentDay.isAmrap) {
+          // For AMRAP days, completion is time-based, but we check if any exercise was completed
+          return completedExercises.length > 0
+        } else {
+          // For regular days, all exercises must be completed
+          return completedExercises.length >= totalExercises
+        }
+      },
+
+      isAmrapDay: () => {
+        const { currentDay } = get()
+        return Boolean(currentDay?.isAmrap && currentDay.amrapDuration)
+      },
+
+      getRemainingExercises: () => {
+        const { currentDay, currentExerciseIndex } = get()
+        if (!currentDay?.exercises) return 0
+
+        return Math.max(0, currentDay.exercises.length - currentExerciseIndex - 1)
       },
     }),
     {
