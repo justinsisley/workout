@@ -24,7 +24,10 @@ interface ExerciseDetailPageProps {
   }
 }
 
-export default async function ExerciseDetailPage({ params, searchParams }: ExerciseDetailPageProps) {
+export default async function ExerciseDetailPage({
+  params,
+  searchParams,
+}: ExerciseDetailPageProps) {
   // Check authentication
   const currentUser = await getCurrentProductUser()
   if (!currentUser) {
@@ -54,34 +57,40 @@ export default async function ExerciseDetailPage({ params, searchParams }: Exerc
     sets: searchParams.sets ? parseInt(searchParams.sets, 10) : 0,
     reps: searchParams.reps ? parseInt(searchParams.reps, 10) : 0,
     weight: searchParams.weight ? parseInt(searchParams.weight, 10) : undefined,
-    durationValue: searchParams.durationValue ? parseInt(searchParams.durationValue, 10) : undefined,
+    durationValue: searchParams.durationValue
+      ? parseInt(searchParams.durationValue, 10)
+      : undefined,
     durationUnit: searchParams.durationUnit as 'seconds' | 'minutes' | 'hours' | undefined,
-    distanceValue: searchParams.distanceValue ? parseInt(searchParams.distanceValue, 10) : undefined,
+    distanceValue: searchParams.distanceValue
+      ? parseInt(searchParams.distanceValue, 10)
+      : undefined,
     distanceUnit: searchParams.distanceUnit as 'meters' | 'miles' | undefined,
     restPeriod: searchParams.restPeriod ? parseInt(searchParams.restPeriod, 10) : undefined,
     notes: searchParams.notes || undefined,
   }
 
   // Type guard helpers for exercise config
-  const hasConfigDistance = exerciseConfig.distanceValue && exerciseConfig.distanceValue > 0 && exerciseConfig.distanceUnit
-  const hasConfigDuration = exerciseConfig.durationValue && exerciseConfig.durationValue > 0 && exerciseConfig.durationUnit
+  const hasConfigDistance =
+    exerciseConfig.distanceValue && exerciseConfig.distanceValue > 0 && exerciseConfig.distanceUnit
+  const hasConfigDuration =
+    exerciseConfig.durationValue && exerciseConfig.durationValue > 0 && exerciseConfig.durationUnit
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-6 max-w-4xl">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2 leading-tight">
-            {exercise.title}
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2 leading-tight">{exercise.title}</h1>
         </div>
 
         {/* Exercise Specifications */}
-        {(exerciseConfig.sets > 0 || exerciseConfig.reps > 0 || exerciseConfig.weight || hasConfigDuration || hasConfigDistance) && (
+        {(exerciseConfig.sets > 0 ||
+          exerciseConfig.reps > 0 ||
+          exerciseConfig.weight ||
+          hasConfigDuration ||
+          hasConfigDistance) && (
           <div className="mb-8 bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Exercise Specifications
-            </h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Exercise Specifications</h2>
             <div className="flex flex-wrap gap-3 text-sm sm:text-base">
               {exerciseConfig.sets > 0 && (
                 <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg">
@@ -143,27 +152,19 @@ export default async function ExerciseDetailPage({ params, searchParams }: Exerc
         {/* Exercise Description */}
         {exercise.description && (
           <div className="mb-8 bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900 mb-3">
-              Description & Instructions
-            </h2>
-            <p className="text-gray-700 leading-relaxed text-base">
-              {exercise.description}
-            </p>
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">Description & Instructions</h2>
+            <p className="text-gray-700 leading-relaxed text-base">{exercise.description}</p>
           </div>
         )}
 
         {/* Video Section - Placeholder for now */}
         {exercise.videoUrl && (
           <div className="mb-8 bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900 mb-3">
-              Exercise Demonstration
-            </h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">Exercise Demonstration</h2>
             <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
               <div className="text-gray-500 text-center">
                 <div className="text-lg font-medium mb-2">Video Coming Soon</div>
-                <div className="text-sm">
-                  Video URL: {exercise.videoUrl}
-                </div>
+                <div className="text-sm">Video URL: {exercise.videoUrl}</div>
               </div>
             </div>
           </div>
@@ -177,9 +178,7 @@ export default async function ExerciseDetailPage({ params, searchParams }: Exerc
           >
             ← Back to Workout
           </button>
-          <div className="text-sm text-gray-500">
-            Exercise Details
-          </div>
+          <div className="text-sm text-gray-500">Exercise Details</div>
         </div>
       </div>
     </div>
