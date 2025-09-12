@@ -35,6 +35,10 @@ export interface WorkoutState {
   currentRound: number
   totalExercisesCompleted: number
 
+  // AMRAP timer management
+  amrapTimeRemaining: number | null // in seconds
+  amrapTimerActive: boolean
+
   // Actions
   setCurrentProgram: (program: Program, milestoneIndex?: number, dayIndex?: number) => void
   setCurrentDay: (milestoneIndex: number, dayIndex: number) => void
@@ -56,6 +60,31 @@ export interface WorkoutState {
   isCurrentDayComplete: () => boolean
   isAmrapDay: () => boolean
   getRemainingExercises: () => number
+
+  // Day completion detection methods
+  isDayCompleteByExercises: () => boolean
+  isDayCompleteByTime: (timeRemaining: number) => boolean
+  getDayCompletionStats: () => {
+    totalExercises: number
+    completedExercises: number
+    completionPercentage: number
+    totalRounds?: number
+    hasAnyProgress: boolean
+  }
+  shouldTriggerDayCompletion: (timeRemaining?: number) => boolean
+
+  // Day advancement methods
+  advanceToNextDay: (newMilestoneIndex: number, newDayIndex: number) => void
+  getSessionDuration: () => number
+  resetForNewDay: () => void
+
+  // AMRAP timer methods
+  startAmrapTimer: (durationInMinutes: number) => void
+  updateAmrapTimer: (timeRemaining: number) => void
+  pauseAmrapTimer: () => void
+  resumeAmrapTimer: () => void
+  stopAmrapTimer: () => void
+  isAmrapTimeExpired: () => boolean
 
   // Program navigation helpers
   getCurrentMilestone: () => ProgramMilestone | null
@@ -98,6 +127,8 @@ export const useWorkoutStore = create<WorkoutState>()(
       exerciseProgress: {},
       currentRound: 1,
       totalExercisesCompleted: 0,
+      amrapTimeRemaining: null,
+      amrapTimerActive: false,
 
       setCurrentProgram: (program: Program, milestoneIndex = 0, dayIndex = 0) => {
         const milestone = program.milestones[milestoneIndex]
@@ -496,6 +527,157 @@ export const useWorkoutStore = create<WorkoutState>()(
 
         return Math.max(0, currentDay.exercises.length - currentExerciseIndex - 1)
       },
+
+      // Day completion detection methods
+      isDayCompleteByExercises: () => {
+        const { currentDay, completedExercises } = get()
+        if (!currentDay?.exercises) return true
+
+        const totalExercises = currentDay.exercises.length
+        return completedExercises.length >= totalExercises
+      },
+
+      isDayCompleteByTime: (timeRemaining: number) => {
+        const { currentDay } = get()
+        if (!currentDay?.isAmrap) return false
+
+        return timeRemaining <= 0
+      },
+
+      getDayCompletionStats: () => {
+        const { currentDay, completedExercises, currentRound, exerciseProgress } = get()
+
+        if (!currentDay?.exercises) {
+          return {
+            totalExercises: 0,
+            completedExercises: 0,
+            completionPercentage: 100,
+            hasAnyProgress: false,
+          }
+        }
+
+        const totalExercises = currentDay.exercises.length
+        const completedCount = completedExercises.length
+        const completionPercentage =
+          totalExercises > 0 ? (completedCount / totalExercises) * 100 : 0
+
+        // Check if any exercise has progress data
+        const hasAnyProgress = Object.values(exerciseProgress).some(
+          (progress) =>
+            progress.hasData || progress.isCompleted || progress.completionPercentage > 0,
+        )
+
+        const stats = {
+          totalExercises,
+          completedExercises: completedCount,
+          completionPercentage,
+          hasAnyProgress,
+        }
+
+        // Add AMRAP-specific data
+        if (currentDay.isAmrap) {
+          return {
+            ...stats,
+            totalRounds: currentRound,
+          }
+        }
+
+        return stats
+      },
+
+      shouldTriggerDayCompletion: (timeRemaining?: number) => {
+        const { currentDay } = get()
+        if (!currentDay) return false
+
+        if (currentDay.isAmrap) {
+          // AMRAP completion is time-based
+          if (timeRemaining !== undefined && timeRemaining <= 0) {
+            // Check that user has made some progress
+            const stats = get().getDayCompletionStats()
+            return stats.hasAnyProgress
+          }
+          return false
+        } else {
+          // Regular workout completion is exercise-based
+          return get().isDayCompleteByExercises()
+        }
+      },
+
+      // Day advancement methods
+      advanceToNextDay: (newMilestoneIndex: number, newDayIndex: number) => {
+        const { currentProgram } = get()
+        if (!currentProgram) return
+
+        const milestone = currentProgram.milestones[newMilestoneIndex]
+        const day = milestone?.days[newDayIndex]
+
+        if (day) {
+          set({
+            currentMilestoneIndex: newMilestoneIndex,
+            currentDayIndex: newDayIndex,
+            currentDay: day,
+          })
+
+          // Reset session state for new day
+          get().resetForNewDay()
+        }
+      },
+
+      getSessionDuration: () => {
+        const { sessionStartTime, isSessionActive } = get()
+        if (!isSessionActive || !sessionStartTime) return 0
+
+        return Date.now() - sessionStartTime
+      },
+
+      resetForNewDay: () => {
+        set({
+          isSessionActive: false,
+          sessionStartTime: null,
+          currentExerciseIndex: 0,
+          completedExercises: [],
+          exerciseProgress: {},
+          currentRound: 1,
+          totalExercisesCompleted: 0,
+          amrapTimeRemaining: null,
+          amrapTimerActive: false,
+        })
+      },
+
+      // AMRAP timer methods
+      startAmrapTimer: (durationInMinutes: number) => {
+        const durationInSeconds = durationInMinutes * 60
+        set({
+          amrapTimeRemaining: durationInSeconds,
+          amrapTimerActive: true,
+        })
+      },
+
+      updateAmrapTimer: (timeRemaining: number) => {
+        set({
+          amrapTimeRemaining: Math.max(0, timeRemaining),
+        })
+      },
+
+      pauseAmrapTimer: () => {
+        set({ amrapTimerActive: false })
+      },
+
+      resumeAmrapTimer: () => {
+        set({ amrapTimerActive: true })
+      },
+
+      stopAmrapTimer: () => {
+        set({
+          amrapTimeRemaining: null,
+          amrapTimerActive: false,
+        })
+      },
+
+      isAmrapTimeExpired: () => {
+        const { amrapTimeRemaining } = get()
+        return amrapTimeRemaining !== null && amrapTimeRemaining <= 0
+      },
     }),
     {
       name: 'workout-session',
@@ -511,6 +693,8 @@ export const useWorkoutStore = create<WorkoutState>()(
         exerciseProgress: state.exerciseProgress,
         currentRound: state.currentRound,
         totalExercisesCompleted: state.totalExercisesCompleted,
+        amrapTimeRemaining: state.amrapTimeRemaining,
+        amrapTimerActive: state.amrapTimerActive,
       }),
     },
   ),

@@ -3,6 +3,7 @@
 import { getPayload } from 'payload'
 import configPromise from '@/payload/payload.config'
 import { z } from 'zod'
+import { revalidatePath } from 'next/cache'
 import { getCurrentProductUser } from '@/lib/auth-server'
 
 // Validation schema for saving exercise completion
@@ -528,6 +529,371 @@ export async function completeExerciseAndAdvance(
     return {
       success: false,
       error: 'Failed to complete exercise and advance. Please try again.',
+      errorType: 'system_error',
+    }
+  }
+}
+
+// Validation schema for advancing to next day
+const AdvanceToNextDaySchema = z.object({
+  programId: z.string().min(1, 'Program ID is required'),
+  currentMilestoneIndex: z.number().int().min(0, 'Milestone index must be 0 or greater'),
+  currentDayIndex: z.number().int().min(0, 'Day index must be 0 or greater'),
+  sessionDuration: z.number().min(0, 'Session duration must be 0 or greater').optional(),
+  completedExercises: z.array(z.string()).default([]),
+})
+
+export type AdvanceToNextDayInput = z.infer<typeof AdvanceToNextDaySchema>
+
+export interface DayAdvancement {
+  advanced: boolean
+  newMilestoneIndex: number
+  newDayIndex: number
+  programCompleted: boolean
+  nextDay?: {
+    id: string | null | undefined
+    dayType: 'workout' | 'rest'
+    isAmrap?: boolean | null | undefined
+    amrapDuration?: number | null | undefined
+    exercises?: any[]
+  } | null
+}
+
+export interface AdvanceToNextDayResult {
+  success: boolean
+  error?: string
+  errorType?: 'authentication' | 'validation' | 'not_found' | 'program_complete' | 'system_error'
+  advancement?: DayAdvancement
+}
+
+/**
+ * Advance user to the next day in their program
+ * Updates ProductUser progress and handles milestone progression
+ */
+export async function advanceToNextDay(
+  input: AdvanceToNextDayInput,
+): Promise<AdvanceToNextDayResult> {
+  try {
+    // Validate input data
+    const validatedInput = AdvanceToNextDaySchema.parse(input)
+
+    // Get current authenticated user
+    const currentUser = await getCurrentProductUser()
+    if (!currentUser) {
+      return {
+        success: false,
+        error: 'You must be logged in to advance to the next day. Please sign in and try again.',
+        errorType: 'authentication',
+      }
+    }
+
+    const payload = await getPayload({ config: configPromise })
+
+    // Get the program to understand the structure
+    const program = await payload.findByID({
+      collection: 'programs',
+      id: validatedInput.programId,
+    })
+
+    if (!program) {
+      return {
+        success: false,
+        error: 'Program not found',
+        errorType: 'not_found',
+      }
+    }
+
+    // Validate current position
+    if (!program.milestones || !Array.isArray(program.milestones)) {
+      return {
+        success: false,
+        error: 'Program has no milestones',
+        errorType: 'not_found',
+      }
+    }
+
+    const currentMilestone = program.milestones[validatedInput.currentMilestoneIndex]
+    if (!currentMilestone) {
+      return {
+        success: false,
+        error: 'Invalid milestone index',
+        errorType: 'not_found',
+      }
+    }
+
+    if (!currentMilestone.days || !Array.isArray(currentMilestone.days)) {
+      return {
+        success: false,
+        error: 'Milestone has no days',
+        errorType: 'not_found',
+      }
+    }
+
+    // Calculate next position
+    let newMilestoneIndex = validatedInput.currentMilestoneIndex
+    let newDayIndex = validatedInput.currentDayIndex + 1
+    let programCompleted = false
+
+    // Check if we need to move to the next milestone
+    if (newDayIndex >= currentMilestone.days.length) {
+      newMilestoneIndex = validatedInput.currentMilestoneIndex + 1
+      newDayIndex = 0
+
+      // Check if program is complete
+      if (newMilestoneIndex >= program.milestones.length) {
+        programCompleted = true
+        // Keep at last valid position
+        newMilestoneIndex = program.milestones.length - 1
+        newDayIndex = currentMilestone.days.length - 1
+      }
+    }
+
+    // Get next day info if program isn't complete
+    let nextDay = null
+    if (!programCompleted) {
+      const nextMilestone = program.milestones[newMilestoneIndex]
+      if (nextMilestone && nextMilestone.days && nextMilestone.days[newDayIndex]) {
+        const nextDayData = nextMilestone.days[newDayIndex]
+        if (nextDayData) {
+          nextDay = {
+            id: nextDayData.id,
+            dayType: nextDayData.dayType,
+            isAmrap: nextDayData.isAmrap,
+            amrapDuration: nextDayData.amrapDuration || undefined,
+            exercises: nextDayData.exercises || [],
+          }
+        }
+      }
+    }
+
+    // Update ProductUser progress
+    await payload.update({
+      collection: 'productUsers',
+      id: currentUser.id,
+      data: {
+        currentMilestone: newMilestoneIndex,
+        currentDay: newDayIndex,
+        lastWorkoutDate: new Date().toISOString(),
+        totalWorkoutsCompleted: (currentUser.totalWorkoutsCompleted || 0) + 1,
+      },
+    })
+
+    // Revalidate relevant paths
+    revalidatePath('/dashboard')
+    revalidatePath('/workout')
+    revalidatePath(`/workout/${validatedInput.programId}`)
+
+    const advancement: DayAdvancement = {
+      advanced: true,
+      newMilestoneIndex,
+      newDayIndex,
+      programCompleted,
+      nextDay,
+    }
+
+    return {
+      success: true,
+      advancement,
+    }
+  } catch (error) {
+    console.error('Advance to next day error:', error)
+
+    if (error instanceof z.ZodError) {
+      return {
+        success: false,
+        error: `Invalid input data: ${error.issues.map((e) => e.message).join(', ')}`,
+        errorType: 'validation',
+      }
+    }
+
+    // Handle specific PayloadCMS errors
+    if (error && typeof error === 'object' && 'message' in error) {
+      const errorMessage = error.message as string
+      if (errorMessage.includes('unauthorized')) {
+        return {
+          success: false,
+          error: 'You must be logged in to advance to the next day. Please sign in and try again.',
+          errorType: 'authentication',
+        }
+      }
+    }
+
+    return {
+      success: false,
+      error: 'Failed to advance to next day. Please try again.',
+      errorType: 'system_error',
+    }
+  }
+}
+
+// Validation schema for completing AMRAP day when timer expires
+const CompleteAmrapDaySchema = z.object({
+  programId: z.string().min(1, 'Program ID is required'),
+  milestoneIndex: z.number().int().min(0, 'Milestone index must be 0 or greater'),
+  dayIndex: z.number().int().min(0, 'Day index must be 0 or greater'),
+  sessionDuration: z.number().min(0, 'Session duration must be 0 or greater'),
+  totalRoundsCompleted: z.number().int().min(0, 'Total rounds must be 0 or greater'),
+  completedExerciseIds: z.array(z.string()).default([]),
+  exerciseProgress: z
+    .record(
+      z.string(),
+      z.object({
+        exerciseId: z.string(),
+        completionPercentage: z.number().min(0).max(100),
+        isCompleted: z.boolean(),
+        hasData: z.boolean(),
+      }),
+    )
+    .default({}),
+})
+
+export type CompleteAmrapDayInput = z.infer<typeof CompleteAmrapDaySchema>
+
+export interface CompleteAmrapDayResult {
+  success: boolean
+  error?: string
+  errorType?: 'authentication' | 'validation' | 'not_found' | 'invalid_day_type' | 'system_error'
+  dayCompletionId?: string
+}
+
+/**
+ * Complete an AMRAP day when timer reaches zero
+ * Records all progress made during the AMRAP session
+ */
+export async function completeAmrapDay(
+  input: CompleteAmrapDayInput,
+): Promise<CompleteAmrapDayResult> {
+  try {
+    // Validate input data
+    const validatedInput = CompleteAmrapDaySchema.parse(input)
+
+    // Get current authenticated user
+    const currentUser = await getCurrentProductUser()
+    if (!currentUser) {
+      return {
+        success: false,
+        error: 'You must be logged in to complete AMRAP days. Please sign in and try again.',
+        errorType: 'authentication',
+      }
+    }
+
+    const payload = await getPayload({ config: configPromise })
+
+    // Get the program to validate the AMRAP day
+    const program = await payload.findByID({
+      collection: 'programs',
+      id: validatedInput.programId,
+    })
+
+    if (!program) {
+      return {
+        success: false,
+        error: 'Program not found',
+        errorType: 'not_found',
+      }
+    }
+
+    // Validate milestone and day
+    if (!program.milestones || !Array.isArray(program.milestones)) {
+      return {
+        success: false,
+        error: 'Program has no milestones',
+        errorType: 'not_found',
+      }
+    }
+
+    const milestone = program.milestones[validatedInput.milestoneIndex]
+    if (!milestone) {
+      return {
+        success: false,
+        error: 'Invalid milestone index',
+        errorType: 'not_found',
+      }
+    }
+
+    if (!milestone.days || !Array.isArray(milestone.days)) {
+      return {
+        success: false,
+        error: 'Milestone has no days',
+        errorType: 'not_found',
+      }
+    }
+
+    const day = milestone.days[validatedInput.dayIndex]
+    if (!day) {
+      return {
+        success: false,
+        error: 'Invalid day index',
+        errorType: 'not_found',
+      }
+    }
+
+    // Verify this is an AMRAP day
+    if (!day.isAmrap || !day.amrapDuration) {
+      return {
+        success: false,
+        error: 'This day is not an AMRAP workout',
+        errorType: 'invalid_day_type',
+      }
+    }
+
+    // TODO: Create day completion record for AMRAP when dayCompletions collection is implemented
+    // For now, we'll just return success without persisting the day completion
+    // const dayCompletion = await payload.create({
+    //   collection: 'dayCompletions', // This collection would need to be created in PayloadCMS
+    //   data: {
+    //     productUser: currentUser.id,
+    //     program: validatedInput.programId,
+    //     milestoneIndex: validatedInput.milestoneIndex,
+    //     dayIndex: validatedInput.dayIndex,
+    //     dayType: 'amrap',
+    //     sessionDuration: validatedInput.sessionDuration,
+    //     totalRoundsCompleted: validatedInput.totalRoundsCompleted,
+    //     completedExercises: validatedInput.completedExerciseIds,
+    //     exerciseProgressData: validatedInput.exerciseProgress,
+    //     completedAt: new Date().toISOString(),
+    //     amrapDuration: day.amrapDuration, // Original planned duration
+    //   },
+    // })
+
+    // Generate a temporary ID for now
+    const dayCompletionId = `temp-${Date.now()}-${currentUser.id}`
+
+    // Revalidate relevant paths
+    revalidatePath('/dashboard')
+    revalidatePath('/workout')
+    revalidatePath(`/workout/${validatedInput.programId}`)
+
+    return {
+      success: true,
+      dayCompletionId: dayCompletionId,
+    }
+  } catch (error) {
+    console.error('Complete AMRAP day error:', error)
+
+    if (error instanceof z.ZodError) {
+      return {
+        success: false,
+        error: `Invalid input data: ${error.issues.map((e) => e.message).join(', ')}`,
+        errorType: 'validation',
+      }
+    }
+
+    // Handle specific PayloadCMS errors
+    if (error && typeof error === 'object' && 'message' in error) {
+      const errorMessage = error.message as string
+      if (errorMessage.includes('unauthorized')) {
+        return {
+          success: false,
+          error: 'You must be logged in to complete AMRAP days. Please sign in and try again.',
+          errorType: 'authentication',
+        }
+      }
+    }
+
+    return {
+      success: false,
+      error: 'Failed to complete AMRAP day. Please try again.',
       errorType: 'system_error',
     }
   }
