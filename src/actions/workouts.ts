@@ -898,3 +898,520 @@ export async function completeAmrapDay(
     }
   }
 }
+
+// Validation schema for comprehensive user progress updates
+const UpdateUserProgressSchema = z.object({
+  programId: z.string().min(1, 'Program ID is required'),
+  currentMilestone: z.number().int().min(0, 'Milestone index must be 0 or greater').optional(),
+  currentDay: z.number().int().min(0, 'Day index must be 0 or greater').optional(),
+  lastWorkoutDate: z.string().datetime().optional(),
+  totalWorkoutsCompleted: z.number().int().min(0, 'Total workouts must be 0 or greater').optional(),
+  exerciseCompletions: z.array(z.string()).optional(), // Array of exercise completion IDs
+  sessionData: z
+    .object({
+      sessionId: z.string().optional(),
+      startTime: z.string().datetime().optional(),
+      endTime: z.string().datetime().optional(),
+      duration: z.number().min(0).optional(),
+    })
+    .optional(),
+  progressMetrics: z
+    .object({
+      totalSets: z.number().int().min(0).optional(),
+      totalReps: z.number().int().min(0).optional(),
+      totalWeight: z.number().min(0).optional(),
+      avgIntensity: z.number().min(0).max(10).optional(),
+    })
+    .optional(),
+})
+
+export type UpdateUserProgressInput = z.infer<typeof UpdateUserProgressSchema>
+
+export interface ProgressValidation {
+  isValid: boolean
+  errors: string[]
+  warnings: string[]
+}
+
+export interface ProgressAuditEntry {
+  timestamp: string
+  userId: string
+  action: 'progress_update' | 'milestone_advance' | 'day_complete' | 'program_complete' | 'rollback'
+  previousState: {
+    milestone: number
+    day: number
+    totalWorkouts: number
+  }
+  newState: {
+    milestone: number
+    day: number
+    totalWorkouts: number
+  }
+  metadata?: Record<string, any>
+  success: boolean
+  errorMessage?: string
+}
+
+export interface UpdateUserProgressResult {
+  success: boolean
+  error?: string
+  errorType?:
+    | 'authentication'
+    | 'validation'
+    | 'not_found'
+    | 'program_mismatch'
+    | 'data_conflict'
+    | 'system_error'
+  userId?: string
+  previousProgress?: {
+    currentMilestone: number
+    currentDay: number
+    totalWorkoutsCompleted: number
+  }
+  newProgress?: {
+    currentMilestone: number
+    currentDay: number
+    totalWorkoutsCompleted: number
+  }
+  auditId?: string
+  rollbackAvailable: boolean
+}
+
+/**
+ * Enhanced server action for updating user progress with atomic operations and rollback capability
+ * Includes comprehensive validation, audit trail, and data integrity checks
+ */
+export async function updateUserProgress(
+  input: UpdateUserProgressInput,
+): Promise<UpdateUserProgressResult> {
+  try {
+    // Validate input data
+    const validatedInput = UpdateUserProgressSchema.parse(input)
+
+    // Get current authenticated user
+    const currentUser = await getCurrentProductUser()
+    if (!currentUser) {
+      return {
+        success: false,
+        error: 'You must be logged in to update progress. Please sign in and try again.',
+        errorType: 'authentication',
+        rollbackAvailable: false,
+      }
+    }
+
+    const payload = await getPayload({ config: configPromise })
+
+    // Get current user progress for comparison and rollback
+    const currentUserData = await payload.findByID({
+      collection: 'productUsers',
+      id: currentUser.id,
+    })
+
+    if (!currentUserData) {
+      return {
+        success: false,
+        error: 'User profile not found',
+        errorType: 'not_found',
+        rollbackAvailable: false,
+      }
+    }
+
+    // Validate program consistency
+    if (currentUserData.currentProgram !== validatedInput.programId) {
+      return {
+        success: false,
+        error: 'Program mismatch. User is not enrolled in the specified program.',
+        errorType: 'program_mismatch',
+        rollbackAvailable: false,
+      }
+    }
+
+    // Validate progress integrity
+    const progressValidation = await validateProgressUpdate(
+      payload,
+      currentUserData,
+      validatedInput,
+    )
+    if (!progressValidation.isValid) {
+      return {
+        success: false,
+        error: `Progress validation failed: ${progressValidation.errors.join(', ')}`,
+        errorType: 'validation',
+        rollbackAvailable: false,
+      }
+    }
+
+    // Store previous state for rollback and audit
+    const previousProgress = {
+      currentMilestone: currentUserData.currentMilestone || 0,
+      currentDay: currentUserData.currentDay || 0,
+      totalWorkoutsCompleted: currentUserData.totalWorkoutsCompleted || 0,
+    }
+
+    // Prepare update data with only provided fields
+    const updateData: any = {}
+    if (validatedInput.currentMilestone !== undefined) {
+      updateData.currentMilestone = validatedInput.currentMilestone
+    }
+    if (validatedInput.currentDay !== undefined) {
+      updateData.currentDay = validatedInput.currentDay
+    }
+    if (validatedInput.lastWorkoutDate !== undefined) {
+      updateData.lastWorkoutDate = validatedInput.lastWorkoutDate
+    }
+    if (validatedInput.totalWorkoutsCompleted !== undefined) {
+      updateData.totalWorkoutsCompleted = validatedInput.totalWorkoutsCompleted
+    }
+
+    // Perform atomic database update
+    const updateResult = await payload.update({
+      collection: 'productUsers',
+      id: currentUser.id,
+      data: updateData,
+    })
+
+    if (!updateResult) {
+      return {
+        success: false,
+        error: 'Failed to update user progress in database',
+        errorType: 'system_error',
+        rollbackAvailable: false,
+      }
+    }
+
+    const newProgress = {
+      currentMilestone: updateResult.currentMilestone || 0,
+      currentDay: updateResult.currentDay || 0,
+      totalWorkoutsCompleted: updateResult.totalWorkoutsCompleted || 0,
+    }
+
+    // Create audit trail entry
+    const auditEntry: ProgressAuditEntry = {
+      timestamp: new Date().toISOString(),
+      userId: currentUser.id,
+      action: 'progress_update',
+      previousState: {
+        milestone: previousProgress.currentMilestone,
+        day: previousProgress.currentDay,
+        totalWorkouts: previousProgress.totalWorkoutsCompleted,
+      },
+      newState: {
+        milestone: newProgress.currentMilestone,
+        day: newProgress.currentDay,
+        totalWorkouts: newProgress.totalWorkoutsCompleted,
+      },
+      metadata: {
+        programId: validatedInput.programId,
+        sessionData: validatedInput.sessionData,
+        progressMetrics: validatedInput.progressMetrics,
+      },
+      success: true,
+    }
+
+    const auditId = (await createAuditTrailEntry(payload, auditEntry)) || 'unknown'
+
+    // Revalidate relevant paths for cache invalidation
+    revalidatePath('/dashboard')
+    revalidatePath('/workout')
+    revalidatePath(`/workout/${validatedInput.programId}`)
+
+    return {
+      success: true,
+      userId: currentUser.id,
+      previousProgress,
+      newProgress,
+      auditId,
+      rollbackAvailable: true,
+    }
+  } catch (error) {
+    console.error('Update user progress error:', error)
+
+    if (error instanceof z.ZodError) {
+      return {
+        success: false,
+        error: `Invalid progress data: ${error.issues.map((e) => e.message).join(', ')}`,
+        errorType: 'validation',
+        rollbackAvailable: false,
+      }
+    }
+
+    // Handle specific PayloadCMS errors
+    if (error && typeof error === 'object' && 'message' in error) {
+      const errorMessage = error.message as string
+      if (errorMessage.includes('unauthorized')) {
+        return {
+          success: false,
+          error: 'You must be logged in to update progress. Please sign in and try again.',
+          errorType: 'authentication',
+          rollbackAvailable: false,
+        }
+      }
+      if (errorMessage.includes('version')) {
+        return {
+          success: false,
+          error:
+            'Data conflict detected. Another session may have updated your progress. Please refresh and try again.',
+          errorType: 'data_conflict',
+          rollbackAvailable: false,
+        }
+      }
+    }
+
+    return {
+      success: false,
+      error: 'Failed to update user progress. Please try again.',
+      errorType: 'system_error',
+      rollbackAvailable: false,
+    }
+  }
+}
+
+/**
+ * Validate progress update for data integrity
+ */
+async function validateProgressUpdate(
+  payload: any,
+  currentUser: any,
+  input: UpdateUserProgressInput,
+): Promise<ProgressValidation> {
+  const errors: string[] = []
+  const warnings: string[] = []
+
+  try {
+    // Get program structure for validation
+    const program = await payload.findByID({
+      collection: 'programs',
+      id: input.programId,
+    })
+
+    if (!program) {
+      errors.push('Program not found for validation')
+      return { isValid: false, errors, warnings }
+    }
+
+    // Validate milestone bounds
+    if (input.currentMilestone !== undefined) {
+      if (!program.milestones || !Array.isArray(program.milestones)) {
+        errors.push('Program has no milestones for validation')
+      } else if (input.currentMilestone >= program.milestones.length) {
+        errors.push(
+          `Milestone index ${input.currentMilestone} exceeds program milestone count (${program.milestones.length})`,
+        )
+      }
+    }
+
+    // Validate day bounds within milestone
+    if (input.currentDay !== undefined && input.currentMilestone !== undefined) {
+      const milestone = program.milestones?.[input.currentMilestone]
+      if (milestone && milestone.days && Array.isArray(milestone.days)) {
+        if (input.currentDay >= milestone.days.length) {
+          errors.push(
+            `Day index ${input.currentDay} exceeds milestone day count (${milestone.days.length})`,
+          )
+        }
+      }
+    }
+
+    // Validate progress direction (shouldn't go backwards without explicit reason)
+    if (input.currentMilestone !== undefined) {
+      if (input.currentMilestone < currentUser.currentMilestone) {
+        warnings.push(
+          `Milestone moving backwards from ${currentUser.currentMilestone} to ${input.currentMilestone}`,
+        )
+      }
+    }
+
+    if (input.currentDay !== undefined && input.currentMilestone === currentUser.currentMilestone) {
+      if (input.currentDay < currentUser.currentDay) {
+        warnings.push(`Day moving backwards from ${currentUser.currentDay} to ${input.currentDay}`)
+      }
+    }
+
+    // Validate workout count progression
+    if (input.totalWorkoutsCompleted !== undefined) {
+      const currentTotal = currentUser.totalWorkoutsCompleted || 0
+      if (input.totalWorkoutsCompleted < currentTotal) {
+        warnings.push(
+          `Total workouts decreasing from ${currentTotal} to ${input.totalWorkoutsCompleted}`,
+        )
+      }
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+    }
+  } catch (error) {
+    console.error('Progress validation error:', error)
+    errors.push('Failed to validate progress update')
+    return { isValid: false, errors, warnings }
+  }
+}
+
+/**
+ * Create audit trail entry for progress changes
+ */
+async function createAuditTrailEntry(
+  payload: any,
+  auditEntry: ProgressAuditEntry,
+): Promise<string | null> {
+  try {
+    // For now, store audit entries in exercise completions with special metadata
+    // TODO: Create dedicated audit trail collection when PayloadCMS schema is updated
+    const auditRecord = await payload.create({
+      collection: 'exerciseCompletions',
+      data: {
+        productUser: auditEntry.userId,
+        exercise: 'audit-trail', // Special marker for audit entries
+        program: 'system', // Special marker for audit entries
+        milestoneIndex: 0,
+        dayIndex: 0,
+        sets: 0,
+        reps: 0,
+        completedAt: auditEntry.timestamp,
+        notes: JSON.stringify(auditEntry), // Store full audit data in notes
+      },
+    })
+
+    return auditRecord.id as string
+  } catch (error) {
+    console.error('Failed to create audit trail entry:', error)
+    return null
+  }
+}
+
+// Rollback schema for progress recovery
+const RollbackProgressSchema = z.object({
+  userId: z.string().min(1, 'User ID is required'),
+  auditId: z.string().min(1, 'Audit ID is required'),
+  reason: z.string().min(1, 'Rollback reason is required'),
+})
+
+export type RollbackProgressInput = z.infer<typeof RollbackProgressSchema>
+
+export interface RollbackProgressResult {
+  success: boolean
+  error?: string
+  errorType?: 'authentication' | 'validation' | 'not_found' | 'system_error'
+  rolledBackTo?: {
+    currentMilestone: number
+    currentDay: number
+    totalWorkoutsCompleted: number
+  }
+}
+
+/**
+ * Rollback user progress to a previous state using audit trail
+ * Provides recovery mechanism for failed or incorrect progress updates
+ */
+export async function rollbackUserProgress(
+  input: RollbackProgressInput,
+): Promise<RollbackProgressResult> {
+  try {
+    // Validate input
+    const validatedInput = RollbackProgressSchema.parse(input)
+
+    // Get current authenticated user (must be admin or the user themselves)
+    const currentUser = await getCurrentProductUser()
+    if (!currentUser) {
+      return {
+        success: false,
+        error: 'You must be logged in to rollback progress. Please sign in and try again.',
+        errorType: 'authentication',
+      }
+    }
+
+    // For security, only allow users to rollback their own progress
+    if (currentUser.id !== validatedInput.userId) {
+      return {
+        success: false,
+        error: 'You can only rollback your own progress.',
+        errorType: 'authentication',
+      }
+    }
+
+    const payload = await getPayload({ config: configPromise })
+
+    // Retrieve audit entry to get previous state
+    const auditRecord = await payload.findByID({
+      collection: 'exerciseCompletions',
+      id: validatedInput.auditId,
+    })
+
+    if (!auditRecord || auditRecord.exercise !== 'audit-trail') {
+      return {
+        success: false,
+        error: 'Audit record not found or invalid',
+        errorType: 'not_found',
+      }
+    }
+
+    // Parse audit data from notes field
+    let auditEntry: ProgressAuditEntry
+    try {
+      auditEntry = JSON.parse(auditRecord.notes || '{}')
+    } catch (error) {
+      return {
+        success: false,
+        error: 'Invalid audit record format',
+        errorType: 'not_found',
+      }
+    }
+
+    // Restore previous state
+    const restoreData = {
+      currentMilestone: auditEntry.previousState.milestone,
+      currentDay: auditEntry.previousState.day,
+      totalWorkoutsCompleted: auditEntry.previousState.totalWorkouts,
+    }
+
+    // Perform rollback update
+    await payload.update({
+      collection: 'productUsers',
+      id: validatedInput.userId,
+      data: restoreData,
+    })
+
+    // Create rollback audit entry
+    const rollbackAuditEntry: ProgressAuditEntry = {
+      timestamp: new Date().toISOString(),
+      userId: validatedInput.userId,
+      action: 'rollback',
+      previousState: auditEntry.newState,
+      newState: auditEntry.previousState,
+      metadata: {
+        originalAuditId: validatedInput.auditId,
+        rollbackReason: validatedInput.reason,
+      },
+      success: true,
+    }
+
+    await createAuditTrailEntry(payload, rollbackAuditEntry)
+
+    // Revalidate paths
+    revalidatePath('/dashboard')
+    revalidatePath('/workout')
+
+    return {
+      success: true,
+      rolledBackTo: restoreData,
+    }
+  } catch (error) {
+    console.error('Rollback user progress error:', error)
+
+    if (error instanceof z.ZodError) {
+      return {
+        success: false,
+        error: `Invalid rollback data: ${error.issues.map((e) => e.message).join(', ')}`,
+        errorType: 'validation',
+      }
+    }
+
+    return {
+      success: false,
+      error: 'Failed to rollback user progress. Please try again.',
+      errorType: 'system_error',
+    }
+  }
+}
