@@ -47,9 +47,14 @@ export function WorkoutDataEntry({
   onCancel,
   isLoading = false,
 }: WorkoutDataEntryProps) {
-  // Get workout store for program context
-  const { currentProgram, currentMilestoneIndex, currentDayIndex, completeExercise } =
-    useWorkoutStore()
+  // Get workout store for program context and progress tracking
+  const { 
+    currentProgram, 
+    currentMilestoneIndex, 
+    currentDayIndex, 
+    completeExercise,
+    updateExerciseProgress
+  } = useWorkoutStore()
 
   const [data, setData] = useState<WorkoutDataEntryData>(() => {
     // Initialize with fallback defaults based on exercise config
@@ -228,6 +233,38 @@ export function WorkoutDataEntry({
     setData((prev) => ({ ...prev, [field]: sanitizedValue }))
   }
 
+  // Calculate completion percentage based on current data
+  const calculateCompletionPercentage = useCallback(() => {
+    const requiredFields = ['sets', 'reps']
+    
+    // Add optional fields based on exercise requirements
+    if (exerciseConfig.weight) requiredFields.push('weight')
+    if (exerciseConfig.durationValue) requiredFields.push('time')
+    if (exerciseConfig.distanceValue) requiredFields.push('distance')
+    
+    const completedFields = requiredFields.filter(field => {
+      const value = data[field as keyof WorkoutDataEntryData]
+      return value !== undefined && value !== null && value !== 0 && value !== ''
+    })
+    
+    return Math.round((completedFields.length / requiredFields.length) * 100)
+  }, [data, exerciseConfig])
+
+  // Update exercise progress in real-time as data changes
+  useEffect(() => {
+    if (!isLoadingData) {
+      const completionPercentage = calculateCompletionPercentage()
+      const hasData = data.sets > 0 && data.reps > 0
+      const isCompleted = completionPercentage === 100 && hasData
+      
+      updateExerciseProgress(exercise.id, {
+        hasData,
+        isCompleted,
+        completionPercentage,
+      })
+    }
+  }, [exercise.id, data, isLoadingData, calculateCompletionPercentage, updateExerciseProgress])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -299,7 +336,23 @@ export function WorkoutDataEntry({
     <Card className="w-full max-w-lg mx-auto">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg sm:text-xl font-semibold">{exercise.title}</CardTitle>
+          <div className="flex-1">
+            <CardTitle className="text-lg sm:text-xl font-semibold">{exercise.title}</CardTitle>
+            {!isLoadingData && (
+              <div className="mt-2">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <span>Progress:</span>
+                  <div className="flex-1 bg-gray-200 rounded-full h-2 max-w-20">
+                    <div 
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${calculateCompletionPercentage()}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-medium">{calculateCompletionPercentage()}%</span>
+                </div>
+              </div>
+            )}
+          </div>
           {!isLoadingData && (
             <div className="flex gap-2 flex-wrap">
               {dataSource === 'previous' && autoPopulationData && (

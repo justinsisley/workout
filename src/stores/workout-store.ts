@@ -2,6 +2,19 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { MilestoneDay, DayExercise, Program, ProgramMilestone } from '@/types/program'
 
+export interface ExerciseProgress {
+  exerciseId: string
+  isCompleted: boolean
+  hasData: boolean
+  completionPercentage: number
+  lastUpdatedAt: number
+  amrapData?: {
+    totalRoundsCompleted: number
+    currentRoundProgress: number
+    totalExercisesInRound: number
+  } | undefined
+}
+
 export interface WorkoutState {
   // Program and position tracking
   currentProgram: Program | null
@@ -13,9 +26,10 @@ export interface WorkoutState {
   sessionStartTime: number | null
   currentDay: MilestoneDay | null
 
-  // Progress tracking
+  // Enhanced progress tracking
   currentExerciseIndex: number
   completedExercises: string[]
+  exerciseProgress: Record<string, ExerciseProgress>
   currentRound: number
   totalExercisesCompleted: number
 
@@ -26,6 +40,8 @@ export interface WorkoutState {
   endSession: () => void
   setCurrentExercise: (index: number) => void
   completeExercise: (exerciseId: string) => void
+  updateExerciseProgress: (exerciseId: string, progress: Partial<ExerciseProgress>) => void
+  updateAmrapProgress: (exerciseId: string, amrapData: ExerciseProgress['amrapData']) => void
   completeRound: () => void
   resetSession: () => void
 
@@ -67,6 +83,7 @@ export const useWorkoutStore = create<WorkoutState>()(
       currentDay: null,
       currentExerciseIndex: 0,
       completedExercises: [],
+      exerciseProgress: {},
       currentRound: 1,
       totalExercisesCompleted: 0,
 
@@ -84,6 +101,7 @@ export const useWorkoutStore = create<WorkoutState>()(
           sessionStartTime: null,
           currentExerciseIndex: 0,
           completedExercises: [],
+          exerciseProgress: {},
           currentRound: 1,
           totalExercisesCompleted: 0,
         })
@@ -106,6 +124,7 @@ export const useWorkoutStore = create<WorkoutState>()(
             sessionStartTime: null,
             currentExerciseIndex: 0,
             completedExercises: [],
+            exerciseProgress: {},
             currentRound: 1,
             totalExercisesCompleted: 0,
           })
@@ -119,6 +138,7 @@ export const useWorkoutStore = create<WorkoutState>()(
           currentDay: day,
           currentExerciseIndex: 0,
           completedExercises: [],
+          exerciseProgress: {},
           currentRound: 1,
           totalExercisesCompleted: 0,
         })
@@ -131,6 +151,7 @@ export const useWorkoutStore = create<WorkoutState>()(
           currentDay: null,
           currentExerciseIndex: 0,
           completedExercises: [],
+          exerciseProgress: {},
           currentRound: 1,
           totalExercisesCompleted: 0,
         })
@@ -167,8 +188,73 @@ export const useWorkoutStore = create<WorkoutState>()(
         set({
           currentExerciseIndex: 0,
           completedExercises: [],
+          exerciseProgress: {},
           currentRound: 1,
           totalExercisesCompleted: 0,
+        })
+      },
+
+      updateExerciseProgress: (exerciseId: string, progress: Partial<ExerciseProgress>) => {
+        const { exerciseProgress } = get()
+        const currentProgress = exerciseProgress[exerciseId] || {
+          exerciseId,
+          isCompleted: false,
+          hasData: false,
+          completionPercentage: 0,
+          lastUpdatedAt: Date.now(),
+        }
+
+        const updatedProgress = {
+          ...currentProgress,
+          ...progress,
+          lastUpdatedAt: Date.now(),
+        }
+
+        set({
+          exerciseProgress: {
+            ...exerciseProgress,
+            [exerciseId]: updatedProgress,
+          },
+        })
+
+        // Update completedExercises array if exercise is now completed
+        if (updatedProgress.isCompleted && !get().completedExercises.includes(exerciseId)) {
+          const { completedExercises, totalExercisesCompleted } = get()
+          set({
+            completedExercises: [...completedExercises, exerciseId],
+            totalExercisesCompleted: totalExercisesCompleted + 1,
+          })
+        }
+      },
+
+      updateAmrapProgress: (exerciseId: string, amrapData: ExerciseProgress['amrapData']) => {
+        const { exerciseProgress } = get()
+        const currentProgress = exerciseProgress[exerciseId] || {
+          exerciseId,
+          isCompleted: false,
+          hasData: false,
+          completionPercentage: 0,
+          lastUpdatedAt: Date.now(),
+        }
+
+        const updatedProgress: ExerciseProgress = {
+          ...currentProgress,
+          lastUpdatedAt: Date.now(),
+          // Update completion status based on AMRAP progress
+          hasData: Boolean(amrapData?.totalRoundsCompleted),
+          completionPercentage: amrapData ? Math.min(100, (amrapData.currentRoundProgress / amrapData.totalExercisesInRound) * 100) : 0,
+        }
+        
+        // Conditionally set amrapData only if it's provided
+        if (amrapData !== undefined) {
+          updatedProgress.amrapData = amrapData
+        }
+
+        set({
+          exerciseProgress: {
+            ...exerciseProgress,
+            [exerciseId]: updatedProgress,
+          },
         })
       },
 
@@ -321,6 +407,7 @@ export const useWorkoutStore = create<WorkoutState>()(
         currentDay: state.currentDay,
         currentExerciseIndex: state.currentExerciseIndex,
         completedExercises: state.completedExercises,
+        exerciseProgress: state.exerciseProgress,
         currentRound: state.currentRound,
         totalExercisesCompleted: state.totalExercisesCompleted,
       }),

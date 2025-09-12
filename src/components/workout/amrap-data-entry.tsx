@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -51,7 +51,12 @@ export function AmrapDataEntry({
   onCancel,
   isLoading = false,
 }: AmrapDataEntryProps) {
-  const { currentRound, totalExercisesCompleted, sessionStartTime } = useWorkoutStore()
+  const { 
+    currentRound, 
+    totalExercisesCompleted, 
+    sessionStartTime,
+    updateAmrapProgress
+  } = useWorkoutStore()
 
   const [data, setData] = useState<AmrapDataEntryData>(() => {
     // Calculate initial values from store or previous data
@@ -79,6 +84,19 @@ export function AmrapDataEntry({
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  // Update AMRAP progress in real-time for each exercise
+  useEffect(() => {
+    exercises.forEach(({ exercise }) => {
+      const amrapData = {
+        totalRoundsCompleted: data.totalRounds,
+        currentRoundProgress: data.partialRoundExercisesCompleted,
+        totalExercisesInRound: exercises.length,
+      }
+      
+      updateAmrapProgress(exercise.id, amrapData)
+    })
+  }, [data.totalRounds, data.partialRoundExercisesCompleted, exercises, updateAmrapProgress])
 
   // Calculate session time elapsed
   const sessionDurationMinutes = sessionStartTime

@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Clock, Dumbbell, Route, Timer } from 'lucide-react'
+import { Clock, Dumbbell, Route, Timer, CheckCircle2, CircleDashed } from 'lucide-react'
 import { useWorkoutStore } from '@/stores/workout-store'
 import type { DayExercise, Exercise } from '@/types/program'
 import { formatDistance, formatDuration } from '@/utils/formatters'
@@ -13,7 +13,7 @@ interface ExerciseListProps {
 }
 
 export function ExerciseList({ exercises }: ExerciseListProps) {
-  const { completedExercises } = useWorkoutStore()
+  const { completedExercises, exerciseProgress } = useWorkoutStore()
   if (!exercises?.length) {
     return (
       <Card className="w-full">
@@ -35,7 +35,11 @@ export function ExerciseList({ exercises }: ExerciseListProps) {
     <div className="space-y-3 sm:space-y-4">
       {exercises.map((exercise, index) => {
         const exerciseData = exercise.exercise as Exercise
-        const isCompleted = completedExercises.includes(exercise.id)
+        const exerciseId = typeof exercise.exercise === 'string' ? exercise.exercise : exercise.exercise.id
+        const progress = exerciseProgress[exerciseId]
+        const isCompleted = progress?.isCompleted || completedExercises.includes(exercise.id)
+        const hasData = progress?.hasData || false
+        const completionPercentage = progress?.completionPercentage || 0
 
         return (
           <Card
@@ -43,6 +47,8 @@ export function ExerciseList({ exercises }: ExerciseListProps) {
             className={`w-full transition-all duration-200 hover:shadow-md cursor-pointer active:scale-[0.98] touch-manipulation ${
               isCompleted
                 ? 'border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-950/20'
+                : hasData
+                ? 'border-blue-200 bg-blue-50/30 dark:border-blue-800 dark:bg-blue-950/20'
                 : ''
             }`}
             onClick={() => handleExerciseClick(exercise.id)}
@@ -55,14 +61,33 @@ export function ExerciseList({ exercises }: ExerciseListProps) {
                   </span>
                   <span className="truncate">{exerciseData?.title || 'Unknown Exercise'}</span>
                 </CardTitle>
-                {isCompleted && (
-                  <Badge
-                    variant="secondary"
-                    className="text-green-700 bg-green-100 dark:text-green-300 dark:bg-green-900/30 px-3 py-1 text-xs sm:text-sm"
-                  >
-                    Completed
-                  </Badge>
-                )}
+                <div className="flex items-center gap-2">
+                  {isCompleted ? (
+                    <Badge
+                      variant="secondary"
+                      className="text-green-700 bg-green-100 dark:text-green-300 dark:bg-green-900/30 px-3 py-1 text-xs sm:text-sm flex items-center gap-1"
+                    >
+                      <CheckCircle2 className="w-3 h-3" />
+                      Completed
+                    </Badge>
+                  ) : hasData ? (
+                    <Badge
+                      variant="outline"
+                      className="text-blue-700 bg-blue-50 border-blue-200 dark:text-blue-300 dark:bg-blue-900/30 px-3 py-1 text-xs sm:text-sm flex items-center gap-1"
+                    >
+                      <CircleDashed className="w-3 h-3" />
+                      {completionPercentage}% Complete
+                    </Badge>
+                  ) : null}
+                  {progress?.amrapData && (
+                    <Badge
+                      variant="outline"
+                      className="text-purple-700 bg-purple-50 border-purple-200 px-2 py-1 text-xs"
+                    >
+                      {progress.amrapData.totalRoundsCompleted} rounds
+                    </Badge>
+                  )}
+                </div>
               </div>
             </CardHeader>
 
