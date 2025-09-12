@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useWorkoutStore } from '@/stores/workout-store'
 import { ExerciseNavigation } from '@/components/workout/exercise-navigation'
 import { ExerciseBreadcrumb } from '@/components/workout/exercise-breadcrumb'
@@ -18,12 +18,19 @@ export function ExerciseDetailClient({
   exerciseId,
   children,
 }: ExerciseDetailClientProps) {
+  const [isHydrated, setIsHydrated] = useState(false)
   const { getCurrentDay, currentExerciseIndex, setCurrentExercise } = useWorkoutStore()
-  const currentDay = getCurrentDay()
+
+  // Prevent hydration mismatch by only accessing store after hydration
+  useEffect(() => {
+    setIsHydrated(true)
+  }, [])
+
+  const currentDay = isHydrated ? getCurrentDay() : null
 
   // Sync current exercise index based on the exercise ID
   useEffect(() => {
-    if (currentDay?.exercises) {
+    if (isHydrated && currentDay?.exercises) {
       const exerciseIndex = currentDay.exercises.findIndex((dayExercise) => {
         const currentExerciseId =
           typeof dayExercise.exercise === 'string' ? dayExercise.exercise : dayExercise.exercise.id
@@ -34,7 +41,7 @@ export function ExerciseDetailClient({
         setCurrentExercise(exerciseIndex)
       }
     }
-  }, [exerciseId, currentDay, currentExerciseIndex, setCurrentExercise])
+  }, [isHydrated, exerciseId, currentDay, currentExerciseIndex, setCurrentExercise])
 
   return (
     <>

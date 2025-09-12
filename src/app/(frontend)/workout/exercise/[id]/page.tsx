@@ -6,6 +6,7 @@ import { getCurrentProductUser } from '@/lib/auth-server'
 import { formatDistance, formatDuration } from '@/utils/formatters'
 import { Clock, Dumbbell, Route, Timer } from 'lucide-react'
 import { ExerciseDetailClient } from '@/components/workout/exercise-detail-client'
+import { ExerciseVideo } from '@/components/workout/exercise-video'
 import type { Exercise } from '@/types/workout'
 
 interface ExerciseDetailPageProps {
@@ -171,16 +172,14 @@ export default async function ExerciseDetailPage({
             </div>
           )}
 
-          {/* Video Section - Placeholder for now */}
+          {/* Video Section */}
           {exercise.videoUrl && (
             <div className="mb-8 bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900 mb-3">Exercise Demonstration</h2>
-              <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-                <div className="text-gray-500 text-center">
-                  <div className="text-lg font-medium mb-2">Video Coming Soon</div>
-                  <div className="text-sm">Video URL: {exercise.videoUrl}</div>
-                </div>
-              </div>
+              <ExerciseVideo
+                videoUrl={exercise.videoUrl}
+                {...(exercise.title && { exerciseTitle: exercise.title })}
+              />
             </div>
           )}
         </ExerciseDetailClient>

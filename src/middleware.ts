@@ -24,11 +24,12 @@ const securityHeaders = {
   // Content Security Policy
   'Content-Security-Policy': [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Allow inline scripts for Next.js
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://s.ytimg.com", // Allow inline scripts for Next.js + YouTube API
     "style-src 'self' 'unsafe-inline'", // Allow inline styles for styling
     "img-src 'self' data: https:", // Allow images from same origin, data URLs, and HTTPS
     "font-src 'self' data:",
-    "connect-src 'self'",
+    "connect-src 'self' https://www.youtube.com https://s.ytimg.com", // Allow YouTube connections
+    "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com", // Allow YouTube iframes
     "frame-ancestors 'none'", // Same as X-Frame-Options: DENY
   ].join('; '),
 }

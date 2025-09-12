@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { Clock, RotateCw, Target, CheckCircle2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -15,11 +16,42 @@ interface ExerciseAmrapContextProps {
 }
 
 export function ExerciseAmrapContext({ day, className = '' }: ExerciseAmrapContextProps) {
+  const [isHydrated, setIsHydrated] = useState(false)
   const { currentRound, totalExercisesCompleted, sessionStartTime } = useWorkoutStore()
+
+  // Prevent hydration mismatch by only accessing store after hydration
+  useEffect(() => {
+    setIsHydrated(true)
+  }, [])
 
   // Check if this is an AMRAP day
   if (!isAmrapDay(day)) {
     return null
+  }
+
+  // Don't render anything until hydrated to prevent mismatch with store state
+  if (!isHydrated) {
+    return (
+      <Card className={cn('border-orange-200 bg-orange-50', className)}>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="w-32 h-6 bg-gray-200 rounded animate-pulse" />
+            <div className="w-20 h-6 bg-gray-200 rounded animate-pulse" />
+          </div>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="text-center">
+                <div className="w-16 h-16 bg-gray-200 rounded-full animate-pulse mx-auto mb-2" />
+                <div className="w-20 h-4 bg-gray-200 rounded animate-pulse mx-auto mb-1" />
+                <div className="w-24 h-3 bg-gray-200 rounded animate-pulse mx-auto" />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
 
   const exercises = day.exercises || []

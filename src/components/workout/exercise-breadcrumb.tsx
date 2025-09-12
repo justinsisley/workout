@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 import { useWorkoutStore } from '@/stores/workout-store'
@@ -14,8 +14,27 @@ export function ExerciseBreadcrumb({
   currentExerciseTitle,
   className = '',
 }: ExerciseBreadcrumbProps) {
+  const [isHydrated, setIsHydrated] = useState(false)
   const { currentProgram, getCurrentMilestone, getCurrentDay, currentExerciseIndex } =
     useWorkoutStore()
+
+  // Prevent hydration mismatch by only accessing store after hydration
+  useEffect(() => {
+    setIsHydrated(true)
+  }, [])
+
+  // Don't render anything until hydrated to prevent mismatch
+  if (!isHydrated) {
+    return (
+      <nav className={`flex items-center text-sm text-gray-500 mb-4 ${className}`}>
+        <div className="w-20 h-4 bg-gray-200 rounded animate-pulse" />
+        <ChevronRight className="w-4 h-4 mx-2" />
+        <div className="w-24 h-4 bg-gray-200 rounded animate-pulse" />
+        <ChevronRight className="w-4 h-4 mx-2" />
+        <div className="w-16 h-4 bg-gray-200 rounded animate-pulse" />
+      </nav>
+    )
+  }
 
   const currentMilestone = getCurrentMilestone()
   const currentDay = getCurrentDay()

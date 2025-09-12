@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, ArrowRight, Home } from 'lucide-react'
 import { useWorkoutStore } from '@/stores/workout-store'
@@ -17,6 +17,7 @@ export function ExerciseNavigation({
   className = '',
 }: ExerciseNavigationProps) {
   const router = useRouter()
+  const [isHydrated, setIsHydrated] = useState(false)
   const {
     getCurrentDay,
     canNavigateNext,
@@ -26,6 +27,25 @@ export function ExerciseNavigation({
     setCurrentExercise,
     currentExerciseIndex,
   } = useWorkoutStore()
+
+  // Prevent hydration mismatch by only showing content after hydration
+  useEffect(() => {
+    setIsHydrated(true)
+  }, [])
+
+  // Don't render anything until hydrated to prevent mismatch
+  if (!isHydrated) {
+    return (
+      <div className={`flex justify-between items-center ${className}`}>
+        <div className="w-32 h-11 bg-gray-100 rounded animate-pulse" />
+        <div className="w-20 h-6 bg-gray-100 rounded animate-pulse" />
+        <div className="flex gap-2">
+          <div className="w-16 h-11 bg-gray-100 rounded animate-pulse" />
+          <div className="w-16 h-11 bg-gray-100 rounded animate-pulse" />
+        </div>
+      </div>
+    )
+  }
 
   const currentDay = getCurrentDay()
   const nextExercise = getNextExercise()
