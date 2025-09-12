@@ -33,21 +33,21 @@ export interface DayExercise {
   exercise: string | Exercise // Can be populated or just ID
   sets: number
   reps: number
-  restPeriod?: number
-  weight?: number
-  durationValue?: number
-  durationUnit?: 'seconds' | 'minutes' | 'hours'
-  distanceValue?: number
-  distanceUnit?: 'meters' | 'miles'
-  notes?: string
+  restPeriod?: number | undefined
+  weight?: number | undefined
+  durationValue?: number | undefined
+  durationUnit?: 'seconds' | 'minutes' | 'hours' | undefined
+  distanceValue?: number | undefined
+  distanceUnit?: 'meters' | 'miles' | undefined
+  notes?: string | undefined
 }
 
 export interface Exercise {
   id: string
-  title: string
-  description: string
-  videoUrl?: string
-  category: string
+  title: string | null
+  description: string | null
+  videoUrl?: string | null
+  category?: string
 }
 
 export interface ProgramPreview {

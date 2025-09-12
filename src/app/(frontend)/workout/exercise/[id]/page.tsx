@@ -7,7 +7,9 @@ import { formatDistance, formatDuration } from '@/utils/formatters'
 import { Clock, Dumbbell, Route, Timer } from 'lucide-react'
 import { ExerciseDetailClient } from '@/components/workout/exercise-detail-client'
 import { ExerciseVideo } from '@/components/workout/exercise-video'
-import type { Exercise } from '@/types/workout'
+import { ExerciseDataEntryClient } from '@/components/workout/exercise-data-entry-client'
+import type { Exercise as WorkoutExercise } from '@/types/workout'
+import type { DayExercise, Exercise } from '@/types/program'
 
 interface ExerciseDetailPageProps {
   params: Promise<{
@@ -41,14 +43,14 @@ export default async function ExerciseDetailPage({
   }
 
   // Fetch exercise data using PayloadCMS Local API
-  let exercise: Exercise | null = null
+  let exercise: WorkoutExercise | null = null
   try {
     const payload = await getPayload({ config: configPromise })
     const result = await payload.findByID({
       collection: 'exercises',
       id: resolvedParams.id,
     })
-    exercise = result as Exercise
+    exercise = result as WorkoutExercise
   } catch (error) {
     console.error('Error fetching exercise:', error)
     notFound()
@@ -59,7 +61,9 @@ export default async function ExerciseDetailPage({
   }
 
   // Parse exercise configuration from search params
-  const exerciseConfig = {
+  const exerciseConfig: DayExercise = {
+    id: `config-${resolvedParams.id}`,
+    exercise: resolvedParams.id,
     sets: resolvedSearchParams.sets ? parseInt(resolvedSearchParams.sets, 10) : 0,
     reps: resolvedSearchParams.reps ? parseInt(resolvedSearchParams.reps, 10) : 0,
     weight: resolvedSearchParams.weight ? parseInt(resolvedSearchParams.weight, 10) : undefined,
@@ -182,6 +186,12 @@ export default async function ExerciseDetailPage({
               />
             </div>
           )}
+
+          {/* Data Entry Section */}
+          <ExerciseDataEntryClient
+            exercise={exercise as Exercise}
+            exerciseConfig={exerciseConfig}
+          />
         </ExerciseDetailClient>
       </div>
     </div>
