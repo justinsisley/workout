@@ -1,7 +1,15 @@
 import { render, screen, fireEvent } from '@testing-library/react'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ExerciseList } from '@/components/workout/exercise-list'
 import type { DayExercise, Exercise } from '@/types/program'
+
+// Mock the workout store
+vi.mock('@/stores/workout-store', () => ({
+  useWorkoutStore: vi.fn(),
+}))
+
+import { useWorkoutStore } from '@/stores/workout-store'
+const mockUseWorkoutStore = vi.mocked(useWorkoutStore)
 
 // Mock data
 const mockExercise: Exercise = {
@@ -53,6 +61,14 @@ const mockExercises: DayExercise[] = [
 ]
 
 describe('ExerciseList', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    // Default mock store state
+    mockUseWorkoutStore.mockReturnValue({
+      completedExercises: [],
+    } as any)
+  })
+
   it('renders exercise list with all exercises', () => {
     render(<ExerciseList exercises={mockExercises} />)
 
@@ -99,20 +115,27 @@ describe('ExerciseList', () => {
   })
 
   it('shows completed status for completed exercises', () => {
-    render(<ExerciseList exercises={mockExercises} completedExercises={['day-exercise-1']} />)
+    // Mock store with completed exercises
+    mockUseWorkoutStore.mockReturnValue({
+      completedExercises: ['day-exercise-1'],
+    } as any)
+
+    render(<ExerciseList exercises={mockExercises} />)
 
     expect(screen.getByText('Completed')).toBeInTheDocument()
   })
 
-  it('handles exercise click when onExerciseSelect is provided', () => {
-    const mockOnExerciseSelect = vi.fn()
-    render(<ExerciseList exercises={mockExercises} onExerciseSelect={mockOnExerciseSelect} />)
+  it('handles exercise click', () => {
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    render(<ExerciseList exercises={mockExercises} />)
 
-    const firstExerciseCard = screen.getByText('Push-ups').closest('[class*="Card"]')
+    const firstExerciseCard = screen.getByText('Push-ups').closest('div')
     if (firstExerciseCard) {
       fireEvent.click(firstExerciseCard)
-      expect(mockOnExerciseSelect).toHaveBeenCalledWith('day-exercise-1')
+      expect(consoleSpy).toHaveBeenCalledWith('Exercise clicked:', 'day-exercise-1')
     }
+
+    consoleSpy.mockRestore()
   })
 
   it('shows empty state when no exercises provided', () => {
@@ -149,18 +172,10 @@ describe('ExerciseList', () => {
     expect(numberBadges[2]).toHaveTextContent('3')
   })
 
-  it('applies hover and active styles when clickable', () => {
-    const mockOnExerciseSelect = vi.fn()
-    render(<ExerciseList exercises={mockExercises} onExerciseSelect={mockOnExerciseSelect} />)
-
-    const firstCard = screen.getByText('Push-ups').closest('[class*="Card"]')
-    expect(firstCard).toHaveClass('cursor-pointer')
-  })
-
-  it('does not apply clickable styles when onExerciseSelect is not provided', () => {
+  it('applies clickable styles', () => {
     render(<ExerciseList exercises={mockExercises} />)
 
-    const firstCard = screen.getByText('Push-ups').closest('[class*="Card"]')
-    expect(firstCard).not.toHaveClass('cursor-pointer')
+    const firstCard = screen.getByText('Push-ups').closest('div')
+    expect(firstCard).toHaveClass('cursor-pointer')
   })
 })

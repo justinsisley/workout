@@ -8,9 +8,16 @@ vi.mock('@/utils/type-guards', () => ({
   isAmrapDay: vi.fn(),
 }))
 
+// Mock the workout store
+vi.mock('@/stores/workout-store', () => ({
+  useWorkoutStore: vi.fn(),
+}))
+
 import { isAmrapDay } from '@/utils/type-guards'
+import { useWorkoutStore } from '@/stores/workout-store'
 
 const mockIsAmrapDay = vi.mocked(isAmrapDay)
+const mockUseWorkoutStore = vi.mocked(useWorkoutStore)
 
 describe('ProgressIndicators Component', () => {
   const mockExercises: DayExercise[] = [
@@ -68,6 +75,14 @@ describe('ProgressIndicators Component', () => {
 
   beforeEach(() => {
     vi.resetAllMocks()
+    // Default mock store state
+    mockUseWorkoutStore.mockReturnValue({
+      completedExercises: [],
+      currentRound: 1,
+      currentExerciseIndex: 0,
+      totalExercisesCompleted: 0,
+      sessionStartTime: undefined,
+    } as any)
   })
 
   describe('Regular Workout Day', () => {
@@ -85,39 +100,45 @@ describe('ProgressIndicators Component', () => {
     })
 
     it('shows completion progress correctly', () => {
-      render(
-        <ProgressIndicators
-          day={mockRegularDay}
-          completedExercises={['ex1', 'ex2']}
-          currentExerciseIndex={2}
-        />,
-      )
+      mockUseWorkoutStore.mockReturnValue({
+        completedExercises: ['ex1', 'ex2'],
+        currentRound: 1,
+        currentExerciseIndex: 2,
+        totalExercisesCompleted: 2,
+        sessionStartTime: undefined,
+      } as any)
+
+      render(<ProgressIndicators day={mockRegularDay} />)
 
       expect(screen.getByText('2/3')).toBeInTheDocument()
       expect(screen.getByText('Current Position: 3 of 3')).toBeInTheDocument()
     })
 
     it('shows day as complete when all exercises are done', () => {
-      render(
-        <ProgressIndicators
-          day={mockRegularDay}
-          completedExercises={['ex1', 'ex2', 'ex3']}
-          currentExerciseIndex={3}
-        />,
-      )
+      mockUseWorkoutStore.mockReturnValue({
+        completedExercises: ['ex1', 'ex2', 'ex3'],
+        currentRound: 1,
+        currentExerciseIndex: 3,
+        totalExercisesCompleted: 3,
+        sessionStartTime: undefined,
+      } as any)
+
+      render(<ProgressIndicators day={mockRegularDay} />)
 
       expect(screen.getByText('3/3')).toBeInTheDocument()
       expect(screen.getByText('Complete')).toBeInTheDocument()
     })
 
     it('renders exercise status list correctly', () => {
-      render(
-        <ProgressIndicators
-          day={mockRegularDay}
-          completedExercises={['ex1']}
-          currentExerciseIndex={1}
-        />,
-      )
+      mockUseWorkoutStore.mockReturnValue({
+        completedExercises: ['ex1'],
+        currentRound: 1,
+        currentExerciseIndex: 1,
+        totalExercisesCompleted: 1,
+        sessionStartTime: undefined,
+      } as any)
+
+      render(<ProgressIndicators day={mockRegularDay} />)
 
       expect(screen.getByText('Exercise Status')).toBeInTheDocument()
       expect(screen.getByText('Push-ups')).toBeInTheDocument()
@@ -143,13 +164,15 @@ describe('ProgressIndicators Component', () => {
     })
 
     it('renders AMRAP day progress correctly', () => {
-      render(
-        <ProgressIndicators
-          day={mockAmrapDay}
-          currentRound={2}
-          completedExercises={['ex1', 'ex2']}
-        />,
-      )
+      mockUseWorkoutStore.mockReturnValue({
+        completedExercises: ['ex1', 'ex2'],
+        currentRound: 2,
+        currentExerciseIndex: 0,
+        totalExercisesCompleted: 2,
+        sessionStartTime: undefined,
+      } as any)
+
+      render(<ProgressIndicators day={mockAmrapDay} />)
 
       expect(screen.getByText('Day Progress')).toBeInTheDocument()
       expect(screen.getByText('Exercises per Round')).toBeInTheDocument()
@@ -157,14 +180,15 @@ describe('ProgressIndicators Component', () => {
     })
 
     it('shows AMRAP-specific progress section', () => {
-      render(
-        <ProgressIndicators
-          day={mockAmrapDay}
-          currentRound={3}
-          currentExerciseIndex={1}
-          totalExercisesCompleted={7}
-        />,
-      )
+      mockUseWorkoutStore.mockReturnValue({
+        completedExercises: ['ex1'],
+        currentRound: 3,
+        currentExerciseIndex: 1,
+        totalExercisesCompleted: 7,
+        sessionStartTime: undefined,
+      } as any)
+
+      render(<ProgressIndicators day={mockAmrapDay} />)
 
       expect(screen.getByText('AMRAP Progress')).toBeInTheDocument()
       expect(screen.getByText('Current Round Progress')).toBeInTheDocument()
@@ -186,14 +210,15 @@ describe('ProgressIndicators Component', () => {
     })
 
     it('calculates round-based progress correctly', () => {
-      render(
-        <ProgressIndicators
-          day={mockAmrapDay}
-          currentRound={1}
-          currentExerciseIndex={2}
-          totalExercisesCompleted={2}
-        />,
-      )
+      mockUseWorkoutStore.mockReturnValue({
+        completedExercises: ['ex1', 'ex2'],
+        currentRound: 1,
+        currentExerciseIndex: 2,
+        totalExercisesCompleted: 2,
+        sessionStartTime: undefined,
+      } as any)
+
+      render(<ProgressIndicators day={mockAmrapDay} />)
 
       // 2 exercises completed out of 3 = 2/3 current round progress
       expect(screen.getByText('2/3 exercises')).toBeInTheDocument()
@@ -217,7 +242,15 @@ describe('ProgressIndicators Component', () => {
     it('shows session duration when provided', () => {
       const fiveMinutesAgo = Date.now() - 5 * 60 * 1000
 
-      render(<ProgressIndicators day={mockRegularDay} sessionStartTime={fiveMinutesAgo} />)
+      mockUseWorkoutStore.mockReturnValue({
+        completedExercises: [],
+        currentRound: 1,
+        currentExerciseIndex: 0,
+        totalExercisesCompleted: 0,
+        sessionStartTime: fiveMinutesAgo,
+      } as any)
+
+      render(<ProgressIndicators day={mockRegularDay} />)
 
       expect(screen.getByText('Session Info')).toBeInTheDocument()
       expect(screen.getByText('Session Duration')).toBeInTheDocument()
@@ -228,7 +261,15 @@ describe('ProgressIndicators Component', () => {
       mockIsAmrapDay.mockReturnValue(true)
       const oneMinuteAgo = Date.now() - 1 * 60 * 1000
 
-      render(<ProgressIndicators day={mockAmrapDay} sessionStartTime={oneMinuteAgo} />)
+      mockUseWorkoutStore.mockReturnValue({
+        completedExercises: [],
+        currentRound: 1,
+        currentExerciseIndex: 0,
+        totalExercisesCompleted: 0,
+        sessionStartTime: oneMinuteAgo,
+      } as any)
+
+      render(<ProgressIndicators day={mockAmrapDay} />)
 
       expect(screen.getByText('Session Duration')).toBeInTheDocument()
       expect(screen.getByText('1 minutes')).toBeInTheDocument()
@@ -319,13 +360,15 @@ describe('ProgressIndicators Component', () => {
     })
 
     it('highlights current exercise correctly', () => {
-      render(
-        <ProgressIndicators
-          day={mockRegularDay}
-          currentExerciseIndex={1}
-          completedExercises={['ex1']}
-        />,
-      )
+      mockUseWorkoutStore.mockReturnValue({
+        completedExercises: ['ex1'],
+        currentRound: 1,
+        currentExerciseIndex: 1,
+        totalExercisesCompleted: 1,
+        sessionStartTime: undefined,
+      } as any)
+
+      render(<ProgressIndicators day={mockRegularDay} />)
 
       // First exercise should show as done
       const doneElements = screen.getAllByText('Done')

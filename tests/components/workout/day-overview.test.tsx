@@ -3,6 +3,14 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { DayOverview } from '@/components/workout/day-overview'
 import type { MilestoneDay, DayExercise, Exercise } from '@/types/program'
 
+// Mock the workout store
+vi.mock('@/stores/workout-store', () => ({
+  useWorkoutStore: vi.fn(),
+}))
+
+import { useWorkoutStore } from '@/stores/workout-store'
+const mockUseWorkoutStore = vi.mocked(useWorkoutStore)
+
 describe('DayOverview', () => {
   const mockOnStartWorkout = vi.fn()
 
@@ -46,6 +54,12 @@ describe('DayOverview', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    // Default mock store state
+    mockUseWorkoutStore.mockReturnValue({
+      completedExercises: [],
+      currentRound: 1,
+      // Add any other store methods that might be needed
+    } as any)
   })
 
   describe('Regular Workout Day', () => {
@@ -66,13 +80,18 @@ describe('DayOverview', () => {
     })
 
     it('displays progress indicators correctly', () => {
+      // Mock store with completed exercises
+      mockUseWorkoutStore.mockReturnValue({
+        completedExercises: ['dayex1'],
+        currentRound: 1,
+      } as any)
+
       render(
         <DayOverview
           day={mockWorkoutDay}
           dayNumber={1}
           milestoneName="Foundation"
           onStartWorkout={mockOnStartWorkout}
-          completedExercises={['dayex1']}
         />,
       )
 
@@ -127,13 +146,18 @@ describe('DayOverview', () => {
     })
 
     it('shows current round for AMRAP workout', () => {
+      // Mock store with current round
+      mockUseWorkoutStore.mockReturnValue({
+        completedExercises: [],
+        currentRound: 3,
+      } as any)
+
       render(
         <DayOverview
           day={mockAmrapDay}
           dayNumber={2}
           milestoneName="Endurance"
           onStartWorkout={mockOnStartWorkout}
-          currentRound={3}
         />,
       )
 
@@ -260,13 +284,18 @@ describe('DayOverview', () => {
         ],
       }
 
+      // Mock store with partial completion
+      mockUseWorkoutStore.mockReturnValue({
+        completedExercises: ['dayex1', 'dayex2'],
+        currentRound: 1,
+      } as any)
+
       render(
         <DayOverview
           day={multiExerciseDay}
           dayNumber={1}
           milestoneName="Multi"
           onStartWorkout={mockOnStartWorkout}
-          completedExercises={['dayex1', 'dayex2']}
         />,
       )
 
