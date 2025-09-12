@@ -296,13 +296,13 @@ describe('ExerciseAmrapContext', () => {
     })
 
     it('should handle undefined exercises gracefully', () => {
-      const dayWithUndefinedExercises: MilestoneDay = {
+      const dayWithUndefinedExercises = {
         id: 'day-test',
-        dayType: 'workout',
+        dayType: 'workout' as const,
         isAmrap: true,
         amrapDuration: 20,
         // exercises property intentionally omitted to test undefined case
-      }
+      } as MilestoneDay
 
       mockUseWorkoutStore.mockReturnValue({
         currentRound: 1,
@@ -315,9 +315,9 @@ describe('ExerciseAmrapContext', () => {
     })
 
     it('should handle missing AMRAP duration', () => {
-      const dayWithoutDuration: MilestoneDay = {
+      const dayWithoutDuration = {
         id: 'day-test',
-        dayType: 'workout',
+        dayType: 'workout' as const,
         isAmrap: true,
         exercises: [
           {
@@ -328,7 +328,7 @@ describe('ExerciseAmrapContext', () => {
           },
         ],
         // amrapDuration property intentionally omitted to test undefined case
-      }
+      } as MilestoneDay
 
       mockUseWorkoutStore.mockReturnValue({
         currentRound: 1,
